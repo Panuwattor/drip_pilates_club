@@ -357,7 +357,8 @@
     <div class="install-icon"><i class="bi bi-phone"></i></div>
     <div class="install-copy">
       <strong data-th="ติดตั้งแอปนี้" data-en="Install this app">ติดตั้งแอปนี้</strong>
-      <div data-th="เพิ่ม Drip Pilates ลงเครื่องเพื่อเข้าใช้งานเหมือนแอปมือถือ" data-en="Add Drip Pilates to your device for app-like access">เพิ่ม Drip Pilates ลงเครื่องเพื่อเข้าใช้งานเหมือนแอปมือถือ</div>
+      <div id="installMessage" data-th="เพิ่ม Drip Pilates ลงเครื่องเพื่อเข้าใช้งานเหมือนแอปมือถือ" data-en="Add Drip Pilates to your device for app-like access">เพิ่ม Drip Pilates ลงเครื่องเพื่อเข้าใช้งานเหมือนแอปมือถือ</div>
+      <div id="installInstructions" class="install-instructions hidden" data-th="เปิด Safari แล้วแตะปุ่มแชร์ จากนั้นเลือก \"เพิ่มไปยังหน้าจอโฮม\"" data-en="Open Safari, tap Share, then choose \"Add to Home Screen\"">เปิด Safari แล้วแตะปุ่มแชร์ จากนั้นเลือก "เพิ่มไปยังหน้าจอโฮม"</div>
       <div class="install-actions">
         <button id="installBtn" class="btn-install" type="button" data-th="ติดตั้ง" data-en="Install">ติดตั้ง</button>
         <button id="dismissInstallBtn" class="btn-dismiss" type="button" data-th="ปิด" data-en="Dismiss">ปิด</button>
@@ -868,11 +869,48 @@ var deferredPrompt;
 var installBanner = document.getElementById('installBanner');
 var installBtn = document.getElementById('installBtn');
 var dismissInstallBtn = document.getElementById('dismissInstallBtn');
+var installMessage = document.getElementById('installMessage');
+var installInstructions = document.getElementById('installInstructions');
+
+function isIos(){
+  return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+}
+
+function isInStandaloneMode(){
+  return (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
+}
+
+function showInstallBanner(platform){
+  if(isInStandaloneMode()) return;
+  if(platform === 'ios'){
+    installMessage.textContent = currentLang === 'th'
+      ? 'เปิด Safari แล้วแตะปุ่มแชร์ จากนั้นเลือก "เพิ่มไปยังหน้าจอโฮม"'
+      : 'Open Safari, tap Share, then choose "Add to Home Screen"';
+    installInstructions.textContent = currentLang === 'th'
+      ? 'เปิด Safari แล้วแตะปุ่มแชร์ จากนั้นเลือก "เพิ่มไปยังหน้าจอโฮม"'
+      : 'Open Safari, tap Share, then choose "Add to Home Screen"';
+    installBtn.classList.add('hidden');
+    installInstructions.classList.remove('hidden');
+  } else {
+    installMessage.textContent = currentLang === 'th'
+      ? 'เพิ่ม Drip Pilates ลงเครื่องเพื่อเข้าใช้งานเหมือนแอปมือถือ'
+      : 'Add Drip Pilates to your device for app-like access';
+    installBtn.classList.remove('hidden');
+    installInstructions.classList.add('hidden');
+  }
+  installBanner.classList.remove('hidden');
+}
 
 window.addEventListener('beforeinstallprompt', function(e){
   e.preventDefault();
   deferredPrompt = e;
-  installBanner.classList.remove('hidden');
+  showInstallBanner('android');
+});
+
+window.addEventListener('load', function(){
+  if(isIos() && !isInStandaloneMode()){
+    showInstallBanner('ios');
+  }
 });
 
 installBtn && installBtn.addEventListener('click', function(){
