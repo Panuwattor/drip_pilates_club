@@ -331,6 +331,13 @@
     border-radius:999px;
     padding:0.55rem 1rem;
   }
+  .install-banner .btn-openchrome{
+    background:#4B5563;
+    color:#fff;
+    border:none;
+    border-radius:999px;
+    padding:0.55rem 1rem;
+  }
   .install-banner .btn-dismiss{
     background:transparent;
     color:#6B7690;
@@ -361,6 +368,7 @@
       <div id="installInstructions" class="install-instructions hidden" data-th="เปิด Safari แล้วแตะปุ่มแชร์ จากนั้นเลือก \"เพิ่มไปยังหน้าจอโฮม\"" data-en="Open Safari, tap Share, then choose \"Add to Home Screen\"">เปิด Safari แล้วแตะปุ่มแชร์ จากนั้นเลือก "เพิ่มไปยังหน้าจอโฮม"</div>
       <div class="install-actions">
         <button id="installBtn" class="btn-install" type="button" data-th="ติดตั้ง" data-en="Install">ติดตั้ง</button>
+        <button id="openInChromeBtn" class="btn-openchrome hidden" type="button" data-th="เปิดใน Chrome" data-en="Open in Chrome">เปิดใน Chrome</button>
         <button id="dismissInstallBtn" class="btn-dismiss" type="button" data-th="ปิด" data-en="Dismiss">ปิด</button>
       </div>
     </div>
@@ -868,6 +876,7 @@ document.getElementById('langToggle').addEventListener('click', function(){
 var deferredPrompt;
 var installBanner = document.getElementById('installBanner');
 var installBtn = document.getElementById('installBtn');
+var openInChromeBtn = document.getElementById('openInChromeBtn');
 var dismissInstallBtn = document.getElementById('dismissInstallBtn');
 var installMessage = document.getElementById('installMessage');
 var installInstructions = document.getElementById('installInstructions');
@@ -876,29 +885,69 @@ function isIos(){
   return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
 }
 
+function isAndroid(){
+  return /android/.test(window.navigator.userAgent.toLowerCase());
+}
+
+function isLineBrowser(){
+  return /line\//.test(window.navigator.userAgent.toLowerCase());
+}
+
 function isInStandaloneMode(){
   return (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
 }
 
 function showInstallBanner(platform){
   if(isInStandaloneMode()) return;
+  installBanner.classList.remove('hidden');
+  installInstructions.classList.add('hidden');
+  installBtn.classList.remove('hidden');
+
   if(platform === 'ios'){
     installMessage.textContent = currentLang === 'th'
-      ? 'เปิด Safari แล้วแตะปุ่มแชร์ จากนั้นเลือก "เพิ่มไปยังหน้าจอโฮม"'
-      : 'Open Safari, tap Share, then choose "Add to Home Screen"';
+      ? 'เพิ่ม Drip Pilates ลงเครื่องเพื่อเข้าใช้งานเหมือนแอปมือถือ'
+      : 'Add Drip Pilates to your device for app-like access';
     installInstructions.textContent = currentLang === 'th'
       ? 'เปิด Safari แล้วแตะปุ่มแชร์ จากนั้นเลือก "เพิ่มไปยังหน้าจอโฮม"'
       : 'Open Safari, tap Share, then choose "Add to Home Screen"';
     installBtn.classList.add('hidden');
     installInstructions.classList.remove('hidden');
-  } else {
+  } else if(platform === 'linebrowser'){
+    installMessage.textContent = currentLang === 'th'
+      ? 'เปิดใน Chrome แล้วใช้เมนูแชร์เพื่อเพิ่มไปยังหน้าจอโฮม'
+      : 'Open in Chrome, then use the share menu to add to Home Screen';
+    installInstructions.textContent = currentLang === 'th'
+      ? 'แตะปุ่มเมนู แล้วเลือก "เปิดใน Chrome" จากนั้นเพิ่มไปยังหน้าจอโฮม'
+      : 'Tap the menu, choose "Open in Chrome", then add to Home Screen';
+    installBtn.classList.add('hidden');
+    openInChromeBtn.classList.remove('hidden');
+    installInstructions.classList.remove('hidden');
+  } else if(platform === 'android'){
     installMessage.textContent = currentLang === 'th'
       ? 'เพิ่ม Drip Pilates ลงเครื่องเพื่อเข้าใช้งานเหมือนแอปมือถือ'
       : 'Add Drip Pilates to your device for app-like access';
     installBtn.classList.remove('hidden');
-    installInstructions.classList.add('hidden');
+    openInChromeBtn.classList.add('hidden');
+  } else if(platform === 'android-fallback'){
+    installMessage.textContent = currentLang === 'th'
+      ? 'หากไม่มีปุ่มติดตั้ง ให้ใช้เมนู Chrome และเลือก "เพิ่มไปยังหน้าจอโฮม"'
+      : 'If Install is not shown, use Chrome menu and choose "Add to Home Screen"';
+    installInstructions.textContent = currentLang === 'th'
+      ? 'แตะปุ่มเมนู แล้วเลือก "เพิ่มไปยังหน้าจอโฮม"'
+      : 'Tap menu, then choose "Add to Home Screen"';
+    installBtn.classList.add('hidden');
+    openInChromeBtn.classList.add('hidden');
+    installInstructions.classList.remove('hidden');
   }
-  installBanner.classList.remove('hidden');
+}
+
+function openInChrome(){
+  var url = window.location.href;
+  var chromeIntent = 'intent://' + window.location.host + window.location.pathname + window.location.search + '#Intent;scheme=https;package=com.android.chrome;end';
+  window.location.href = chromeIntent;
+  setTimeout(function(){
+    window.location.href = url;
+  }, 1200);
 }
 
 window.addEventListener('beforeinstallprompt', function(e){
@@ -908,8 +957,21 @@ window.addEventListener('beforeinstallprompt', function(e){
 });
 
 window.addEventListener('load', function(){
-  if(isIos() && !isInStandaloneMode()){
+  if(isInStandaloneMode()) return;
+  if(isLineBrowser()){
+    showInstallBanner('linebrowser');
+    return;
+  }
+  if(isIos()){
     showInstallBanner('ios');
+    return;
+  }
+  if(isAndroid()){
+    setTimeout(function(){
+      if(!deferredPrompt){
+        showInstallBanner('android-fallback');
+      }
+    }, 1200);
   }
 });
 
@@ -920,6 +982,10 @@ installBtn && installBtn.addEventListener('click', function(){
     installBanner.classList.add('hidden');
     deferredPrompt = null;
   });
+});
+
+openInChromeBtn && openInChromeBtn.addEventListener('click', function(){
+  openInChrome();
 });
 
 dismissInstallBtn && dismissInstallBtn.addEventListener('click', function(){

@@ -1,8 +1,8 @@
-const CACHE_NAME = 'drip-pilates-cache-v1';
+const CACHE_NAME = 'drip-pilates-cache-v2';
 const ASSETS = [
   '/',
   '/manifest.webmanifest',
-  '/images/logo.jpg'
+  '/images/logo.png'
 ];
 
 self.addEventListener('install', event => {
