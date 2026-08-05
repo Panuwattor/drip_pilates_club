@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Drip Pilates</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#7C93B8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <style>
@@ -280,6 +284,60 @@
 
   .tab-pane-view{ display:none; }
   .tab-pane-view.active{ display:block; }
+
+  .install-banner{
+    position:fixed;
+    left:12px;
+    right:12px;
+    bottom:88px;
+    z-index:30;
+    background:rgba(255,255,255,0.98);
+    border:1px solid rgba(0,0,0,0.08);
+    border-radius:18px;
+    box-shadow:0 12px 36px rgba(0,0,0,0.12);
+    padding:1rem 1rem 0.8rem;
+    display:flex;
+    align-items:flex-start;
+    gap:0.85rem;
+  }
+  .install-banner.hidden{ display:none; }
+  .install-banner .install-icon{
+    width:44px;
+    height:44px;
+    border-radius:14px;
+    background:#7C93B8;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.2rem;
+    flex-shrink:0;
+  }
+  .install-banner .install-copy{
+    flex:1;
+    min-width:0;
+  }
+  .install-banner .install-copy strong{ display:block; margin-bottom:0.15rem; }
+  .install-banner .install-actions{
+    display:flex;
+    gap:0.5rem;
+    flex-wrap:wrap;
+    margin-top:0.6rem;
+  }
+  .install-banner .btn-install{
+    background:#7C93B8;
+    color:#fff;
+    border:none;
+    border-radius:999px;
+    padding:0.55rem 1rem;
+  }
+  .install-banner .btn-dismiss{
+    background:transparent;
+    color:#6B7690;
+    border:none;
+    padding:0.55rem 1rem;
+    border-radius:999px;
+  }
 </style>
 </head>
 <body>
@@ -295,6 +353,17 @@
 </nav>
 
 <div class="container-lg pb-5">
+  <div id="installBanner" class="install-banner hidden" role="dialog" aria-live="polite">
+    <div class="install-icon"><i class="bi bi-phone"></i></div>
+    <div class="install-copy">
+      <strong data-th="ติดตั้งแอปนี้" data-en="Install this app">ติดตั้งแอปนี้</strong>
+      <div data-th="เพิ่ม Drip Pilates ลงเครื่องเพื่อเข้าใช้งานเหมือนแอปมือถือ" data-en="Add Drip Pilates to your device for app-like access">เพิ่ม Drip Pilates ลงเครื่องเพื่อเข้าใช้งานเหมือนแอปมือถือ</div>
+      <div class="install-actions">
+        <button id="installBtn" class="btn-install" type="button" data-th="ติดตั้ง" data-en="Install">ติดตั้ง</button>
+        <button id="dismissInstallBtn" class="btn-dismiss" type="button" data-th="ปิด" data-en="Dismiss">ปิด</button>
+      </div>
+    </div>
+  </div>
 
   <!-- HOME -->
   <div class="tab-pane-view active" id="pane-home">
@@ -786,7 +855,7 @@ document.getElementById('themeToggle').addEventListener('click', function(){
 document.getElementById('langToggle').addEventListener('click', function(){
   currentLang = currentLang === 'th' ? 'en' : 'th';
   document.documentElement.setAttribute('lang', currentLang);
-  document.getElementById('langFlag').src = '{{ asset('images') }}/' + currentLang + '.png';
+  document.getElementById('langFlag').src = '{{ asset("images") }}/' + currentLang + '.png';
   document.getElementById('langFlag').alt = currentLang.toUpperCase();
   document.querySelectorAll('[data-th]').forEach(function(el){
     el.textContent = el.getAttribute('data-' + currentLang);
@@ -794,6 +863,42 @@ document.getElementById('langToggle').addEventListener('click', function(){
   updateMonthLabel();
   if(calendarPop.classList.contains('open')){ renderCalendar(); }
 });
+
+var deferredPrompt;
+var installBanner = document.getElementById('installBanner');
+var installBtn = document.getElementById('installBtn');
+var dismissInstallBtn = document.getElementById('dismissInstallBtn');
+
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  deferredPrompt = e;
+  installBanner.classList.remove('hidden');
+});
+
+installBtn && installBtn.addEventListener('click', function(){
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(function(choiceResult){
+    installBanner.classList.add('hidden');
+    deferredPrompt = null;
+  });
+});
+
+dismissInstallBtn && dismissInstallBtn.addEventListener('click', function(){
+  installBanner.classList.add('hidden');
+});
+
+window.addEventListener('appinstalled', function(){
+  installBanner.classList.add('hidden');
+});
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(err){
+      console.warn('SW registration failed:', err);
+    });
+  });
+}
 </script>
 </body>
 </html>

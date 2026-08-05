@@ -1,0 +1,23 @@
+{
+  "name": "Drip Pilates Club",
+  "short_name": "Drip Pilates",
+  "description": "แอป Drip Pilates สำหรับจองคลาสและติดตามกิจกรรมพิลาทิส",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#EEF1F6",
+  "theme_color": "#7C93B8",
+  "icons": [
+    {
+      "src": "/images/logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "/images/logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
