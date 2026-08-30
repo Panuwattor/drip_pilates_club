@@ -1,8 +1,9 @@
 <!doctype html>
-<html lang="th" data-bs-theme="light">
+<html lang="{{ app()->getLocale() }}" data-bs-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <title>Drip Pilates</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#7C93B8">
@@ -46,7 +47,13 @@
     background:var(--panel); border-bottom:1px solid var(--line);
     padding:.75rem 0;
   }
-  body{ padding-top:62px; }
+  body{ padding-top:62px; overflow-x:hidden; }
+
+  /* Bootstrap ไม่มีคลาสนี้ ต้องประกาศเอง กันข้อความยาวดันความกว้างจนล้น */
+  .min-width-0{ min-width:0; }
+  .class-info{ min-width:0; }
+  .class-info h4{ overflow-wrap:anywhere; }
+  .class-info .meta{ flex-wrap:wrap; }
   .app-topbar .brandmark{
     font-family:Georgia,serif; font-weight:700; font-size:1.15rem; color:var(--ink);
   }
@@ -65,6 +72,13 @@
     display:flex; align-items:center; justify-content:center; overflow:hidden;
   }
   .app-topbar .lang-btn img{ width:20px; height:20px; border-radius:50%; object-fit:cover; }
+
+  @media (max-width:575.98px){
+    .app-topbar .brandmark{ display:none; }
+    .app-topbar .theme-btn span{ display:none; }
+    .app-topbar .theme-btn{ width:34px; height:34px; padding:0; display:flex; align-items:center; justify-content:center; }
+    .branch-btn{ max-width:150px; }
+  }
 
   body{ padding-bottom:78px; }
 
@@ -285,6 +299,83 @@
   .tab-pane-view{ display:none; }
   .tab-pane-view.active{ display:block; }
 
+  .branch-switch{ position:relative; flex:0 0 auto; }
+  .branch-btn{
+    background:var(--ground); border:1px solid var(--line); color:var(--ink);
+    border-radius:999px; padding:.35rem .75rem; display:flex; align-items:center; gap:.4rem;
+    font-size:.78rem; font-weight:600; max-width:190px;
+  }
+  .branch-btn:hover{ border-color:var(--accent); }
+  .branch-btn .bb-pin{
+    width:22px; height:22px; border-radius:50%; background:var(--accent-soft); color:var(--accent-deep);
+    display:flex; align-items:center; justify-content:center; font-size:.72rem; flex:0 0 auto;
+  }
+  .branch-btn .bb-name{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .branch-btn .bb-caret{ color:var(--ink-soft); font-size:.65rem; flex:0 0 auto; }
+
+  .branch-pop{
+    display:none; position:absolute; top:calc(100% + 8px); right:0; z-index:40;
+    background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    box-shadow:0 12px 32px rgba(0,0,0,.14); padding:.5rem; width:270px;
+  }
+  .branch-pop.open{ display:block; }
+  .branch-pop .bp-title{
+    font-size:.66rem; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink-soft); font-weight:700; padding:.4rem .6rem .5rem;
+  }
+  .branch-option{
+    width:100%; display:flex; align-items:center; gap:.7rem; text-align:left;
+    background:none; border:1px solid transparent; border-radius:12px; padding:.6rem;
+    color:var(--ink);
+  }
+  .branch-option:hover{ background:var(--ground); }
+  .branch-option .bo-pin{
+    width:34px; height:34px; border-radius:10px; background:var(--sage-soft); color:var(--sage);
+    display:flex; align-items:center; justify-content:center; font-size:.9rem; flex:0 0 auto;
+  }
+  .branch-option .bo-name{ font-size:.85rem; font-weight:700; display:block; }
+  .branch-option .bo-addr{ font-size:.72rem; color:var(--ink-soft); display:block; margin-top:1px; }
+  .branch-option .bo-check{ margin-left:auto; color:var(--accent); font-size:.9rem; opacity:0; flex:0 0 auto; }
+  .branch-option.selected{ border-color:var(--accent); background:var(--accent-soft); }
+  .branch-option.selected .bo-pin{ background:var(--accent); color:#FBF3F0; }
+  .branch-option.selected .bo-check{ opacity:1; }
+
+  .branch-bar{
+    display:flex; align-items:center; gap:.75rem;
+    background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding:.8rem 1rem; margin-bottom:1rem;
+  }
+  .branch-bar .bbar-pin{
+    width:38px; height:38px; border-radius:12px; background:var(--accent-soft); color:var(--accent-deep);
+    display:flex; align-items:center; justify-content:center; font-size:1rem; flex:0 0 auto;
+  }
+  .branch-bar .bbar-copy{ flex:1; min-width:0; }
+  .branch-bar .bbar-label{
+    font-size:.66rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); font-weight:700;
+  }
+  .branch-bar .bbar-name{ font-size:.95rem; font-weight:700; color:var(--ink); }
+  .branch-bar .bbar-addr{ font-size:.74rem; color:var(--ink-soft); }
+  .branch-bar .bbar-switch{
+    background:var(--ground); border:1px solid var(--line); color:var(--accent-deep);
+    border-radius:999px; font-size:.74rem; font-weight:700; padding:.4rem .85rem; white-space:nowrap;
+  }
+  .branch-bar .bbar-switch:hover{ border-color:var(--accent); }
+
+  .branch-tabs{ display:flex; gap:.5rem; margin-bottom:1rem; }
+  .branch-tab{
+    flex:1; background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:.6rem .5rem; color:var(--ink-soft); font-size:.8rem; font-weight:700;
+    display:flex; align-items:center; justify-content:center; gap:.4rem;
+  }
+  .branch-tab:hover{ border-color:var(--accent); }
+  .branch-tab.active{ background:var(--accent); border-color:var(--accent); color:#FBF3F0; }
+
+  .no-class-note{
+    text-align:center; font-size:.85rem; color:var(--ink-soft);
+    border:1px dashed var(--line); border-radius:16px; padding:2rem 1rem;
+  }
+  .no-class-note.hidden{ display:none; }
+
   .install-banner{
     position:fixed;
     left:12px;
@@ -345,6 +436,16 @@
     padding:0.55rem 1rem;
     border-radius:999px;
   }
+  .app-toast{
+    position:fixed; left:50%; transform:translateX(-50%) translateY(20px);
+    bottom:92px; z-index:60; max-width:calc(100vw - 32px);
+    background:var(--ink); color:var(--panel);
+    border-radius:999px; padding:.7rem 1.25rem; font-size:.85rem; font-weight:600;
+    box-shadow:0 8px 28px rgba(0,0,0,.22);
+    opacity:0; pointer-events:none; transition:opacity .2s, transform .2s;
+  }
+  .app-toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .app-toast.error{ background:#9B3232; color:#fff; }
 </style>
 </head>
 <body>
@@ -353,8 +454,19 @@
   <div class="container-lg d-flex align-items-center justify-content-between">
     <span class="brand-lockup"><img src="{{ asset('images/logo.jpg') }}" alt="Drip Pilates" class="brand-logo"><span class="brandmark">Drip Pilates</span></span>
     <div class="d-flex align-items-center gap-2">
+      <div class="branch-switch">
+        <button class="branch-btn" id="branchToggle" type="button" aria-haspopup="true" aria-expanded="false">
+          <span class="bb-pin"><i class="bi bi-geo-alt-fill"></i></span>
+          <span class="bb-name" id="branchBtnName">สาขาสุขุมวิท</span>
+          <span class="bb-caret"><i class="bi bi-chevron-down"></i></span>
+        </button>
+        <div class="branch-pop" id="branchPop" role="menu">
+          <div class="bp-title" data-th="เลือกสาขา" data-en="Select Branch">เลือกสาขา</div>
+          <div id="branchOptions"></div>
+        </div>
+      </div>
       <button class="theme-btn" id="themeToggle" type="button"><i class="bi bi-circle-half"></i> <span data-th="โหมดมืด/สว่าง" data-en="Dark/Light">โหมดมืด/สว่าง</span></button>
-      <button class="lang-btn" id="langToggle" type="button" title="Change language"><img id="langFlag" src="{{ asset('images/th.png') }}" alt="TH"></button>
+      <button class="lang-btn" id="langToggle" type="button" title="Change language"><img id="langFlag" src="{{ asset('images/' . app()->getLocale() . '.png') }}" alt="{{ strtoupper(app()->getLocale()) }}"></button>
     </div>
   </div>
 </nav>
@@ -363,9 +475,9 @@
   <div id="installBanner" class="install-banner hidden" role="dialog" aria-live="polite">
     <div class="install-icon"><i class="bi bi-phone"></i></div>
     <div class="install-copy">
-      <strong data-th="ติดตั้งแอปนี้" data-en="Install this app">ติดตั้งแอปนี้</strong>
-      <div id="installMessage" data-th="เพิ่ม Drip Pilates ลงเครื่องเพื่อเข้าใช้งานเหมือนแอปมือถือ" data-en="Add Drip Pilates to your device for app-like access">เพิ่ม Drip Pilates ลงเครื่องเพื่อเข้าใช้งานเหมือนแอปมือถือ</div>
-      <div id="installInstructions" class="install-instructions hidden" data-th="เปิด Safari แล้วแตะปุ่มแชร์ จากนั้นเลือก \"เพิ่มไปยังหน้าจอโฮม\"" data-en="Open Safari, tap Share, then choose \"Add to Home Screen\"">เปิด Safari แล้วแตะปุ่มแชร์ จากนั้นเลือก "เพิ่มไปยังหน้าจอโฮม"</div>
+      <strong id="installTitle" data-th="ติดตั้ง Drip Pilates" data-en="Install Drip Pilates">ติดตั้ง Drip Pilates</strong>
+      <div id="installMessage">เพิ่มลงหน้าจอโฮม เปิดใช้งานได้เร็วเหมือนแอป</div>
+      <div id="installInstructions" class="install-instructions hidden"></div>
       <div class="install-actions">
         <button id="installBtn" class="btn-install" type="button" data-th="ติดตั้ง" data-en="Install">ติดตั้ง</button>
         <button id="openInChromeBtn" class="btn-openchrome hidden" type="button" data-th="เปิดใน Chrome" data-en="Open in Chrome">เปิดใน Chrome</button>
@@ -377,59 +489,123 @@
   <!-- HOME -->
   <div class="tab-pane-view active" id="pane-home">
     <div class="page-header">
-      <div class="brandmark" data-th="ภาพรวม" data-en="Overview">ภาพรวม</div>
-      <h1 data-th="สวัสดี คุณมิว 👋" data-en="Hello, Miw 👋">สวัสดี คุณมิว 👋</h1>
-      <p data-th="วันอังคารที่ 5 สิงหาคม" data-en="Tuesday, August 5">วันอังคารที่ 5 สิงหาคม</p>
+      <div class="brandmark">{{ __t('ภาพรวม', 'Overview') }}</div>
+      <h1>
+        @if($customer)
+          {{ __t('สวัสดี คุณ' . ($customer->nickname ?: $customer->first_name), 'Hello, ' . ($customer->nickname ?: $customer->first_name)) }} 👋
+        @else
+          {{ __t('ยินดีต้อนรับ', 'Welcome') }} 👋
+        @endif
+      </h1>
+      <p>{{ now()->locale(app()->getLocale())->isoFormat(app()->getLocale() === 'th' ? 'dddd D MMMM' : 'dddd, D MMMM') }}</p>
     </div>
+
+    @foreach($announcements as $ann)
+      <div class="mb-3 p-3 rounded-4" style="background:var(--accent-soft);color:var(--accent-deep);">
+        <strong>{{ $ann->title }}</strong>
+        @if($ann->body)<div class="small mt-1">{{ $ann->body }}</div>@endif
+      </div>
+    @endforeach
 
     <div class="row g-3 mb-2">
       <div class="col-md-6">
         <div class="credit-card">
           <div>
             <div class="text-uppercase small opacity-75" style="font-size:.68rem;letter-spacing:.08em;">Class Credits</div>
-            <div class="cc-count">6</div>
-            <div class="small opacity-75" data-th="หมดอายุ 30 ก.ย. 2569" data-en="Expires Sep 30, 2026">หมดอายุ 30 ก.ย. 2569</div>
+            <div class="cc-count">{{ $hasUnlimited ? '∞' : $totalCredits }}</div>
+            @php $nearest = $packages->where('status', 'active')->sortBy('expires_at')->first(); @endphp
+            <div class="small opacity-75">
+              @if($hasUnlimited)
+                {{ __t('เหมาจ่าย', 'Unlimited') }}@if($nearest) · {{ __t('ถึง', 'until') }} {{ $nearest->expires_at->locale(app()->getLocale())->isoFormat('D MMM YYYY') }}@endif
+              @elseif($nearest)
+                {{ __t('หมดอายุ', 'Expires') }} {{ $nearest->expires_at->locale(app()->getLocale())->isoFormat('D MMM YYYY') }}
+              @else
+                {{ __t('ยังไม่มีแพ็กเกจ', 'No active package') }}
+              @endif
+            </div>
           </div>
-          <button class="cc-btn" type="button" data-th="เติมแพ็กเกจ" data-en="Top Up">เติมแพ็กเกจ</button>
+          <a href="#" class="cc-btn text-decoration-none js-goto-profile">{{ __t('เติมแพ็กเกจ', 'Top Up') }}</a>
         </div>
       </div>
+
       <div class="col-md-6">
-        <a href="#" class="class-card mb-0 h-100 text-decoration-none">
-          <div class="class-time-rail">08:00<small data-th="เช้านี้" data-en="This morning">เช้านี้</small></div>
-          <div class="class-info d-flex align-items-center justify-content-between gap-2">
-            <div>
-              <h4>Reformer Flow</h4>
-              <p class="meta"><img src="{{ asset('images/01.jpg') }}" alt="Nan" class="coach-avatar"><span data-th="ครูแนน" data-en="Coach Nan">ครูแนน</span> · <span data-th="สตูดิโอ 2" data-en="Studio 2">สตูดิโอ 2</span></p>
+        @php $next = $upcoming->first(); @endphp
+        @if($next)
+          <div class="class-card mb-0 h-100">
+            <div class="class-time-rail">
+              {{ $next->classSession->start_at->format('H:i') }}
+              <small>
+                @if($next->classSession->start_at->isToday()) {{ __t('วันนี้', 'Today') }}
+                @elseif($next->classSession->start_at->isTomorrow()) {{ __t('พรุ่งนี้', 'Tomorrow') }}
+                @else {{ $next->classSession->start_at->locale(app()->getLocale())->isoFormat('D MMM') }}
+                @endif
+              </small>
             </div>
-            <span class="text-secondary"><i class="bi bi-chevron-right"></i></span>
+            <div class="class-info d-flex align-items-center justify-content-between gap-2">
+              <div>
+                <h4>{{ $next->classSession->classType->name }}</h4>
+                <p class="meta">
+                  @php $nt = $next->classSession->actualTrainer(); @endphp
+                  @if($nt?->avatar)<img src="{{ asset($nt->avatar) }}" alt="" class="coach-avatar">@endif
+                  <span>{{ $nt?->nickname ?: $nt?->name }}</span> ·
+                  <span>{{ $next->classSession->branch->short_name_th ? $next->classSession->branch->trans('short_name') : $next->classSession->branch->name }}</span>
+                </p>
+              </div>
+              <span class="text-secondary"><i class="bi bi-chevron-right"></i></span>
+            </div>
           </div>
-        </a>
+        @else
+          <div class="class-card mb-0 h-100 align-items-center justify-content-center" style="padding:1.5rem;">
+            <div class="text-center w-100">
+              <div class="text-secondary small mb-2">{{ __t('ยังไม่มีคลาสที่จองไว้', 'No upcoming classes') }}</div>
+              <button class="btn btn-book btn-sm js-goto-schedule" type="button">{{ __t('จองคลาสเลย', 'Book a class') }}</button>
+            </div>
+          </div>
+        @endif
       </div>
     </div>
 
-    <div class="section-title mt-4" data-th="บริการด่วน" data-en="Quick Actions">บริการด่วน</div>
+    <div class="section-title mt-4">{{ __t('บริการด่วน', 'Quick Actions') }}</div>
     <div class="row row-cols-2 row-cols-md-4 g-3 mb-2">
-      <div class="col"><a href="#" class="quick-item"><div class="qi-icon"><i class="bi bi-plus-lg"></i></div><span data-th="จองคลาส" data-en="Book Class">จองคลาส</span></a></div>
-      <div class="col"><a href="#" class="quick-item"><div class="qi-icon"><i class="bi bi-arrow-repeat"></i></div><span data-th="เลื่อนคลาส" data-en="Reschedule">เลื่อนคลาส</span></a></div>
-      <div class="col"><a href="#" class="quick-item"><div class="qi-icon"><i class="bi bi-ticket-perforated"></i></div><span data-th="ซื้อแพ็กเกจ" data-en="Buy Package">ซื้อแพ็กเกจ</span></a></div>
-      <div class="col"><a href="#" class="quick-item"><div class="qi-icon"><i class="bi bi-envelope"></i></div><span data-th="ชวนเพื่อน" data-en="Invite Friend">ชวนเพื่อน</span></a></div>
+      <div class="col"><button class="quick-item w-100 border-0 js-goto-schedule" type="button"><div class="qi-icon"><i class="bi bi-plus-lg"></i></div><span>{{ __t('จองคลาส', 'Book Class') }}</span></button></div>
+      <div class="col"><button class="quick-item w-100 border-0 js-goto-bookings" type="button"><div class="qi-icon"><i class="bi bi-arrow-repeat"></i></div><span>{{ __t('การจองของฉัน', 'My Bookings') }}</span></button></div>
+      <div class="col"><button class="quick-item w-100 border-0 js-goto-profile" type="button"><div class="qi-icon"><i class="bi bi-ticket-perforated"></i></div><span>{{ __t('ซื้อแพ็กเกจ', 'Buy Package') }}</span></button></div>
+      <div class="col">
+        @php $branch = $branches->firstWhere('id', $currentBranchId); @endphp
+        <a href="{{ $branch?->google_map_url ?: '#' }}" @if($branch?->google_map_url) target="_blank" @endif class="quick-item"><div class="qi-icon"><i class="bi bi-geo-alt"></i></div><span>{{ __t('แผนที่สาขา', 'Find Us') }}</span></a>
+      </div>
     </div>
 
-    <div class="section-title mt-4" data-th="ครูผู้สอน" data-en="Instructors">ครูผู้สอน</div>
+    <div class="section-title mt-4">{{ __t('ครูผู้สอน', 'Instructors') }}</div>
     <div class="row row-cols-4 row-cols-md-6 g-3">
-      <div class="col text-center"><div class="avatar-round mx-auto mb-2"><img src="{{ asset('images/01.jpg') }}" alt="Nan"></div><div class="instructor-name" data-th="ครูแนน" data-en="Coach Nan">ครูแนน</div></div>
-      <div class="col text-center"><div class="avatar-round mx-auto mb-2"><img src="{{ asset('images/02.jpg') }}" alt="Ta"></div><div class="instructor-name" data-th="ครูต้า" data-en="Coach Ta">ครูต้า</div></div>
-      <div class="col text-center"><div class="avatar-round mx-auto mb-2"><img src="{{ asset('images/03.jpg') }}" alt="Fah"></div><div class="instructor-name" data-th="ครูฟ้า" data-en="Coach Fah">ครูฟ้า</div></div>
-      <div class="col text-center"><div class="avatar-round mx-auto mb-2"><img src="{{ asset('images/04.jpg') }}" alt="Get"></div><div class="instructor-name" data-th="ครูเก็ท" data-en="Coach Get">ครูเก็ท</div></div>
+      @foreach($trainers as $t)
+        <div class="col text-center">
+          <div class="avatar-round mx-auto mb-2">
+            @if($t->avatar)<img src="{{ asset($t->avatar) }}" alt="{{ $t->name }}">@else<i class="bi bi-person"></i>@endif
+          </div>
+          <div class="instructor-name">{{ $t->nickname ?: $t->name }}</div>
+        </div>
+      @endforeach
     </div>
-
   </div>
 
   <!-- SCHEDULE -->
   <div class="tab-pane-view" id="pane-schedule">
     <div class="page-header">
       <h1 data-th="ตารางคลาส" data-en="Class Schedule">ตารางคลาส</h1>
-      <p data-th="เลือกวันเพื่อดูคลาสที่เปิดจอง" data-en="Pick a day to view open classes">เลือกวันเพื่อดูคลาสที่เปิดจอง</p>
+      <p data-th="เลือกสาขาและวันเพื่อดูคลาสที่เปิดจอง" data-en="Pick a branch and day to view open classes">เลือกสาขาและวันเพื่อดูคลาสที่เปิดจอง</p>
+    </div>
+
+    <div class="branch-tabs" id="branchTabs"></div>
+
+    <div class="branch-bar">
+      <div class="bbar-pin"><i class="bi bi-geo-alt-fill"></i></div>
+      <div class="bbar-copy">
+        <div class="bbar-label" data-th="สาขาที่เลือก" data-en="Selected Branch">สาขาที่เลือก</div>
+        <div class="bbar-name" id="branchBarName">สาขาสุขุมวิท</div>
+        <div class="bbar-addr" id="branchBarAddr">สุขุมวิท 24 · โทร 02-111-2233</div>
+      </div>
+      <button class="bbar-switch" id="branchBarSwitch" type="button" data-th="สลับสาขา" data-en="Switch">สลับสาขา</button>
     </div>
 
     <div class="d-flex align-items-center justify-content-between mb-2 position-relative">
@@ -453,184 +629,271 @@
 
     <div class="section-title" id="selectedDateLabel" data-th="อังคาร 5 ส.ค." data-en="Tuesday, Aug 5">อังคาร 5 ส.ค.</div>
 
-    <div class="row row-cols-1 row-cols-md-2 g-3">
-      <div class="col">
-        <div class="class-card mb-0 h-100">
-          <div class="class-time-rail">08:00<small data-th="50 นาที" data-en="50 min">50 นาที</small></div>
-          <div class="class-info">
-            <div class="d-flex justify-content-between align-items-start gap-2">
-              <div><h4>Reformer Flow</h4><p class="meta"><img src="{{ asset('images/01.jpg') }}" alt="Nan" class="coach-avatar"><span data-th="ครูแนน" data-en="Coach Nan">ครูแนน</span> · <span data-th="สตูดิโอ 2" data-en="Studio 2">สตูดิโอ 2</span></p></div>
-              <span class="badge rounded-pill" style="background:var(--sage-soft);color:var(--sage);" data-th="เหลือ 4 ที่" data-en="4 spots left">เหลือ 4 ที่</span>
-            </div>
-            <button class="btn btn-book btn-sm mt-2" type="button" data-th="จองเลย" data-en="Book Now">จองเลย</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="col">
-        <div class="class-card mb-0 h-100">
-          <div class="class-time-rail">09:15<small data-th="45 นาที" data-en="45 min">45 นาที</small></div>
-          <div class="class-info">
-            <div class="d-flex justify-content-between align-items-start gap-2">
-              <div><h4>Mat Pilates Basic</h4><p class="meta"><img src="{{ asset('images/03.jpg') }}" alt="Fah" class="coach-avatar"><span data-th="ครูฟ้า" data-en="Coach Fah">ครูฟ้า</span> · <span data-th="สตูดิโอ 1" data-en="Studio 1">สตูดิโอ 1</span></p></div>
-              <span class="badge rounded-pill" style="background:#F4E3C7;color:#8A6112;" data-th="เหลือ 1 ที่" data-en="1 spot left">เหลือ 1 ที่</span>
-            </div>
-            <button class="btn btn-book btn-sm mt-2" type="button" data-th="จองเลย" data-en="Book Now">จองเลย</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="col">
-        <div class="class-card mb-0 h-100">
-          <div class="class-time-rail">17:30<small data-th="50 นาที" data-en="50 min">50 นาที</small></div>
-          <div class="class-info">
-            <div class="d-flex justify-content-between align-items-start gap-2">
-              <div><h4>Reformer Sculpt</h4><p class="meta"><img src="{{ asset('images/02.jpg') }}" alt="Ta" class="coach-avatar"><span data-th="ครูต้า" data-en="Coach Ta">ครูต้า</span> · <span data-th="สตูดิโอ 2" data-en="Studio 2">สตูดิโอ 2</span></p></div>
-              <span class="badge rounded-pill" style="background:var(--accent-soft);color:var(--accent-deep);" data-th="เต็ม" data-en="Full">เต็ม</span>
-            </div>
-            <button class="btn btn-waitlist btn-sm border mt-2" type="button" data-th="เข้าคิว Waitlist" data-en="Join Waitlist">เข้าคิว Waitlist</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="col">
-        <div class="class-card mb-0 h-100">
-          <div class="class-time-rail">19:00<small data-th="50 นาที" data-en="50 min">50 นาที</small></div>
-          <div class="class-info">
-            <div class="d-flex justify-content-between align-items-start gap-2">
-              <div><h4>Prenatal Pilates</h4><p class="meta"><img src="{{ asset('images/04.jpg') }}" alt="Get" class="coach-avatar"><span data-th="ครูเก็ท" data-en="Coach Get">ครูเก็ท</span> · <span data-th="สตูดิโอ 1" data-en="Studio 1">สตูดิโอ 1</span></p></div>
-              <span class="badge rounded-pill" style="background:var(--sage-soft);color:var(--sage);" data-th="เหลือ 6 ที่" data-en="6 spots left">เหลือ 6 ที่</span>
-            </div>
-            <button class="btn btn-book btn-sm mt-2" type="button" data-th="จองเลย" data-en="Book Now">จองเลย</button>
-          </div>
-        </div>
-      </div>
+    <div class="row row-cols-1 row-cols-md-2 g-3" id="classList">
+      @include('partials.class-cards', ['sessions' => $sessions, 'myBookings' => $myBookings])
     </div>
+
+    <div class="no-class-note {{ $sessions->isEmpty() ? '' : 'hidden' }}" id="noClassNote"
+         data-th="ยังไม่มีคลาสเปิดจองในสาขานี้สำหรับวันที่เลือก"
+         data-en="No open classes at this branch for the selected day">ยังไม่มีคลาสเปิดจองในสาขานี้สำหรับวันที่เลือก</div>
 
   </div>
 
   <!-- BOOKINGS -->
   <div class="tab-pane-view" id="pane-bookings">
     <div class="page-header">
-      <h1 data-th="การจองของฉัน" data-en="My Bookings">การจองของฉัน</h1>
-      <p data-th="คลาสที่กำลังจะถึงและประวัติ" data-en="Upcoming classes and history">คลาสที่กำลังจะถึงและประวัติ</p>
+      <h1>{{ __t('การจองของฉัน', 'My Bookings') }}</h1>
+      <p>{{ __t('คลาสที่กำลังจะถึงและประวัติ', 'Upcoming classes and history') }}</p>
     </div>
 
-    <div class="row g-4">
-      <div class="col-md-8">
-        <div class="section-title" data-th="กำลังจะถึง" data-en="Upcoming">กำลังจะถึง</div>
-
-        <div class="class-card mb-3">
-          <div class="class-time-rail">08:00<small data-th="พรุ่งนี้" data-en="Tomorrow">พรุ่งนี้</small></div>
-          <div class="class-info">
-            <div class="d-flex justify-content-between align-items-start gap-2">
-              <div><h4>Reformer Flow</h4><p class="meta"><img src="{{ asset('images/01.jpg') }}" alt="Nan" class="coach-avatar"><span data-th="ครูแนน" data-en="Coach Nan">ครูแนน</span> · <span data-th="สตูดิโอ 2" data-en="Studio 2">สตูดิโอ 2</span></p></div>
-              <span class="badge rounded-pill" style="background:var(--sage-soft);color:var(--sage);" data-th="ยืนยันแล้ว" data-en="Confirmed">ยืนยันแล้ว</span>
-            </div>
-            <div class="booking-actions mt-2">
-              <a href="#" data-th="เลื่อนคลาส" data-en="Reschedule">เลื่อนคลาส</a>
-              <a href="#" class="muted" data-th="ยกเลิก" data-en="Cancel">ยกเลิก</a>
-            </div>
-          </div>
-        </div>
-
-        <div class="class-card mb-3">
-          <div class="class-time-rail">09:15<small data-th="พฤ 7 ส.ค." data-en="Thu, Aug 7">พฤ 7 ส.ค.</small></div>
-          <div class="class-info">
-            <div class="d-flex justify-content-between align-items-start gap-2">
-              <div><h4>Mat Pilates Basic</h4><p class="meta"><img src="{{ asset('images/03.jpg') }}" alt="Fah" class="coach-avatar"><span data-th="ครูฟ้า" data-en="Coach Fah">ครูฟ้า</span> · <span data-th="สตูดิโอ 1" data-en="Studio 1">สตูดิโอ 1</span></p></div>
-              <span class="badge rounded-pill" style="background:var(--sage-soft);color:var(--sage);" data-th="ยืนยันแล้ว" data-en="Confirmed">ยืนยันแล้ว</span>
-            </div>
-            <div class="booking-actions mt-2">
-              <a href="#" data-th="เลื่อนคลาส" data-en="Reschedule">เลื่อนคลาส</a>
-              <a href="#" class="muted" data-th="ยกเลิก" data-en="Cancel">ยกเลิก</a>
-            </div>
-          </div>
+    @guest('customer')
+      <div class="no-class-note">
+        {{ __t('เข้าสู่ระบบเพื่อดูการจองของคุณ', 'Log in to see your bookings') }}
+        <div class="mt-3">
+          <a href="{{ route('customer.login') }}" class="btn btn-book btn-sm">{{ __t('เข้าสู่ระบบ', 'Log in') }}</a>
         </div>
       </div>
+    @else
+      <div class="row g-4">
+        <div class="col-md-8">
+          <div class="section-title">{{ __t('กำลังจะถึง', 'Upcoming') }}</div>
 
-      <div class="col-md-4">
-        <div class="section-title" data-th="ประวัติที่ผ่านมา" data-en="Past History">ประวัติที่ผ่านมา</div>
-        <div class="class-card mb-2">
-          <div class="class-time-rail">17:30<small data-th="จันทร์ 28 ก.ค." data-en="Mon, Jul 28">จันทร์ 28 ก.ค.</small></div>
-          <div class="class-info">
-            <div class="d-flex justify-content-between align-items-start gap-2">
-              <div><h4>Reformer Sculpt</h4><p class="meta"><img src="{{ asset('images/02.jpg') }}" alt="Ta" class="coach-avatar"><span data-th="ครูต้า" data-en="Coach Ta">ครูต้า</span></p></div>
-              <span class="badge rounded-pill" style="background:var(--accent-soft);color:var(--accent-deep);" data-th="เข้าเรียนแล้ว" data-en="Attended">เข้าเรียนแล้ว</span>
+          @forelse($upcoming as $b)
+            @php $bs = $b->classSession; $bt = $bs->actualTrainer(); @endphp
+            <div class="class-card mb-3">
+              <div class="class-time-rail">
+                {{ $bs->start_at->format('H:i') }}
+                <small>
+                  @if($bs->start_at->isToday()) {{ __t('วันนี้', 'Today') }}
+                  @elseif($bs->start_at->isTomorrow()) {{ __t('พรุ่งนี้', 'Tomorrow') }}
+                  @else {{ $bs->start_at->locale(app()->getLocale())->isoFormat('ddd D MMM') }}
+                  @endif
+                </small>
+              </div>
+              <div class="class-info">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                  <div class="min-width-0">
+                    <h4>{{ $bs->classType->name }}</h4>
+                    <p class="meta">
+                      @if($bt?->avatar)<img src="{{ asset($bt->avatar) }}" alt="" class="coach-avatar">@endif
+                      <span>{{ $bt?->nickname ?: $bt?->name }}</span> ·
+                      <span>{{ $bs->branch->name }}</span>
+                      @if($bs->room) · <span>{{ $bs->room->name }}</span>@endif
+                    </p>
+                  </div>
+                  @if($b->status === 'waitlisted')
+                    <span class="badge rounded-pill" style="background:#F4E3C7;color:#8A6112;">
+                      {{ __t('คิวที่ ' . $b->waitlist_position, 'Queue #' . $b->waitlist_position) }}
+                    </span>
+                  @else
+                    <span class="badge rounded-pill" style="background:#D8ECD9;color:#2F6B33;">
+                      {{ __t('ยืนยันแล้ว', 'Confirmed') }}
+                    </span>
+                  @endif
+                </div>
+                <div class="booking-actions mt-2">
+                  <a href="#" class="muted js-cancel-booking" data-booking="{{ $b->id }}">{{ __t('ยกเลิก', 'Cancel') }}</a>
+                </div>
+              </div>
             </div>
-          </div>
+          @empty
+            <div class="no-class-note">
+              {{ __t('ยังไม่มีคลาสที่จองไว้', 'No upcoming bookings') }}
+              <div class="mt-3">
+                <button class="btn btn-book btn-sm js-goto-schedule" type="button">{{ __t('ดูตารางคลาส', 'View schedule') }}</button>
+              </div>
+            </div>
+          @endforelse
         </div>
 
-        <div class="text-center small text-secondary border rounded-4 py-4 px-2" style="border-style:dashed !important;border-color:var(--line) !important;" data-th="ดูประวัติย้อนหลังทั้งหมดได้ที่โปรไฟล์" data-en="View full history in Profile">
-          ดูประวัติย้อนหลังทั้งหมดได้ที่โปรไฟล์
+        <div class="col-md-4">
+          <div class="section-title">{{ __t('ประวัติที่ผ่านมา', 'Past History') }}</div>
+
+          @forelse($pastBookings as $b)
+            @php
+              $st = [
+                'attended'       => [__t('เข้าเรียนแล้ว', 'Attended'), 'background:var(--accent-soft);color:var(--accent-deep);'],
+                'no_show'        => [__t('ไม่มาเรียน', 'No-show'), 'background:#F6DADA;color:#9B3232;'],
+                'cancelled'      => [__t('ยกเลิกแล้ว', 'Cancelled'), 'background:var(--sage-soft);color:var(--sage);'],
+                'late_cancelled' => [__t('ยกเลิกช้า', 'Late cancel'), 'background:#F4E3C7;color:#8A6112;'],
+              ][$b->status] ?? [$b->status, ''];
+            @endphp
+            <div class="class-card mb-2">
+              <div class="class-time-rail">
+                {{ $b->classSession->start_at->format('H:i') }}
+                <small>{{ $b->classSession->start_at->locale(app()->getLocale())->isoFormat('D MMM') }}</small>
+              </div>
+              <div class="class-info">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                  <div class="min-width-0"><h4>{{ $b->classSession->classType->name }}</h4></div>
+                  <span class="badge rounded-pill" style="{{ $st[1] }}">{{ $st[0] }}</span>
+                </div>
+              </div>
+            </div>
+          @empty
+            <div class="no-class-note">{{ __t('ยังไม่มีประวัติ', 'No history yet') }}</div>
+          @endforelse
         </div>
       </div>
-    </div>
-
+    @endguest
   </div>
 
   <!-- PROFILE -->
   <div class="tab-pane-view" id="pane-profile">
     <div class="page-header">
-      <h1 data-th="โปรไฟล์" data-en="Profile">โปรไฟล์</h1>
-      <p data-th="บัญชีและแพ็กเกจของคุณ" data-en="Your account and packages">บัญชีและแพ็กเกจของคุณ</p>
+      <h1>{{ __t('โปรไฟล์', 'Profile') }}</h1>
+      <p>{{ __t('บัญชีและแพ็กเกจของคุณ', 'Your account and packages') }}</p>
     </div>
 
-    <div class="profile-hero d-flex align-items-center gap-3 mb-4">
-      <div class="avatar-lg"><img src="{{ asset('images/customer.jpg') }}" alt="มิว จันทร์เพ็ญ"></div>
-      <div class="flex-grow-1">
-        <h3 class="mb-1" style="font-size:1.25rem;" data-th="มิว จันทร์เพ็ญ" data-en="Miw Chanphen">มิว จันทร์เพ็ญ</h3>
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-          <span class="member-badge"><i class="bi bi-gem"></i> <span data-th="สมาชิกโกลด์" data-en="Gold Member">สมาชิกโกลด์</span></span>
-          <span class="small opacity-75" data-th="สมาชิกตั้งแต่ ม.ค. 2568" data-en="Member since Jan 2025">สมาชิกตั้งแต่ ม.ค. 2568</span>
+    @guest('customer')
+      <div class="no-class-note">
+        {{ __t('เข้าสู่ระบบเพื่อจัดการบัญชีของคุณ', 'Log in to manage your account') }}
+        <div class="mt-3 d-flex gap-2 justify-content-center">
+          <a href="{{ route('customer.login') }}" class="btn btn-book btn-sm">{{ __t('เข้าสู่ระบบ', 'Log in') }}</a>
+          <a href="{{ route('customer.register') }}" class="btn btn-waitlist btn-sm border">{{ __t('สมัครสมาชิก', 'Sign up') }}</a>
         </div>
       </div>
-    </div>
-
-    <div class="row row-cols-3 g-2 mb-4">
-      <div class="col">
-        <div class="stat-box">
-          <div class="stat-icon" style="background:var(--accent-soft);color:var(--accent-deep);"><i class="bi bi-activity"></i></div>
-          <div class="num">42</div><div class="lbl" data-th="คลาสทั้งหมด" data-en="Total Classes">คลาสทั้งหมด</div>
+    @else
+      <div class="profile-hero d-flex align-items-center gap-3 mb-4">
+        <div class="avatar-lg">
+          @if($customer->avatar)<img src="{{ asset($customer->avatar) }}" alt="">@else<i class="bi bi-person"></i>@endif
         </div>
-      </div>
-      <div class="col">
-        <div class="stat-box">
-          <div class="stat-icon" style="background:var(--sage-soft);color:var(--sage);"><i class="bi bi-ticket-perforated"></i></div>
-          <div class="num">6</div><div class="lbl" data-th="เครดิตคงเหลือ" data-en="Credits Left">เครดิตคงเหลือ</div>
-        </div>
-      </div>
-      <div class="col">
-        <div class="stat-box">
-          <div class="stat-icon" style="background:#F4E3C7;color:#8A6112;"><i class="bi bi-fire"></i></div>
-          <div class="num">3</div><div class="lbl" data-th="สัปดาห์ติดต่อกัน" data-en="Week Streak">สัปดาห์ติดต่อกัน</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="row g-4">
-      <div class="col-md-6">
-        <div class="section-title" data-th="บัญชี" data-en="Account">บัญชี</div>
-        <div class="menu-list mb-4">
-          <a href="#" class="menu-row"><div class="mi"><i class="bi bi-ticket-perforated"></i></div><span data-th="แพ็กเกจของฉัน" data-en="My Packages">แพ็กเกจของฉัน</span><div class="chev"><i class="bi bi-chevron-right"></i></div></a>
-          <a href="#" class="menu-row"><div class="mi"><i class="bi bi-credit-card"></i></div><span data-th="วิธีการชำระเงิน" data-en="Payment Methods">วิธีการชำระเงิน</span><div class="chev"><i class="bi bi-chevron-right"></i></div></a>
-          <a href="#" class="menu-row"><div class="mi"><i class="bi bi-bell"></i></div><span data-th="การแจ้งเตือน" data-en="Notifications">การแจ้งเตือน</span><div class="chev"><i class="bi bi-chevron-right"></i></div></a>
-          <a href="#" class="menu-row"><div class="mi"><i class="bi bi-person"></i></div><span data-th="แก้ไขข้อมูลส่วนตัว" data-en="Edit Profile">แก้ไขข้อมูลส่วนตัว</span><div class="chev"><i class="bi bi-chevron-right"></i></div></a>
+        <div class="flex-grow-1 min-width-0">
+          <h3 class="mb-1" style="font-size:1.25rem;">{{ $customer->full_name }}</h3>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="member-badge"><i class="bi bi-gem"></i> {{ $customer->code }}</span>
+            <span class="small opacity-75">
+              {{ __t('สมาชิกตั้งแต่', 'Member since') }}
+              {{ $customer->created_at->locale(app()->getLocale())->isoFormat('MMM YYYY') }}
+            </span>
+          </div>
         </div>
       </div>
 
-      <div class="col-md-6">
-        <div class="section-title" data-th="อื่นๆ" data-en="Other">อื่นๆ</div>
-        <div class="menu-list">
-          <a href="#" class="menu-row"><div class="mi"><i class="bi bi-question-circle"></i></div><span data-th="ศูนย์ช่วยเหลือ" data-en="Help Center">ศูนย์ช่วยเหลือ</span><div class="chev"><i class="bi bi-chevron-right"></i></div></a>
-          <a href="#" class="menu-row"><div class="mi"><i class="bi bi-box-arrow-right"></i></div><span data-th="ออกจากระบบ" data-en="Log Out">ออกจากระบบ</span><div class="chev"><i class="bi bi-chevron-right"></i></div></a>
+      <div class="row row-cols-3 g-2 mb-4">
+        <div class="col">
+          <div class="stat-box">
+            <div class="stat-icon" style="background:var(--accent-soft);color:var(--accent-deep);"><i class="bi bi-activity"></i></div>
+            <div class="num">{{ $customer->bookings()->where('status', 'attended')->count() }}</div>
+            <div class="lbl">{{ __t('คลาสทั้งหมด', 'Classes') }}</div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="stat-box">
+            <div class="stat-icon" style="background:var(--sage-soft);color:var(--sage);"><i class="bi bi-ticket-perforated"></i></div>
+            <div class="num">{{ $hasUnlimited ? '∞' : $totalCredits }}</div>
+            <div class="lbl">{{ __t('เครดิตคงเหลือ', 'Credits') }}</div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="stat-box">
+            <div class="stat-icon" style="background:#F4E3C7;color:#8A6112;"><i class="bi bi-calendar-check"></i></div>
+            <div class="num">{{ $upcoming->count() }}</div>
+            <div class="lbl">{{ __t('จองไว้', 'Upcoming') }}</div>
+          </div>
         </div>
       </div>
-    </div>
 
+      <div class="section-title">{{ __t('แพ็กเกจของฉัน', 'My Packages') }}</div>
+      <div class="row g-3 mb-4">
+        @forelse($packages->whereIn('status', ['active', 'frozen']) as $cp)
+          <div class="col-md-6">
+            <div class="class-card mb-0 h-100">
+              <div class="class-time-rail">
+                {{ $cp->isUnlimited() ? '∞' : $cp->credit_remaining }}
+                <small>{{ __t('เหลือ', 'left') }}</small>
+              </div>
+              <div class="class-info">
+                <h4>{{ $cp->package->name }}</h4>
+                <p class="meta">
+                  {{ __t('หมดอายุ', 'Expires') }}
+                  {{ $cp->expires_at->locale(app()->getLocale())->isoFormat('D MMM YYYY') }}
+                  @php $days = $cp->daysUntilExpiry(); @endphp
+                  @if($days >= 0 && $days <= 14)
+                    <span class="badge rounded-pill" style="background:#F4E3C7;color:#8A6112;">
+                      {{ __t("เหลือ {$days} วัน", "{$days} days") }}
+                    </span>
+                  @endif
+                  @if($cp->status === 'frozen')
+                    <span class="badge rounded-pill" style="background:var(--sage-soft);color:var(--sage);">
+                      {{ __t('ฟรีซอยู่', 'Frozen') }}
+                    </span>
+                  @endif
+                </p>
+              </div>
+            </div>
+          </div>
+        @empty
+          <div class="col-12"><div class="no-class-note">{{ __t('ยังไม่มีแพ็กเกจที่ใช้งานได้', 'No active packages') }}</div></div>
+        @endforelse
+      </div>
+
+      <div class="section-title">{{ __t('แพ็กเกจที่เปิดขาย', 'Available Packages') }}</div>
+      <div class="row g-3 mb-4">
+        @foreach($shopPackages as $p)
+          <div class="col-md-4">
+            <div class="panel h-100">
+              <h4 style="font-size:1rem;font-weight:700;margin:0 0 .2rem;">{{ $p->name }}</h4>
+              @if($p->description)<p class="small text-secondary mb-2">{{ $p->description }}</p>@endif
+              <div style="font-family:Georgia,serif;font-size:1.5rem;color:var(--accent-deep);">
+                {{ number_format($p->price) }} <span style="font-size:.8rem;">฿</span>
+                @if($p->compare_at_price)
+                  <span class="small text-secondary text-decoration-line-through">{{ number_format($p->compare_at_price) }}</span>
+                @endif
+              </div>
+              <div class="small text-secondary mt-1">
+                {{ $p->credit_amount === null ? __t('ไม่จำกัดจำนวนครั้ง', 'Unlimited classes') : __t($p->credit_amount . ' ครั้ง', $p->credit_amount . ' classes') }}
+                · {{ __t('ใช้ได้ ' . $p->valid_days . ' วัน', 'valid ' . $p->valid_days . ' days') }}
+              </div>
+              <div class="small text-secondary mt-2">
+                <i class="bi bi-info-circle"></i> {{ __t('ติดต่อเจ้าหน้าที่ที่สาขาเพื่อซื้อ', 'Contact staff at the studio to purchase') }}
+              </div>
+            </div>
+          </div>
+        @endforeach
+      </div>
+
+      <div class="row g-4">
+        <div class="col-md-6">
+          <div class="section-title">{{ __t('บัญชี', 'Account') }}</div>
+          <div class="menu-list mb-4">
+            <div class="menu-row"><div class="mi"><i class="bi bi-telephone"></i></div><span>{{ $customer->phone }}</span></div>
+            @if($customer->email)
+              <div class="menu-row"><div class="mi"><i class="bi bi-envelope"></i></div><span>{{ $customer->email }}</span></div>
+            @endif
+            @if($customer->homeBranch)
+              <div class="menu-row"><div class="mi"><i class="bi bi-geo-alt"></i></div><span>{{ $customer->homeBranch->name }}</span></div>
+            @endif
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="section-title">{{ __t('อื่นๆ', 'Other') }}</div>
+          <div class="menu-list">
+            @if($branches->firstWhere('id', $currentBranchId)?->phone)
+              <a href="tel:{{ $branches->firstWhere('id', $currentBranchId)->phone }}" class="menu-row">
+                <div class="mi"><i class="bi bi-headset"></i></div>
+                <span>{{ __t('ติดต่อสาขา', 'Contact Studio') }}</span>
+                <div class="chev"><i class="bi bi-chevron-right"></i></div>
+              </a>
+            @endif
+            <form method="POST" action="{{ route('customer.logout') }}">
+              @csrf
+              <button class="menu-row w-100 border-0 bg-transparent text-start" type="submit">
+                <div class="mi"><i class="bi bi-box-arrow-right"></i></div>
+                <span>{{ __t('ออกจากระบบ', 'Log Out') }}</span>
+                <div class="chev"><i class="bi bi-chevron-right"></i></div>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    @endguest
   </div>
 
 </div>
+
+<div class="app-toast" id="appToast" role="status" aria-live="polite"></div>
 
 <nav class="footer-nav">
   <div class="nav-inner">
@@ -653,7 +916,279 @@ document.querySelectorAll('.nav-link[data-pane]').forEach(function(btn){
   });
 });
 
-var currentLang = 'th';
+var currentLang = @json(app()->getLocale());
+var IS_LOGGED_IN = @json((bool) $customer);
+var CSRF = document.querySelector('meta[name="csrf-token"]').content;
+var CANCEL_DEADLINE_HOURS = @json($cancelDeadlineHours);
+
+/* ---------- Branches (ข้อมูลจริงจากฐานข้อมูล) ---------- */
+var BRANCHES = @json($branchesForJs);
+
+var BRANCH_STORAGE_KEY = 'dripBranch';
+var currentBranch = @json((string) $currentBranchId);
+
+function getBranch(id){
+  for (var i = 0; i < BRANCHES.length; i++){
+    if (BRANCHES[i].id === id) return BRANCHES[i];
+  }
+  return BRANCHES[0];
+}
+
+function branchText(branch, field){
+  return branch[field + (currentLang === 'th' ? 'Th' : 'En')];
+}
+
+var branchToggle = document.getElementById('branchToggle');
+var branchPop = document.getElementById('branchPop');
+var branchOptions = document.getElementById('branchOptions');
+var branchTabs = document.getElementById('branchTabs');
+var branchBtnName = document.getElementById('branchBtnName');
+var branchBarName = document.getElementById('branchBarName');
+var branchBarAddr = document.getElementById('branchBarAddr');
+var classList = document.getElementById('classList');
+var noClassNote = document.getElementById('noClassNote');
+
+function renderBranchOptions(){
+  branchOptions.innerHTML = '';
+  BRANCHES.forEach(function(b){
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'branch-option' + (b.id === currentBranch ? ' selected' : '');
+    btn.dataset.branch = b.id;
+
+    var pin = document.createElement('span');
+    pin.className = 'bo-pin';
+    pin.innerHTML = '<i class="bi bi-geo-alt-fill"></i>';
+
+    var copy = document.createElement('span');
+    var name = document.createElement('span');
+    name.className = 'bo-name';
+    name.textContent = branchText(b, 'name');
+    var addr = document.createElement('span');
+    addr.className = 'bo-addr';
+    addr.textContent = branchText(b, 'addr');
+    copy.appendChild(name);
+    copy.appendChild(addr);
+
+    var check = document.createElement('span');
+    check.className = 'bo-check';
+    check.innerHTML = '<i class="bi bi-check-lg"></i>';
+
+    btn.appendChild(pin);
+    btn.appendChild(copy);
+    btn.appendChild(check);
+    btn.addEventListener('click', function(){
+      selectBranch(this.dataset.branch);
+      closeBranchPop();
+    });
+    branchOptions.appendChild(btn);
+  });
+}
+
+function renderBranchTabs(){
+  branchTabs.innerHTML = '';
+  BRANCHES.forEach(function(b){
+    var tab = document.createElement('button');
+    tab.type = 'button';
+    tab.className = 'branch-tab' + (b.id === currentBranch ? ' active' : '');
+    tab.dataset.branch = b.id;
+    tab.innerHTML = '<i class="bi bi-geo-alt"></i>';
+    var label = document.createElement('span');
+    label.textContent = branchText(b, 'short');
+    tab.appendChild(label);
+    tab.addEventListener('click', function(){ selectBranch(this.dataset.branch); });
+    branchTabs.appendChild(tab);
+  });
+}
+
+function renderBranchUI(){
+  var b = getBranch(currentBranch);
+  branchBtnName.textContent = branchText(b, 'name');
+  branchBarName.textContent = branchText(b, 'name');
+  branchBarAddr.textContent = branchText(b, 'addr');
+  renderBranchOptions();
+  renderBranchTabs();
+}
+
+function selectBranch(id){
+  if (!id) return;
+  currentBranch = id;
+  try { localStorage.setItem(BRANCH_STORAGE_KEY, id); } catch (e) { /* storage unavailable */ }
+  renderBranchUI();
+  loadSessions();
+}
+
+function openBranchPop(){
+  renderBranchOptions();
+  branchPop.classList.add('open');
+  branchToggle.setAttribute('aria-expanded', 'true');
+}
+function closeBranchPop(){
+  branchPop.classList.remove('open');
+  branchToggle.setAttribute('aria-expanded', 'false');
+}
+
+branchToggle.addEventListener('click', function(e){
+  e.stopPropagation();
+  if (branchPop.classList.contains('open')) { closeBranchPop(); } else { openBranchPop(); }
+});
+branchPop.addEventListener('click', function(e){ e.stopPropagation(); });
+
+document.getElementById('branchBarSwitch').addEventListener('click', function(){
+  var idx = BRANCHES.findIndex(function(b){ return b.id === currentBranch; });
+  selectBranch(BRANCHES[(idx + 1) % BRANCHES.length].id);
+});
+
+/* ---------- โหลดตารางคลาสตามสาขาและวันที่เลือก ---------- */
+var loadToken = 0;
+
+function currentDateString(){
+  var d = new Date(scheduleToday);
+  d.setDate(d.getDate() + selectedOffset);
+  return d.getFullYear() + '-'
+    + String(d.getMonth() + 1).padStart(2, '0') + '-'
+    + String(d.getDate()).padStart(2, '0');
+}
+
+function loadSessions(){
+  var token = ++loadToken;
+  classList.style.opacity = '.45';
+
+  fetch('{{ route('api.sessions') }}?branch=' + encodeURIComponent(currentBranch)
+        + '&date=' + encodeURIComponent(currentDateString()), {
+    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    // ถ้าผู้ใช้กดเปลี่ยนวันเร็วๆ ให้ใช้ผลของคำขอล่าสุดเท่านั้น
+    if (token !== loadToken) return;
+    classList.innerHTML = data.html;
+    noClassNote.classList.toggle('hidden', data.count > 0);
+    classList.style.opacity = '';
+  })
+  .catch(function(){
+    if (token !== loadToken) return;
+    classList.style.opacity = '';
+  });
+}
+
+/* ---------- จองและยกเลิก ---------- */
+function showToast(message, isError){
+  var el = document.getElementById('appToast');
+  el.textContent = message;
+  el.className = 'app-toast show' + (isError ? ' error' : '');
+  clearTimeout(el._timer);
+  el._timer = setTimeout(function(){ el.className = 'app-toast'; }, 3600);
+}
+
+classList.addEventListener('click', function(e){
+  var bookBtn = e.target.closest('.js-book');
+  if (bookBtn) { doBook(bookBtn); return; }
+
+  var cancelBtn = e.target.closest('.js-cancel');
+  if (cancelBtn) { doCancel(cancelBtn); }
+});
+
+function doBook(btn){
+  if (!IS_LOGGED_IN) {
+    window.location.href = '{{ route('customer.login') }}';
+    return;
+  }
+
+  btn.disabled = true;
+
+  fetch('/sessions/' + btn.dataset.session + '/book', {
+    method: 'POST',
+    headers: {
+      'X-CSRF-TOKEN': CSRF,
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+  .then(function(r){ return r.json().then(function(d){ return { ok: r.ok, data: d }; }); })
+  .then(function(res){
+    btn.disabled = false;
+    if (res.data.need_login) { window.location.href = '{{ route('customer.login') }}'; return; }
+    showToast(res.data.message, !res.ok);
+    if (res.ok) { loadSessions(); refreshCredits(); }
+  })
+  .catch(function(){
+    btn.disabled = false;
+    showToast(currentLang === 'th' ? 'เกิดข้อผิดพลาด กรุณาลองใหม่' : 'Something went wrong', true);
+  });
+}
+
+function doCancel(btn){
+  var id = btn.dataset.booking;
+
+  // เช็คก่อนว่ายกเลิกตอนนี้จะเสียเครดิตไหม แล้วค่อยถามยืนยัน
+  fetch('/bookings/' + id + '/cancel-preview', {
+    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(p){
+    var msg;
+    if (p.will_lose_credit) {
+      msg = currentLang === 'th'
+        ? 'เลยกำหนดยกเลิกฟรีแล้ว (ต้องยกเลิกก่อนคลาสเริ่ม ' + p.deadline_hours + ' ชั่วโมง)\n\nถ้ายกเลิกตอนนี้จะเสียเครดิต ' + p.credit_at_stake + ' เครดิต ยืนยันหรือไม่?'
+        : 'The free-cancellation window has passed (' + p.deadline_hours + ' hours before class).\n\nCancelling now will forfeit ' + p.credit_at_stake + ' credit(s). Continue?';
+    } else {
+      msg = currentLang === 'th'
+        ? 'ยืนยันยกเลิกการจอง? เครดิตจะคืนเข้าบัญชีของคุณ'
+        : 'Cancel this booking? Your credit will be refunded.';
+    }
+
+    if (!window.confirm(msg)) return;
+
+    btn.disabled = true;
+
+    fetch('/bookings/' + id + '/cancel', {
+      method: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': CSRF,
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(function(r){ return r.json().then(function(d){ return { ok: r.ok, data: d }; }); })
+    .then(function(res){
+      btn.disabled = false;
+      showToast(res.data.message, !res.ok);
+      if (res.ok) { loadSessions(); refreshCredits(); }
+    })
+    .catch(function(){
+      btn.disabled = false;
+      showToast(currentLang === 'th' ? 'เกิดข้อผิดพลาด' : 'Something went wrong', true);
+    });
+  });
+}
+
+// อัปเดตยอดเครดิตบนหน้าแรกหลังจอง/ยกเลิก
+function refreshCredits(){
+  if (!IS_LOGGED_IN) return;
+  setTimeout(function(){ window.location.reload(); }, 900);
+}
+
+/* ---------- ปุ่มลัดไปแท็บต่างๆ ---------- */
+function gotoPane(paneId){
+  var btn = document.querySelector('.nav-link[data-pane="' + paneId + '"]');
+  if (btn) btn.click();
+}
+
+document.addEventListener('click', function(e){
+  if (e.target.closest('.js-goto-schedule')) { e.preventDefault(); gotoPane('pane-schedule'); }
+  else if (e.target.closest('.js-goto-bookings')) { e.preventDefault(); gotoPane('pane-bookings'); }
+  else if (e.target.closest('.js-goto-profile')) { e.preventDefault(); gotoPane('pane-profile'); }
+});
+
+/* ---------- ยกเลิกจากหน้าการจอง ---------- */
+document.addEventListener('click', function(e){
+  var link = e.target.closest('.js-cancel-booking');
+  if (!link) return;
+  e.preventDefault();
+  doCancel(link);
+});
+
 var dowTh = ['อา','จ','อ','พ','พฤ','ศ','ส'];
 var dowEn = ['Su','Mo','Tu','We','Th','Fr','Sa'];
 var monthTh = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
@@ -661,11 +1196,11 @@ var monthEn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov'
 var dowFullTh = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
 var dowFullEn = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
-var scheduleToday = new Date(2026, 7, 5);
+var scheduleToday = new Date(@json((int) now()->year), @json((int) now()->month - 1), @json((int) now()->day));
 var dayStrip = document.getElementById('dayStrip');
 var selectedDateLabel = document.getElementById('selectedDateLabel');
-var RANGE_PAST_DAYS = 2;
-var RANGE_FUTURE_DAYS = 90;
+var RANGE_PAST_DAYS = @json($rangePastDays);
+var RANGE_FUTURE_DAYS = @json($rangeFutureDays);
 var selectedOffset = 0;
 
 var monthLabel = document.getElementById('monthLabel');
@@ -734,6 +1269,7 @@ function selectDay(offset){
     setTimeout(updateMonthLabel, 350);
   }
   updateDateLabel();
+  loadSessions();
 }
 
 document.getElementById('dayPrev').addEventListener('click', function(){
@@ -837,7 +1373,7 @@ calendarBtn.addEventListener('click', function(e){
   if(calendarPop.classList.contains('open')){ closeCalendar(); } else { openCalendar(); }
 });
 calendarPop.addEventListener('click', function(e){ e.stopPropagation(); });
-document.addEventListener('click', function(){ closeCalendar(); });
+document.addEventListener('click', function(){ closeCalendar(); closeBranchPop(); });
 
 document.getElementById('calPrevMonth').addEventListener('click', function(){
   calViewDate.setMonth(calViewDate.getMonth() - 1);
@@ -848,6 +1384,7 @@ document.getElementById('calNextMonth').addEventListener('click', function(){
   renderCalendar();
 });
 
+renderBranchUI();
 buildDayStrip();
 updateDateLabel();
 window.requestAnimationFrame(function(){
@@ -862,17 +1399,12 @@ document.getElementById('themeToggle').addEventListener('click', function(){
 });
 
 document.getElementById('langToggle').addEventListener('click', function(){
-  currentLang = currentLang === 'th' ? 'en' : 'th';
-  document.documentElement.setAttribute('lang', currentLang);
-  document.getElementById('langFlag').src = '{{ asset("images") }}/' + currentLang + '.png';
-  document.getElementById('langFlag').alt = currentLang.toUpperCase();
-  document.querySelectorAll('[data-th]').forEach(function(el){
-    el.textContent = el.getAttribute('data-' + currentLang);
-  });
-  updateMonthLabel();
-  if(calendarPop.classList.contains('open')){ renderCalendar(); }
+  // เนื้อหาหลักเรนเดอร์จากเซิร์ฟเวอร์ ต้องโหลดหน้าใหม่เพื่อให้ได้ทุกส่วนครบ
+  var next = currentLang === 'th' ? 'en' : 'th';
+  window.location.href = '/locale/' + next;
 });
 
+var INSTALL_PROMPT_DISABLED = true; /* ปิดแบนเนอร์ชวนติดตั้งแอปไว้ก่อน ตั้ง false เพื่อเปิดใช้อีกครั้ง */
 var deferredPrompt;
 var installBanner = document.getElementById('installBanner');
 var installBtn = document.getElementById('installBtn');
@@ -897,48 +1429,71 @@ function isInStandaloneMode(){
   return (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
 }
 
+/* แสดงคำเชิญติดตั้งครั้งเดียวพอ ถ้าผู้ใช้ไม่ติดตั้งก็ไม่ถามซ้ำอีก */
+var INSTALL_PROMPT_KEY = 'dripInstallPromptSeen';
+
+function installPromptSeen(){
+  try { return localStorage.getItem(INSTALL_PROMPT_KEY) === '1'; }
+  catch(e){ return false; }
+}
+
+function markInstallPromptSeen(){
+  try { localStorage.setItem(INSTALL_PROMPT_KEY, '1'); } catch(e){ /* storage unavailable */ }
+}
+
+/* ข้อความของแบนเนอร์แยกตามแพลตฟอร์ม: message บอกว่าได้อะไร, steps บอกว่าต้องทำอะไร ไม่พูดซ้ำกัน */
+var INSTALL_COPY = {
+  ios: {
+    messageTh: 'เพิ่ม Drip Pilates ไว้บนหน้าจอโฮม เปิดจองคลาสได้เร็วขึ้น',
+    messageEn: 'Add Drip Pilates to your Home Screen for faster booking',
+    stepsTh: 'แตะปุ่มแชร์ด้านล่าง แล้วเลือก “เพิ่มไปยังหน้าจอโฮม”',
+    stepsEn: 'Tap the Share button below, then choose “Add to Home Screen”'
+  },
+  android: {
+    messageTh: 'เพิ่ม Drip Pilates ไว้บนหน้าจอโฮม เปิดจองคลาสได้เร็วขึ้น',
+    messageEn: 'Add Drip Pilates to your Home Screen for faster booking',
+    stepsTh: '',
+    stepsEn: ''
+  },
+  'android-fallback': {
+    messageTh: 'เพิ่ม Drip Pilates ไว้บนหน้าจอโฮม เปิดจองคลาสได้เร็วขึ้น',
+    messageEn: 'Add Drip Pilates to your Home Screen for faster booking',
+    stepsTh: 'แตะปุ่มเมนู ⋮ ของ Chrome แล้วเลือก “ติดตั้งแอป”',
+    stepsEn: 'Tap Chrome’s ⋮ menu, then choose “Install app”'
+  },
+  linebrowser: {
+    messageTh: 'ติดตั้งจากใน LINE ไม่ได้ ต้องเปิดหน้านี้ใน Chrome ก่อน',
+    messageEn: 'Installing from LINE isn’t supported — open this page in Chrome first',
+    stepsTh: 'แตะ “เปิดใน Chrome” แล้วเลือก “ติดตั้งแอป” จากเมนู ⋮',
+    stepsEn: 'Tap “Open in Chrome”, then choose “Install app” from the ⋮ menu'
+  }
+};
+
+var installPlatform = null;
+
+function renderInstallCopy(){
+  if(!installPlatform) return;
+  var copy = INSTALL_COPY[installPlatform];
+  if(!copy) return;
+  var suffix = currentLang === 'th' ? 'Th' : 'En';
+  installMessage.textContent = copy['message' + suffix];
+  var steps = copy['steps' + suffix];
+  installInstructions.textContent = steps;
+  installInstructions.classList.toggle('hidden', !steps);
+}
+
 function showInstallBanner(platform){
   if(isInStandaloneMode()) return;
-  installBanner.classList.remove('hidden');
-  installInstructions.classList.add('hidden');
-  installBtn.classList.remove('hidden');
+  if(installPromptSeen()) return;
+  if(!INSTALL_COPY[platform]) return;
+  markInstallPromptSeen();
 
-  if(platform === 'ios'){
-    installMessage.textContent = currentLang === 'th'
-      ? 'เพิ่ม Drip Pilates ลงเครื่องเพื่อเข้าใช้งานเหมือนแอปมือถือ'
-      : 'Add Drip Pilates to your device for app-like access';
-    installInstructions.textContent = currentLang === 'th'
-      ? 'เปิด Safari แล้วแตะปุ่มแชร์ จากนั้นเลือก "เพิ่มไปยังหน้าจอโฮม"'
-      : 'Open Safari, tap Share, then choose "Add to Home Screen"';
-    installBtn.classList.add('hidden');
-    installInstructions.classList.remove('hidden');
-  } else if(platform === 'linebrowser'){
-    installMessage.textContent = currentLang === 'th'
-      ? 'เปิดใน Chrome แล้วใช้เมนูแชร์เพื่อเพิ่มไปยังหน้าจอโฮม'
-      : 'Open in Chrome, then use the share menu to add to Home Screen';
-    installInstructions.textContent = currentLang === 'th'
-      ? 'แตะปุ่มเมนู แล้วเลือก "เปิดใน Chrome" จากนั้นเพิ่มไปยังหน้าจอโฮม'
-      : 'Tap the menu, choose "Open in Chrome", then add to Home Screen';
-    installBtn.classList.add('hidden');
-    openInChromeBtn.classList.remove('hidden');
-    installInstructions.classList.remove('hidden');
-  } else if(platform === 'android'){
-    installMessage.textContent = currentLang === 'th'
-      ? 'เพิ่ม Drip Pilates ลงเครื่องเพื่อเข้าใช้งานเหมือนแอปมือถือ'
-      : 'Add Drip Pilates to your device for app-like access';
-    installBtn.classList.remove('hidden');
-    openInChromeBtn.classList.add('hidden');
-  } else if(platform === 'android-fallback'){
-    installMessage.textContent = currentLang === 'th'
-      ? 'หากไม่มีปุ่มติดตั้ง ให้ใช้เมนู Chrome และเลือก "เพิ่มไปยังหน้าจอโฮม"'
-      : 'If Install is not shown, use Chrome menu and choose "Add to Home Screen"';
-    installInstructions.textContent = currentLang === 'th'
-      ? 'แตะปุ่มเมนู แล้วเลือก "เพิ่มไปยังหน้าจอโฮม"'
-      : 'Tap menu, then choose "Add to Home Screen"';
-    installBtn.classList.add('hidden');
-    openInChromeBtn.classList.add('hidden');
-    installInstructions.classList.remove('hidden');
-  }
+  installPlatform = platform;
+  installBanner.classList.remove('hidden');
+  /* มีปุ่มติดตั้งจริงเฉพาะตอน Chrome ให้ prompt มาเท่านั้น นอกนั้นบอกเป็นขั้นตอนแทน */
+  installBtn.classList.toggle('hidden', platform !== 'android');
+  openInChromeBtn.classList.toggle('hidden', platform !== 'linebrowser');
+  renderInstallCopy();
 }
 
 function openInChrome(){
@@ -952,11 +1507,21 @@ function openInChrome(){
 
 window.addEventListener('beforeinstallprompt', function(e){
   e.preventDefault();
+  if(INSTALL_PROMPT_DISABLED) return;
   deferredPrompt = e;
+  /* ถ้าแบนเนอร์สำรองเปิดค้างอยู่ ให้เปลี่ยนเป็นปุ่มติดตั้งจริงแทน */
+  if(!installBanner.classList.contains('hidden')){
+    installPlatform = 'android';
+    installBtn.classList.remove('hidden');
+    openInChromeBtn.classList.add('hidden');
+    renderInstallCopy();
+    return;
+  }
   showInstallBanner('android');
 });
 
 window.addEventListener('load', function(){
+  if(INSTALL_PROMPT_DISABLED) return;
   if(isInStandaloneMode()) return;
   if(isLineBrowser()){
     showInstallBanner('linebrowser');

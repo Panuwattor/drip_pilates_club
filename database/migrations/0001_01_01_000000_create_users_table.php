@@ -11,14 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // users = ทีมงานหลังบ้าน (แอดมิน) ส่วนลูกค้าอยู่ตาราง customers แยกต่างหาก
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('phone', 30)->nullable();
+            $table->string('avatar')->nullable();
+            $table->enum('role', ['owner', 'manager', 'staff'])->default('staff');
+            $table->foreignId('branch_id')->nullable()->comment('staff ที่ประจำสาขาเดียว (FK ผูกทีหลัง)');
+            $table->boolean('is_active')->default(true);
+            $table->timestamp('last_login_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
+
+            $table->index(['is_active', 'role']);
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

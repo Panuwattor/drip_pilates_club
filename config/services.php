@@ -35,4 +35,31 @@ return [
         ],
     ],
 
+    // LINE Login channel (คนละตัวกับ Messaging API channel)
+    // สร้างที่ https://developers.line.biz/console/
+    'line' => [
+        'client_id' => env('LINE_CLIENT_ID'),
+        'client_secret' => env('LINE_CLIENT_SECRET'),
+        'redirect' => env('LINE_REDIRECT_URI', env('APP_URL') . '/auth/line/callback'),
+    ],
+
+    // ผู้ให้บริการ SMS สำหรับ OTP — log = เขียนลง log ไม่ส่งจริง ใช้ตอน dev
+    'sms' => [
+        'driver' => env('SMS_DRIVER', 'log'),
+    ],
+
+    /**
+     * SMSMKT — https://developers.smsmkt.com/en/api-reference
+     * ฝั่งเขาเป็นคนสร้างและตรวจ OTP เอง เราแค่เก็บ token ไว้อ้างอิง
+     */
+    'smsmkt' => [
+        'api_key' => env('SMSMKT_API_KEY'),
+        'secret_key' => env('SMSMKT_SECRET_KEY'),
+        'project_key' => env('SMSMKT_PROJECT_KEY'),
+        'project_id' => env('SMSMKT_PROJECT_ID'),
+        'sender' => env('SMSMKT_SENDER', 'KGM'),
+        'enabled' => env('SMSMKT_ENABLED', false),
+        'thai_message' => env('SMSMKT_THAI_MESSAGE', true),
+    ],
+
 ];

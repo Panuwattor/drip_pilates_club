@@ -1,0 +1,102 @@
+<?php
+
+namespace App\Http\Controllers\Customer;
+
+use App\Http\Controllers\Controller;
+use App\Models\Announcement;
+use App\Models\Booking;
+use App\Models\Branch;
+use App\Models\Package;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+
+class ProfileController extends Controller
+{
+    /** ภาพรวมบัญชี — สถิติ แพ็กเกจ เมนูตั้งค่า */
+    public function index()
+    {
+        $customer = Auth::guard('customer')->user();
+        $branches = Branch::active()->orderBy('sort_order')->get();
+
+        $upcoming = Booking::with(['classSession.classType', 'classSession.branch', 'classSession.trainer'])
+            ->where('customer_id', $customer->id)
+            ->whereIn('status', ['confirmed', 'waitlisted'])
+            ->whereHas('classSession', fn ($q) => $q->where('start_at', '>', now()))
+            ->get();
+
+        return view('customer.profile.index', [
+            'customer' => $customer,
+            'branches' => $branches,
+            'currentBranchId' => $customer->home_branch_id ?: ($branches->first()->id ?? 0),
+            'upcoming' => $upcoming,
+            'packages' => $customer->packages()->with('package')->where('status', '!=', 'cancelled')->orderBy('expires_at')->get(),
+            'totalCredits' => $customer->totalCredits(),
+            'hasUnlimited' => $customer->hasUnlimited(),
+            'shopPackages' => Package::active()->public()->orderBy('sort_order')->get(),
+        ]);
+    }
+
+    /** ฟอร์มแก้ไขข้อมูลส่วนตัว */
+    public function edit()
+    {
+        return view('customer.profile.edit', [
+            'customer' => Auth::guard('customer')->user(),
+            'branches' => Branch::active()->orderBy('sort_order')->get(),
+        ]);
+    }
+
+    public function update(Request $request)
+    {
+        $customer = Auth::guard('customer')->user();
+
+        $data = $request->validate([
+            'first_name' => ['required', 'string', 'max:120'],
+            'last_name' => ['nullable', 'string', 'max:120'],
+            'nickname' => ['nullable', 'string', 'max:60'],
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('customers', 'email')->ignore($customer->id)],
+            'birth_date' => ['nullable', 'date', 'before:today'],
+            'gender' => ['nullable', 'in:female,male,other'],
+            'home_branch_id' => ['nullable', 'exists:branches,id'],
+            'medical_note' => ['nullable', 'string'],
+            'is_pregnant' => ['nullable', 'boolean'],
+            'emergency_contact_name' => ['nullable', 'string', 'max:120'],
+            'emergency_contact_phone' => ['nullable', 'string', 'max:30'],
+        ]);
+
+        $customer->fill($data + ['is_pregnant' => $request->boolean('is_pregnant')])->save();
+
+        return back()->with('status', 'บันทึกข้อมูลเรียบร้อยแล้ว');
+    }
+
+    /**
+     * ตั้ง/เปลี่ยนรหัสผ่าน
+     * คนที่สมัครผ่าน LINE ยังไม่มีรหัสเดิม จึงไม่ต้องกรอกรหัสปัจจุบัน
+     */
+    public function updatePassword(Request $request)
+    {
+        $customer = Auth::guard('customer')->user();
+
+        $rules = ['password' => ['required', 'string', 'min:6', 'confirmed']];
+
+        if ($customer->hasPassword()) {
+            $rules['current_password'] = ['required', 'string'];
+        }
+
+        $data = $request->validate($rules);
+
+        if ($customer->hasPassword() && ! Hash::check($data['current_password'], $customer->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => 'รหัสผ่านปัจจุบันไม่ถูกต้อง',
+            ]);
+        }
+
+        $customer->forceFill(['password' => $data['password']])->save();
+
+        return back()->with('status', $customer->wasChanged()
+            ? 'ตั้งรหัสผ่านเรียบร้อยแล้ว ตอนนี้เข้าสู่ระบบด้วยเบอร์โทรได้แล้ว'
+            : 'บันทึกรหัสผ่านแล้ว');
+    }
+}

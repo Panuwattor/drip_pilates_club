@@ -29,6 +29,9 @@
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
+        <!-- เทสต์ต้องไม่ยิง SMSMKT จริง จะได้ไม่เปลืองเครดิต -->
+        <env name="SMS_DRIVER" value="log"/>
+        <env name="SMSMKT_ENABLED" value="false"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>

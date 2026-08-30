@@ -1,0 +1,109 @@
+@extends('admin.layouts.app')
+@section('title', $classType->exists ? 'แก้ไขประเภทคลาส · ' . $classType->name_th : 'เพิ่มประเภทคลาส')
+
+@section('content')
+<form method="POST" action="{{ $classType->exists ? route('admin.class-types.update', $classType) : route('admin.class-types.store') }}">
+  @csrf
+  @if($classType->exists) @method('PUT') @endif
+
+  <div class="row g-3">
+    <div class="col-lg-7">
+      <div class="card-panel mb-3">
+        <div class="ttl">ข้อมูลคลาส</div>
+
+        <div class="mb-3">
+          <label class="form-label">รหัสคลาส <span class="text-danger">*</span></label>
+          <input class="form-control" name="code" value="{{ old('code', $classType->code) }}"
+                 placeholder="reformer-flow" required>
+        </div>
+
+        @include('admin.partials.bilingual-field', [
+          'name' => 'name', 'label' => 'ชื่อคลาส', 'model' => $classType, 'required' => true,
+        ])
+
+        @include('admin.partials.bilingual-field', [
+          'name' => 'description', 'label' => 'คำอธิบาย', 'model' => $classType, 'type' => 'textarea', 'rows' => 3,
+        ])
+
+        @include('admin.partials.bilingual-field', [
+          'name' => 'suitable_for', 'label' => 'เหมาะกับใคร', 'model' => $classType,
+        ])
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="card-panel mb-3">
+        <div class="ttl">รายละเอียดการจัดคลาส</div>
+
+        <div class="mb-2">
+          <label class="form-label">ระดับ <span class="text-danger">*</span></label>
+          <select class="form-select" name="level" required>
+            @foreach(['all'=>'ทุกระดับ','beginner'=>'เริ่มต้น','intermediate'=>'ระดับกลาง','advanced'=>'ระดับสูง'] as $v => $l)
+              <option value="{{ $v }}" @selected(old('level', $classType->level) === $v)>{{ $l }}</option>
+            @endforeach
+          </select>
+        </div>
+
+        <div class="mb-2">
+          <label class="form-label">อุปกรณ์ <span class="text-danger">*</span></label>
+          <select class="form-select" name="equipment_type" required>
+            @foreach(['reformer'=>'Reformer','mat'=>'Mat','cadillac'=>'Cadillac','chair'=>'Chair','mixed'=>'ผสม'] as $v => $l)
+              <option value="{{ $v }}" @selected(old('equipment_type', $classType->equipment_type) === $v)>{{ $l }}</option>
+            @endforeach
+          </select>
+        </div>
+
+        <div class="row g-2">
+          <div class="col-6 mb-2">
+            <label class="form-label">ระยะเวลา <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <input class="form-control" type="number" name="duration_min"
+                     value="{{ old('duration_min', $classType->duration_min ?? 50) }}" min="15" required>
+              <span class="input-group-text">นาที</span>
+            </div>
+          </div>
+          <div class="col-6 mb-2">
+            <label class="form-label">ที่นั่งเริ่มต้น <span class="text-danger">*</span></label>
+            <input class="form-control" type="number" name="default_capacity"
+                   value="{{ old('default_capacity', $classType->default_capacity ?? 8) }}" min="1" required>
+          </div>
+          <div class="col-6 mb-2">
+            <label class="form-label">ใช้เครดิต <span class="text-danger">*</span></label>
+            <input class="form-control" type="number" step="0.5" name="credit_cost"
+                   value="{{ old('credit_cost', $classType->credit_cost ?? 1) }}" min="0" required>
+          </div>
+          <div class="col-6 mb-2">
+            <label class="form-label">สีในปฏิทิน</label>
+            <input class="form-control form-control-color w-100" type="color" name="color"
+                   value="{{ old('color', $classType->color ?: '#6C88B4') }}">
+          </div>
+          <div class="col-6 mb-2">
+            <label class="form-label">ลำดับการแสดง</label>
+            <input class="form-control" type="number" name="sort_order"
+                   value="{{ old('sort_order', $classType->sort_order ?? 0) }}">
+          </div>
+        </div>
+
+        <div class="form-check mt-2">
+          <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1"
+                 {{ old('is_active', $classType->is_active ?? true) ? 'checked' : '' }}>
+          <label class="form-check-label" for="is_active">เปิดใช้งาน</label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> บันทึก</button>
+    <a href="{{ route('admin.class-types.index') }}" class="btn btn-outline-secondary">ยกเลิก</a>
+  </div>
+</form>
+
+@if($classType->exists)
+  <form method="POST" action="{{ route('admin.class-types.destroy', $classType) }}" class="mt-2"
+        data-confirm="ยืนยันลบประเภทคลาสนี้?">
+    @csrf @method('DELETE')
+    <button class="btn btn-sm btn-outline-danger" type="submit"><i class="bi bi-trash"></i> ลบ</button>
+  </form>
+@endif
+@endsection
