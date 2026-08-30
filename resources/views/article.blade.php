@@ -74,7 +74,15 @@
   .article-hero img{ width:100%; max-height:420px; object-fit:cover; display:block; }
 
   .article-body{ background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:2.25rem; max-width:820px; }
-  .article-body p{ color:var(--ink); font-size:1rem; line-height:1.85; white-space:pre-line; margin:0; }
+  .article-body .article-content{ color:var(--ink); font-size:1rem; line-height:1.85; }
+  .article-body .article-content > *:first-child{ margin-top:0; }
+  .article-body .article-content > *:last-child{ margin-bottom:0; }
+  .article-body .article-content p{ margin:0 0 1rem; }
+  .article-body .article-content h2{ font-size:1.35rem; margin:1.5rem 0 .75rem; }
+  .article-body .article-content h3{ font-size:1.15rem; margin:1.25rem 0 .6rem; }
+  .article-body .article-content ul, .article-body .article-content ol{ margin:0 0 1rem; padding-left:1.4rem; }
+  .article-body .article-content blockquote{ border-left:3px solid var(--accent); margin:0 0 1rem; padding:.3rem 0 .3rem 1rem; color:var(--ink-soft); }
+  .article-body .article-content a{ color:var(--accent-deep); }
   .article-body .btn-accent{
     display:inline-flex; align-items:center; gap:.4rem; margin-top:1.75rem;
     background:var(--accent); border:1px solid var(--accent); color:#fff;
@@ -127,7 +135,7 @@
 
   <div class="article-body mb-5">
     @if($announcement->body)
-      <p>{{ $announcement->body }}</p>
+      <div class="article-content">{!! $announcement->body !!}</div>
     @endif
     @if($announcement->link_url)
       <a href="{{ $announcement->link_url }}" class="btn-accent" target="_blank" rel="noopener noreferrer">

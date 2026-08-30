@@ -11,9 +11,9 @@ class SetLocale
     {
         $locale = session('locale')
             ?? $request->user('customer')?->preferred_locale
-            ?? config('app.locale', 'th');
+            ?? config('app.locale', 'en');
 
-        app()->setLocale(in_array($locale, ['th', 'en'], true) ? $locale : 'th');
+        app()->setLocale(in_array($locale, ['th', 'en'], true) ? $locale : 'en');
 
         return $next($request);
     }

@@ -503,7 +503,7 @@
     @foreach($announcements as $ann)
       <div class="mb-3 p-3 rounded-4" style="background:var(--accent-soft);color:var(--accent-deep);">
         <strong>{{ $ann->title }}</strong>
-        @if($ann->body)<div class="small mt-1">{{ $ann->body }}</div>@endif
+        @if($ann->body)<div class="small mt-1">{{ \Illuminate\Support\Str::limit(strip_tags($ann->body), 140) }}</div>@endif
       </div>
     @endforeach
 

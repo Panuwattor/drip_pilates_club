@@ -419,7 +419,7 @@
                 <div class="ac-date">{{ $ann->starts_at->locale(app()->getLocale())->isoFormat('D MMM YYYY') }}</div>
               @endif
               <h3>{{ $ann->title }}</h3>
-              @if($ann->body)<p>{{ \Illuminate\Support\Str::limit($ann->body, 140) }}</p>@endif
+              @if($ann->body)<p>{{ \Illuminate\Support\Str::limit(strip_tags($ann->body), 140) }}</p>@endif
               <span class="ac-readmore">{{ __t('อ่านเพิ่มเติม', 'Read more') }} <i class="bi bi-arrow-right"></i></span>
             </div>
           </a>

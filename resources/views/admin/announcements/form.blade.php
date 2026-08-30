@@ -25,7 +25,7 @@
         ])
 
         @include('admin.partials.bilingual-field', [
-          'name' => 'body', 'label' => 'รายละเอียด', 'model' => $announcement, 'type' => 'textarea', 'rows' => 4,
+          'name' => 'body', 'label' => 'รายละเอียด', 'model' => $announcement, 'type' => 'richtext',
         ])
 
         <div class="mb-2">

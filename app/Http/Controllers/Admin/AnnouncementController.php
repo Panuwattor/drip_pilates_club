@@ -93,6 +93,30 @@ class AnnouncementController extends Controller
 
         unset($data['image_file']);
 
+        $data['body_th'] = $this->sanitizeRichText($data['body_th'] ?? null);
+        $data['body_en'] = $this->sanitizeRichText($data['body_en'] ?? null);
+
         return $data + ['is_active' => $request->boolean('is_active')];
+    }
+
+    private function sanitizeRichText(?string $html): ?string
+    {
+        if ($html === null || $html === '') {
+            return $html;
+        }
+
+        $allowed = '<p><br><strong><b><em><i><u><s><a><ul><ol><li><h2><h3><blockquote>';
+        $clean = strip_tags($html, $allowed);
+
+        // ตัด attribute ทั้งหมดออกยกเว้น href ของลิงก์ กัน onerror/onclick แทรกผ่าน rich text editor
+        $clean = preg_replace_callback('/<a\s+[^>]*href="([^"]*)"[^>]*>/i', function ($m) {
+            $href = $m[1];
+            if (! preg_match('#^(https?://|/)#i', $href)) {
+                return '<a>';
+            }
+            return '<a href="' . htmlspecialchars($href, ENT_QUOTES) . '" target="_blank" rel="noopener noreferrer">';
+        }, $clean);
+
+        return preg_replace('/<(?!\/?(?:p|br|strong|b|em|i|u|s|a|ul|ol|li|h2|h3|blockquote)\b)[^>]+>/i', '', $clean);
     }
 }
