@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\Trainer;
+use App\Support\MediaStorage;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class TrainerController extends Controller
 {
@@ -92,9 +92,7 @@ class TrainerController extends Controller
             return null;
         }
 
-        $path = $request->file('avatar_file')->store('trainers', 'public');
-
-        return 'storage/' . $path;
+        return MediaStorage::store($request->file('avatar_file'), 'trainers');
     }
 
     private function validated(Request $request, ?Trainer $trainer = null): array

@@ -10,6 +10,7 @@ use App\Models\CustomerPackage;
 use App\Models\Order;
 use App\Models\Package;
 use App\Models\Payment;
+use App\Support\MediaStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -182,7 +183,7 @@ class OrderController extends Controller
         ]);
 
         if ($request->hasFile('slip_image')) {
-            $data['slip_image'] = 'storage/' . $request->file('slip_image')->store('slips', 'public');
+            $data['slip_image'] = MediaStorage::store($request->file('slip_image'), 'slips');
         }
 
         $order->payments()->create($data + [

@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Announcement;
 use App\Models\Branch;
+use App\Support\MediaStorage;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class AnnouncementController extends Controller
 {
@@ -70,9 +70,7 @@ class AnnouncementController extends Controller
             return null;
         }
 
-        $path = $request->file('image_file')->store('announcements', 'public');
-
-        return 'storage/' . $path;
+        return MediaStorage::store($request->file('image_file'), 'announcements');
     }
 
     private function validated(Request $request): array

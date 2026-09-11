@@ -17,6 +17,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Media Disk
+    |--------------------------------------------------------------------------
+    |
+    | ดิสก์ที่ใช้เก็บไฟล์อัปโหลดของแอดมิน (รูปประกาศ, avatar ครู, ปกคลิป, สลิป)
+    | ค่าเริ่มต้น "public" = เก็บในเครื่อง ตั้ง MEDIA_DISK=r2 เพื่อย้ายไป Cloudflare R2
+    |
+    */
+
+    'media' => env('MEDIA_DISK', 'public'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |
@@ -56,6 +68,22 @@ return [
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'throw' => false,
+            'report' => false,
+        ],
+
+        // Cloudflare R2 — ใช้ S3-compatible API ตั้ง MEDIA_DISK=r2 เพื่อเริ่มใช้
+        'r2' => [
+            'driver' => 's3',
+            'key' => env('R2_ACCESS_KEY_ID'),
+            'secret' => env('R2_SECRET_ACCESS_KEY'),
+            'region' => env('R2_DEFAULT_REGION', 'auto'),
+            'bucket' => env('R2_BUCKET'),
+            'endpoint' => env('R2_ENDPOINT'),
+            // public URL ของ bucket (pub-xxxx.r2.dev หรือ custom domain) — ใช้สร้างลิงก์รูป
+            'url' => env('R2_URL'),
+            // R2 ต้องใช้ path-style = false (virtual-hosted ผ่าน endpoint ของ account)
+            'use_path_style_endpoint' => false,
             'throw' => false,
             'report' => false,
         ],

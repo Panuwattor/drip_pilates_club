@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             ClassTypeSeeder::class,
             PackageSeeder::class,
             AnnouncementSeeder::class,
+            VideoSeeder::class,
             AdminSeeder::class,
             ClassScheduleSeeder::class,
         ]);

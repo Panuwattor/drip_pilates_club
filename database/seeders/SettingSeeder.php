@@ -35,6 +35,12 @@ class SettingSeeder extends Seeder
             ['studio_name_en', 'Drip Pilates', 'string', 'general', 'ชื่อสตูดิโอ (EN)', 'Studio name (EN)'],
             ['default_locale', 'th', 'string', 'general', 'ภาษาเริ่มต้น', 'Default language'],
             ['currency', 'THB', 'string', 'general', 'สกุลเงิน', 'Currency'],
+
+            // ช่องทางติดต่อของเจ้าของ (ใช้ร่วมทุกสาขา) โชว์ที่หน้าแรกและ footer
+            ['contact_line_url', 'https://lin.ee/WHbMRXz', 'string', 'contact', 'LINE Official Account (ลิงก์)', 'LINE Official Account (URL)'],
+            ['contact_facebook_url', 'https://www.facebook.com/profile.php?id=61565064751946', 'string', 'contact', 'Facebook (ลิงก์)', 'Facebook (URL)'],
+            ['contact_tiktok_url', 'https://www.tiktok.com/@drippilatesclub', 'string', 'contact', 'TikTok (ลิงก์)', 'TikTok (URL)'],
+            ['contact_instagram_url', 'https://www.instagram.com/drip.pilatesclub', 'string', 'contact', 'Instagram (ลิงก์)', 'Instagram (URL)'],
         ];
 
         foreach ($settings as [$key, $value, $type, $group, $labelTh, $labelEn]) {

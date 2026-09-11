@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 Route::get('/', [Customer\LandingController::class, 'index'])->name('landing');
+Route::get('/videos', [Customer\LandingController::class, 'videos'])->name('videos.index');
+Route::get('/packages', [Customer\LandingController::class, 'packages'])->name('packages.index');
 Route::get('/articles/{announcement}', [Customer\LandingController::class, 'article'])->name('articles.show');
 
 /*
@@ -145,6 +147,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('class-types', Admin\ClassTypeController::class)->except(['show']);
         Route::resource('packages', Admin\PackageController::class)->except(['show']);
         Route::resource('announcements', Admin\AnnouncementController::class)->except(['show']);
+        Route::resource('videos', Admin\VideoController::class)->except(['show']);
 
         Route::get('/holidays', [Admin\HolidayController::class, 'index'])->name('holidays.index');
         Route::post('/holidays', [Admin\HolidayController::class, 'store'])->name('holidays.store');

@@ -14,10 +14,14 @@
 <meta property="og:site_name" content="Drip Pilates Club">
 <meta property="og:title" content="Drip Pilates Club · {{ __t('สตูดิโอพิลาทิสสำหรับทุกคน', 'Pilates Studio For Everyone') }}">
 <meta property="og:description" content="{{ __t('จองคลาสพิลาทิสง่ายๆ กับครูมืออาชีพ หลายสาขาทั่วกรุงเทพฯ', 'Book Pilates classes easily with professional instructors across Bangkok.') }}">
-<meta property="og:image" content="{{ asset('images/01.jpg') }}">
+<meta property="og:image" content="{{ asset('images/homepage/486542663_17877082824282795_2736433454500093176_n.jpg') }}">
 <meta property="og:url" content="{{ url('/') }}">
 <meta name="twitter:card" content="summary_large_image">
 
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#7C93B8">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -28,20 +32,45 @@
 
 {{-- JSON-LD ช่วย SEO ให้ Google เข้าใจว่านี่คือธุรกิจสตูดิโอออกกำลังกาย มีหลายสาขา --}}
 <script type="application/ld+json">
-{!! json_encode([
+{!! json_encode(array_filter([
     '@context' => 'https://schema.org',
     '@type' => 'ExerciseGym',
     'name' => 'Drip Pilates Club',
-    'image' => asset('images/01.jpg'),
+    'image' => asset('images/homepage/486542663_17877082824282795_2736433454500093176_n.jpg'),
     'url' => url('/'),
     'telephone' => optional($branches->first())->phone,
+    // sameAs = ช่องทางโซเชียลของธุรกิจ ช่วยให้ Google เชื่อมโปรไฟล์เข้ากับ Knowledge Panel
+    'sameAs' => array_values(array_filter($contacts ?? [])),
     'location' => $branches->map(fn ($b) => [
         '@type' => 'Place',
         'name' => $b->name,
         'address' => $b->address,
     ])->values(),
+]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
+</script>
+
+@if(!empty($videos) && $videos->isNotEmpty())
+{{-- VideoObject list ช่วยให้คลิปมีสิทธิ์ขึ้น rich result / video carousel บน Google --}}
+<script type="application/ld+json">
+{!! json_encode([
+    '@context' => 'https://schema.org',
+    '@type' => 'ItemList',
+    'itemListElement' => $videos->values()->map(fn ($v, $i) => [
+        '@type' => 'ListItem',
+        'position' => $i + 1,
+        'item' => array_filter([
+            '@type' => 'VideoObject',
+            'name' => $v->title ?: 'Drip Pilates Club',
+            'description' => $v->caption ?: __t('คลิปจาก Drip Pilates Club', 'A clip from Drip Pilates Club'),
+            'thumbnailUrl' => $v->thumbnail ? asset($v->thumbnail) : asset('images/01.jpg'),
+            'uploadDate' => $v->created_at?->toIso8601String(),
+            'contentUrl' => $v->url,
+            'embedUrl' => $v->url,
+        ]),
+    ])->all(),
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
 </script>
+@endif
 
 <style>
   :root{
@@ -76,7 +105,7 @@
   }
   .btn-nav-cta{
     background:var(--accent); border:1px solid var(--accent); color:#fff!important;
-    border-radius:999px; padding:.5rem 1.2rem!important; font-weight:700!important;
+    border-radius:999px; padding:.5rem 1.2rem!important; font-weight:700!important; text-decoration:none!important;
   }
   .btn-nav-cta:hover{ background:var(--accent-deep); }
   .nav-toggle{ display:none; background:none; border:1px solid var(--line); border-radius:10px; width:40px; height:40px; }
@@ -118,12 +147,12 @@
   .hero-ctas{ display:flex; gap:.85rem; flex-wrap:wrap; justify-content:center; }
   .btn-hero-primary{
     background:var(--accent); border:1px solid var(--accent); color:#fff;
-    border-radius:999px; padding:.85rem 1.9rem; font-weight:700; font-size:.95rem;
+    border-radius:999px; padding:.85rem 1.9rem; font-weight:700; font-size:.95rem; text-decoration:none;
   }
   .btn-hero-primary:hover{ background:var(--accent-deep); color:#fff; }
   .btn-hero-outline{
     background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.6); color:#fff;
-    border-radius:999px; padding:.85rem 1.9rem; font-weight:700; font-size:.95rem; backdrop-filter:blur(4px);
+    border-radius:999px; padding:.85rem 1.9rem; font-weight:700; font-size:.95rem; backdrop-filter:blur(4px); text-decoration:none;
   }
   .btn-hero-outline:hover{ background:rgba(255,255,255,.22); color:#fff; }
   .hero-dots{ position:absolute; z-index:3; bottom:28px; left:0; right:0; display:flex; justify-content:center; gap:.5rem; }
@@ -146,8 +175,69 @@
   .section-title{ text-align:center; font-size:clamp(1.6rem,3vw,2.3rem); font-weight:700; margin-bottom:.75rem; }
   .section-sub{ text-align:center; color:var(--ink-soft); max-width:620px; margin:0 auto 3rem; }
 
+  /* ---------- Videos (slideshow) ---------- */
+  .video-slider{ position:relative; }
+  .video-track{
+    display:flex; gap:1.5rem; overflow-x:auto; scroll-snap-type:x mandatory;
+    scroll-behavior:smooth; padding:.5rem .25rem 1.25rem; margin:0 -.25rem;
+    scrollbar-width:none; align-items:stretch;
+  }
+  .video-track::-webkit-scrollbar{ display:none; }
+  .video-slide{ flex:0 0 auto; width:min(300px,78vw); scroll-snap-align:center; display:flex; }
+  .video-slide .vcard{ width:100%; height:100%; }
+  .video-nav{
+    position:absolute; top:calc(50% - 1.25rem); transform:translateY(-50%); z-index:4;
+    width:44px; height:44px; border-radius:50%; border:1px solid var(--line);
+    background:#fff; color:var(--ink); box-shadow:0 6px 18px rgba(43,50,66,.16);
+    display:flex; align-items:center; justify-content:center; font-size:1.2rem; cursor:pointer;
+    transition:background .2s, transform .2s;
+  }
+  .video-nav:hover{ background:var(--accent); color:#fff; }
+  .video-nav:disabled{ opacity:.35; cursor:default; }
+  .video-nav--prev{ left:-8px; }
+  .video-nav--next{ right:-8px; }
+  .video-dots{ display:flex; justify-content:center; gap:.45rem; margin-top:.5rem; }
+  .video-dots button{ width:8px; height:8px; border-radius:50%; border:none; background:var(--line); padding:0; cursor:pointer; }
+  .video-dots button.active{ background:var(--accent); width:22px; border-radius:5px; transition:width .25s; }
+  .vcard__body{ flex:1; }
+  .section-cta{ text-align:center; margin-top:2rem; }
+  .btn-outline-accent{
+    display:inline-flex; align-items:center; gap:.45rem; border:1px solid var(--accent); color:var(--accent-deep);
+    border-radius:999px; padding:.7rem 1.6rem; font-weight:700; font-size:.92rem; text-decoration:none;
+    background:transparent; transition:background .2s, color .2s;
+  }
+  .btn-outline-accent:hover{ background:var(--accent); color:#fff; }
+  @media (max-width:575px){ .video-nav{ display:none; } }
+
+  /* ---------- Social contact ---------- */
+  .floating-contact{ position:fixed; right:1.25rem; bottom:1.25rem; z-index:60; display:flex; flex-direction:column; align-items:flex-end; gap:.65rem; }
+  .floating-contact__items{ display:flex; flex-direction:column; align-items:flex-end; gap:.55rem; opacity:0; visibility:hidden; transform:translateY(10px); transition:opacity .2s, transform .2s, visibility .2s; }
+  .floating-contact.is-open .floating-contact__items{ opacity:1; visibility:visible; transform:none; }
+  .floating-contact__item{ display:flex; align-items:center; gap:.55rem; text-decoration:none; color:var(--ink); font-size:.78rem; font-weight:700; }
+  .floating-contact__label{ background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:.4rem .7rem; box-shadow:0 6px 18px rgba(43,50,66,.14); white-space:nowrap; }
+  .floating-contact__icon,.floating-contact__toggle{ width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 22px rgba(43,50,66,.2); }
+  .floating-contact__icon{ background:var(--panel); border:1px solid var(--line); color:var(--accent-deep); font-size:1.15rem; }
+  .floating-contact__item:hover .floating-contact__icon{ background:var(--accent); color:#fff; }
+  .floating-contact__toggle{ border:0; background:var(--accent); color:#fff; cursor:pointer; font-size:1.25rem; transition:transform .2s, background .2s; }
+  .floating-contact__toggle:hover{ background:var(--accent-deep); }
+  .floating-contact.is-open .floating-contact__toggle{ transform:rotate(45deg); }
+  @media (max-width:575.98px){ .floating-contact{ right:.9rem; bottom:1rem; } .floating-contact__icon,.floating-contact__toggle{ width:46px; height:46px; } }
+
   .about-media{ border-radius:24px; overflow:hidden; box-shadow:0 24px 48px rgba(43,50,66,.14); }
+  .about-media{ aspect-ratio:4/3; }
   .about-media img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .studio-gallery{ display:grid; grid-template-columns:1.2fr .8fr .8fr; gap:1rem; margin-top:3.5rem; }
+  .studio-gallery__item{ min-height:240px; border-radius:20px; overflow:hidden; position:relative; box-shadow:0 16px 32px rgba(43,50,66,.1); }
+  .studio-gallery__item:first-child{ min-height:360px; }
+  .studio-gallery__item img{ width:100%; height:100%; object-fit:cover; display:block; transition:transform .5s ease; }
+  .studio-gallery__item:hover img{ transform:scale(1.04); }
+  .studio-gallery__item::after{ content:""; position:absolute; inset:0; background:linear-gradient(180deg,transparent 55%,rgba(20,25,35,.38)); pointer-events:none; }
+  .studio-gallery__label{ position:absolute; z-index:1; left:1.1rem; bottom:1rem; color:#fff; font-size:.82rem; font-weight:700; text-shadow:0 1px 8px rgba(0,0,0,.3); }
+  @media (max-width:767.98px){
+    .studio-gallery{ grid-template-columns:1fr 1fr; gap:.7rem; margin-top:2.5rem; }
+    .studio-gallery__item:first-child{ grid-column:span 2; min-height:260px; }
+    .studio-gallery__item{ min-height:190px; border-radius:16px; }
+  }
   .about-points{ list-style:none; padding:0; margin:1.5rem 0 0; }
   .about-points li{ display:flex; gap:.75rem; margin-bottom:1rem; align-items:flex-start; }
   .about-points .ap-ic{
@@ -166,7 +256,22 @@
   }
   .branch-card h3{ font-size:1.15rem; margin:0 0 .4rem; }
   .branch-card p{ color:var(--ink-soft); font-size:.88rem; margin:0 0 1rem; }
-  .branch-card a{ font-size:.85rem; font-weight:700; color:var(--accent-deep); text-decoration:none; }
+  .branch-card__actions{ display:flex; flex-wrap:wrap; gap:.65rem; align-items:center; }
+  .branch-card a,.branch-map-btn{ font-size:.85rem; font-weight:700; color:var(--accent-deep); text-decoration:none; }
+  .branch-map-btn{ border:0; background:none; padding:0; cursor:pointer; }
+  .branch-card a:hover,.branch-map-btn:hover{ color:var(--accent); }
+  .map-modal{ position:fixed; inset:0; z-index:100; display:flex; align-items:center; justify-content:center; padding:1rem; background:rgba(20,25,35,.72); opacity:0; visibility:hidden; transition:opacity .2s, visibility .2s; }
+  .map-modal.is-open{ opacity:1; visibility:visible; }
+  .map-modal__panel{ position:relative; width:min(92vw,760px); overflow:hidden; background:var(--panel); border-radius:20px; box-shadow:0 24px 60px rgba(0,0,0,.3); transform:translateY(10px); transition:transform .2s; }
+  .map-modal.is-open .map-modal__panel{ transform:none; }
+  .map-modal__head{ display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1rem 1.15rem; }
+  .map-modal__title{ margin:0; font-family:'Playfair Display','Noto Sans Thai',Georgia,serif; font-size:1.1rem; }
+  .map-modal__close{ width:34px; height:34px; border:1px solid var(--line); border-radius:50%; background:var(--ground); color:var(--ink); cursor:pointer; }
+  .map-modal__frame{ display:block; width:100%; height:min(58vh,480px); border:0; background:var(--ground); }
+  .map-modal__footer{ display:flex; justify-content:flex-end; padding:.8rem 1.15rem 1rem; }
+  .map-modal__external{ color:var(--accent-deep); font-size:.85rem; font-weight:700; text-decoration:none; }
+  .map-modal__empty{ display:flex; align-items:center; justify-content:center; min-height:260px; padding:2rem; color:var(--ink-soft); text-align:center; }
+  @media (max-width:575.98px){ .map-modal{ padding:.5rem; } .map-modal__panel{ width:100%; border-radius:16px; } .map-modal__frame{ height:55vh; } }
 
   .pkg-card{
     background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:1.75rem;
@@ -199,6 +304,8 @@
   .trainer-avatar img{ width:100%; height:100%; object-fit:cover; }
   .trainer-card h3{ font-size:1rem; margin:0 0 .2rem; }
   .trainer-card p{ font-size:.8rem; color:var(--ink-soft); margin:0; }
+  .trainer-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,180px)); gap:2.25rem 1.5rem; justify-content:center; max-width:800px; margin:0 auto; }
+  @media (max-width:575.98px){ .trainer-grid{ grid-template-columns:repeat(2,minmax(120px,1fr)); gap:1.75rem 1rem; } }
 
   .article-card{
     background:var(--panel); border:1px solid var(--line); border-radius:18px; overflow:hidden;
@@ -249,6 +356,7 @@
       <a href="#branches">{{ __t('สาขา', 'Branches') }}</a>
       <a href="#packages">{{ __t('แพ็กเกจ', 'Packages') }}</a>
       <a href="#trainers">{{ __t('ครูผู้สอน', 'Trainers') }}</a>
+      @if($videos->isNotEmpty())<a href="#videos">{{ __t('วิดีโอ', 'Videos') }}</a>@endif
       <a href="#articles">{{ __t('บทความ', 'Articles') }}</a>
       <a href="#faq">{{ __t('คำถามที่พบบ่อย', 'FAQ') }}</a>
       <a href="{{ route('locale.set', app()->getLocale() === 'th' ? 'en' : 'th') }}" class="lang-switch d-inline-flex align-items-center gap-1">
@@ -263,8 +371,16 @@
 
 <!-- HERO -->
 <header class="hero">
-  @foreach(['01','02','03','04','05','06'] as $i => $img)
-    <div class="hero-slide {{ $i === 0 ? 'active' : '' }}" style="background-image:url('{{ asset('images/' . $img . '.jpg') }}');"></div>
+  @php
+    $homepageHeroImages = [
+      '486542663_17877082824282795_2736433454500093176_n.jpg',
+      '3BDA9B2-2D496A8-651D611.webp',
+      'AE66B78-E71F832-A1F1C4A.webp',
+      '048567D-4277A29-9D3EA4F.webp',
+    ];
+  @endphp
+  @foreach($homepageHeroImages as $i => $img)
+    <div class="hero-slide {{ $i === 0 ? 'active' : '' }}" style="background-image:url('{{ asset('images/homepage/' . $img) }}');"></div>
   @endforeach
   <div class="hero-overlay"></div>
   <div class="hero-content">
@@ -285,7 +401,7 @@
   <div class="container-lg">
     <div class="row align-items-center g-5">
       <div class="col-lg-6">
-        <div class="about-media"><img src="{{ asset('images/02.jpg') }}" alt="Drip Pilates Club studio"></div>
+        <div class="about-media"><img src="{{ asset('images/homepage/474062977_17868791967282795_8844777026850742486_n.jpg') }}" alt="Drip Pilates Club reception and studio entrance" loading="lazy"></div>
       </div>
       <div class="col-lg-6">
         <div class="section-eyebrow" style="text-align:left;">{{ __t('เกี่ยวกับเรา', 'About Us') }}</div>
@@ -319,6 +435,29 @@
   </div>
 </section>
 
+<!-- STUDIO GALLERY -->
+<section class="studio-gallery-section" style="padding-top:0;">
+  <div class="container-lg">
+    <div class="section-eyebrow">{{ __t('บรรยากาศของเรา', 'Inside Drip') }}</div>
+    <h2 class="section-title">{{ __t('พื้นที่ที่ชวนให้คุณหายใจได้เต็มที่', 'A Space To Breathe And Move') }}</h2>
+    <p class="section-sub">{{ __t('ทุกมุมของสตูดิโอออกแบบให้สงบ อบอุ่น และพร้อมสำหรับการเคลื่อนไหวของคุณ', 'Every corner is designed to feel calm, warm, and ready for your movement.') }}</p>
+    <div class="studio-gallery">
+      <figure class="studio-gallery__item">
+        <img src="{{ asset('images/homepage/485634893_17876624331282795_4498882754247542201_n.jpg') }}" alt="Reformer studio with city view" loading="lazy">
+        <figcaption class="studio-gallery__label">{{ __t('ห้องฝึกพร้อมวิวเมือง', 'A studio with a view') }}</figcaption>
+      </figure>
+      <figure class="studio-gallery__item">
+        <img src="{{ asset('images/homepage/484320550_17875868064282795_1837824252396539116_n.jpg') }}" alt="Drip Pilates Club reception" loading="lazy">
+        <figcaption class="studio-gallery__label">{{ __t('ต้อนรับคุณด้วยความอบอุ่น', 'A warm welcome') }}</figcaption>
+      </figure>
+      <figure class="studio-gallery__item">
+        <img src="{{ asset('images/homepage/472894515_17867587257282795_1803485859796865941_n.jpg') }}" alt="Pilates equipment detail" loading="lazy">
+        <figcaption class="studio-gallery__label">{{ __t('อุปกรณ์คุณภาพ', 'Thoughtful equipment') }}</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
 <!-- BRANCHES -->
 @if($branches->isNotEmpty())
 <section id="branches" style="background:var(--panel);">
@@ -336,8 +475,19 @@
             @if($branch->phone)
               <div class="small text-secondary mb-2"><i class="bi bi-telephone"></i> {{ $branch->phone }}</div>
             @endif
-            @if($branch->google_map_url)
-              <a href="{{ $branch->google_map_url }}" target="_blank" rel="noopener">{{ __t('เปิดแผนที่', 'Open Map') }} <i class="bi bi-arrow-up-right"></i></a>
+            @if($branch->google_map_url || ($branch->lat && $branch->lng))
+              <div class="branch-card__actions">
+                <button class="branch-map-btn" type="button"
+                        data-branch-name="{{ $branch->name }}"
+                        data-map-url="{{ $branch->google_map_url }}"
+                        data-lat="{{ $branch->lat }}"
+                        data-lng="{{ $branch->lng }}">
+                  <i class="bi bi-map"></i> {{ __t('ดูแผนที่', 'View Map') }}
+                </button>
+                @if($branch->google_map_url)
+                  <a href="{{ $branch->google_map_url }}" target="_blank" rel="noopener">{{ __t('เปิด Google Maps', 'Open Google Maps') }} <i class="bi bi-arrow-up-right"></i></a>
+                @endif
+              </div>
             @endif
           </div>
         </div>
@@ -346,6 +496,17 @@
   </div>
 </section>
 @endif
+
+<div class="map-modal" id="mapModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="mapModalTitle">
+  <div class="map-modal__panel">
+    <div class="map-modal__head">
+      <h2 class="map-modal__title" id="mapModalTitle">{{ __t('แผนที่สาขา', 'Branch Map') }}</h2>
+      <button class="map-modal__close" id="mapModalClose" type="button" aria-label="{{ __t('ปิดแผนที่', 'Close map') }}"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div id="mapModalContent"></div>
+    <div class="map-modal__footer" id="mapModalFooter"></div>
+  </div>
+</div>
 
 <!-- PACKAGES -->
 @if($packages->isNotEmpty())
@@ -374,6 +535,14 @@
         </div>
       @endforeach
     </div>
+
+    @if($hasMorePackages ?? false)
+      <div class="section-cta">
+        <a href="{{ route('packages.index') }}" class="btn-outline-accent">
+          {{ __t('ดูแพ็กเกจทั้งหมด', 'View all packages') }} <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+    @endif
   </div>
 </section>
 @endif
@@ -385,19 +554,49 @@
     <div class="section-eyebrow">{{ __t('ทีมงาน', 'Our Team') }}</div>
     <h2 class="section-title">{{ __t('ครูผู้สอน', 'Meet Our Trainers') }}</h2>
     <p class="section-sub">{{ __t('ทีมครูมืออาชีพพร้อมดูแลคุณทุกคลาส', 'A professional team ready to guide every class') }}</p>
-    <div class="row row-cols-2 row-cols-md-4 g-4">
+    <div class="trainer-grid">
       @foreach($trainers as $trainer)
-        <div class="col">
-          <div class="trainer-card">
-            <div class="trainer-avatar">
-              @if($trainer->avatar)<img src="{{ asset($trainer->avatar) }}" alt="{{ $trainer->name }}">@else<i class="bi bi-person"></i>@endif
-            </div>
-            <h3>{{ $trainer->nickname ?: $trainer->name }}</h3>
-            @if($trainer->specialties)<p>{{ $trainer->specialties }}</p>@endif
+        <div class="trainer-card">
+          <div class="trainer-avatar">
+            @if($trainer->avatar)<img src="{{ asset($trainer->avatar) }}" alt="{{ $trainer->name }}">@else<i class="bi bi-person"></i>@endif
           </div>
+          <h3>{{ $trainer->nickname ?: $trainer->name }}</h3>
+          @if($trainer->specialties)<p>{{ $trainer->specialties }}</p>@endif
         </div>
       @endforeach
     </div>
+  </div>
+</section>
+@endif
+
+<!-- VIDEOS -->
+@if($videos->isNotEmpty())
+<section id="videos">
+  <div class="container-lg">
+    <div class="section-eyebrow">{{ __t('วิดีโอ', 'Watch') }}</div>
+    <h2 class="section-title">{{ __t('คลิปจากสตูดิโอ', 'From Our Studio') }}</h2>
+    <p class="section-sub">{{ __t('ชมบรรยากาศคลาสและเทคนิคพิลาทิสจากเรา', 'A look inside our classes and Pilates techniques') }}</p>
+
+    <div class="video-slider" id="videoSlider">
+      <button class="video-nav video-nav--prev" type="button" aria-label="Previous"><i class="bi bi-chevron-left"></i></button>
+      <div class="video-track" id="videoTrack">
+        @foreach($videos as $video)
+          <div class="video-slide">
+            @include('partials.video-embed', ['video' => $video])
+          </div>
+        @endforeach
+      </div>
+      <button class="video-nav video-nav--next" type="button" aria-label="Next"><i class="bi bi-chevron-right"></i></button>
+      <div class="video-dots" id="videoDots"></div>
+    </div>
+
+    @if($hasMoreVideos ?? false)
+      <div class="section-cta">
+        <a href="{{ route('videos.index') }}" class="btn-outline-accent">
+          {{ __t('ดูคลิปทั้งหมด', 'View all videos') }} <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+    @endif
   </div>
 </section>
 @endif
@@ -500,9 +699,38 @@
         <a href="{{ route('customer.register') }}">{{ __t('สมัครสมาชิก', 'Sign Up') }}</a>
       </div>
     </div>
+
     <div class="fbottom">&copy; {{ date('Y') }} Drip Pilates Club. {{ __t('สงวนลิขสิทธิ์', 'All rights reserved.') }}</div>
   </div>
 </footer>
+
+<div class="floating-contact" id="floatingContact">
+  <div class="floating-contact__items" aria-hidden="true">
+    <a class="floating-contact__item" href="tel:0818886666">
+      <span class="floating-contact__label">081 888 6666</span>
+      <span class="floating-contact__icon"><i class="bi bi-telephone-fill"></i></span>
+    </a>
+    @if(!empty($contacts))
+      @php $floatingSocial = [
+        'line' => ['bi-line', 'LINE'],
+        'facebook' => ['bi-facebook', 'Facebook'],
+        'tiktok' => ['bi-tiktok', 'TikTok'],
+        'instagram' => ['bi-instagram', 'Instagram'],
+      ]; @endphp
+      @foreach($contacts as $key => $link)
+        @if(!empty($link))
+          <a class="floating-contact__item" href="{{ $link }}" target="_blank" rel="noopener" aria-label="{{ $floatingSocial[$key][1] ?? $key }}">
+            <span class="floating-contact__label">{{ $floatingSocial[$key][1] ?? ucfirst($key) }}</span>
+            <span class="floating-contact__icon"><i class="bi {{ $floatingSocial[$key][0] ?? 'bi-link-45deg' }}"></i></span>
+          </a>
+        @endif
+      @endforeach
+    @endif
+  </div>
+  <button class="floating-contact__toggle" id="floatingContactToggle" type="button" aria-label="{{ __t('ติดตามและติดต่อเรา', 'Follow & Contact Us') }}" aria-expanded="false">
+    <i class="bi bi-chat-dots-fill"></i>
+  </button>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -540,6 +768,139 @@ navToggle.addEventListener('click', function(){
 navLinks.querySelectorAll('a').forEach(function(a){
   a.addEventListener('click', function(){ navLinks.classList.remove('open'); });
 });
+
+var floatingContact = document.getElementById('floatingContact');
+var floatingContactToggle = document.getElementById('floatingContactToggle');
+floatingContactToggle.addEventListener('click', function(){
+  var isOpen = floatingContact.classList.toggle('is-open');
+  floatingContactToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  floatingContact.querySelector('.floating-contact__items').setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+});
+
+var mapModal = document.getElementById('mapModal');
+var mapModalTitle = document.getElementById('mapModalTitle');
+var mapModalContent = document.getElementById('mapModalContent');
+var mapModalFooter = document.getElementById('mapModalFooter');
+var mapModalClose = document.getElementById('mapModalClose');
+
+function closeMapModal(){
+  mapModal.classList.remove('is-open');
+  mapModal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+  mapModalContent.replaceChildren();
+  mapModalFooter.replaceChildren();
+}
+
+document.querySelectorAll('.branch-map-btn').forEach(function(button){
+  button.addEventListener('click', function(){
+    var lat = button.getAttribute('data-lat');
+    var lng = button.getAttribute('data-lng');
+    var mapUrl = button.getAttribute('data-map-url');
+    var branchName = button.getAttribute('data-branch-name') || "{{ __t('แผนที่สาขา', 'Branch Map') }}";
+
+    mapModalTitle.textContent = branchName;
+    if (lat && lng){
+      var frame = document.createElement('iframe');
+      frame.className = 'map-modal__frame';
+      frame.src = 'https://www.google.com/maps?q=' + encodeURIComponent(lat + ',' + lng) + '&output=embed';
+      frame.loading = 'lazy';
+      frame.title = branchName;
+      frame.referrerPolicy = 'no-referrer-when-downgrade';
+      mapModalContent.replaceChildren(frame);
+    } else {
+      var empty = document.createElement('div');
+      empty.className = 'map-modal__empty';
+      empty.textContent = "{{ __t('สาขานี้ยังไม่มีพิกัดแผนที่ กรุณาเปิด Google Maps เพื่อดูตำแหน่ง', 'Map coordinates are not available. Open Google Maps to view the location.') }}";
+      mapModalContent.replaceChildren(empty);
+    }
+
+    if (mapUrl){
+      var external = document.createElement('a');
+      external.className = 'map-modal__external';
+      external.href = mapUrl;
+      external.target = '_blank';
+      external.rel = 'noopener';
+      external.textContent = "{{ __t('เปิดใน Google Maps', 'Open in Google Maps') }}";
+      var externalIcon = document.createElement('i');
+      externalIcon.className = 'bi bi-arrow-up-right';
+      external.appendChild(document.createTextNode(' '));
+      external.appendChild(externalIcon);
+      mapModalFooter.appendChild(external);
+    }
+
+    mapModal.classList.add('is-open');
+    mapModal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  });
+});
+
+mapModalClose.addEventListener('click', closeMapModal);
+mapModal.addEventListener('click', function(event){
+  if (event.target === mapModal) closeMapModal();
+});
+document.addEventListener('keydown', function(event){
+  if (event.key === 'Escape' && mapModal.classList.contains('is-open')) closeMapModal();
+});
+
+// สไลด์คลิปวิดีโอ — เลื่อนทีละอันด้วยปุ่มซ้าย/ขวา + จุดบอกตำแหน่ง
+(function(){
+  var track = document.getElementById('videoTrack');
+  if (!track) return;
+
+  var slider = document.getElementById('videoSlider');
+  var dotsWrap = document.getElementById('videoDots');
+  var slides = Array.prototype.slice.call(track.querySelectorAll('.video-slide'));
+  var prev = slider.querySelector('.video-nav--prev');
+  var next = slider.querySelector('.video-nav--next');
+
+  // สร้างจุดตามจำนวนคลิป
+  slides.forEach(function(_, i){
+    var dot = document.createElement('button');
+    dot.type = 'button';
+    if (i === 0) dot.className = 'active';
+    dot.addEventListener('click', function(){
+      slides[i].scrollIntoView({ behavior:'smooth', inline:'center', block:'nearest' });
+    });
+    dotsWrap.appendChild(dot);
+  });
+
+  function currentIndex(){
+    var center = track.scrollLeft + track.clientWidth / 2;
+    var best = 0, bestDist = Infinity;
+    slides.forEach(function(s, i){
+      var sc = s.offsetLeft + s.offsetWidth / 2;
+      var d = Math.abs(sc - center);
+      if (d < bestDist){ bestDist = d; best = i; }
+    });
+    return best;
+  }
+
+  function update(){
+    var i = currentIndex();
+    Array.prototype.forEach.call(dotsWrap.children, function(d, k){
+      d.classList.toggle('active', k === i);
+    });
+    prev.disabled = track.scrollLeft <= 2;
+    next.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 2;
+  }
+
+  function go(dir){
+    var i = Math.min(slides.length - 1, Math.max(0, currentIndex() + dir));
+    slides[i].scrollIntoView({ behavior:'smooth', inline:'center', block:'nearest' });
+  }
+
+  prev.addEventListener('click', function(){ go(-1); });
+  next.addEventListener('click', function(){ go(1); });
+  track.addEventListener('scroll', function(){
+    window.requestAnimationFrame(update);
+  }, { passive:true });
+  window.addEventListener('resize', update);
+  update();
+})();
 </script>
+
+@if($videos->isNotEmpty())
+  @include('partials.video-embed-assets')
+@endif
 </body>
 </html>

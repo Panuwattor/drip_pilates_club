@@ -20,6 +20,7 @@ class SettingController extends Controller
                 'waitlist' => 'คิวสำรอง',
                 'package' => 'แพ็กเกจ',
                 'general' => 'ทั่วไป',
+                'contact' => 'ช่องทางติดต่อ',
             ],
         ]);
     }
