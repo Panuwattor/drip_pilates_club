@@ -382,6 +382,9 @@
     </a>
 
     <div class="grp">ลูกค้าและการขาย</div>
+    <a href="{{ route('admin.counter.index') }}" class="{{ request()->routeIs('admin.counter.*') ? 'active' : '' }}">
+      <i class="bi bi-shop"></i> เคาน์เตอร์
+    </a>
     <a href="{{ route('admin.customers.index') }}" class="{{ request()->routeIs('admin.customers.*') ? 'active' : '' }}">
       <i class="bi bi-people"></i> ลูกค้า
     </a>

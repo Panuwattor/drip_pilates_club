@@ -88,7 +88,8 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('home');
+        // หน้าแอปลูกค้าต้องล็อกอินแล้ว ออกจากระบบจึงต้องส่งกลับหน้าแนะนำตัว
+        return redirect()->route('landing');
     }
 
     private function nextCode(): string

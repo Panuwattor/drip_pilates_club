@@ -4,6 +4,7 @@ namespace App\Support;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 
 /**
  * จัดการไฟล์อัปโหลดของแอดมิน (รูปประกาศ, avatar ครู, ปกคลิป, สลิป)
@@ -24,6 +25,11 @@ class MediaStorage
     {
         $disk = static::disk();
         $path = $file->store($folder, $disk);
+
+        // ดิสก์คลาวด์อาจคืน false ถ้าอัปโหลดไม่สำเร็จ — กันไม่ให้บันทึก path ว่างลง DB
+        if ($path === false || $path === '') {
+            throw new RuntimeException("อัปโหลดไฟล์ไปยังดิสก์ [{$disk}] ไม่สำเร็จ");
+        }
 
         return static::urlFor($path, $disk);
     }

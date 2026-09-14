@@ -274,8 +274,13 @@ class BookingService
         return $booking->fresh();
     }
 
-    /** ทำเครื่องหมายไม่มาเรียน */
-    public function markNoShow(Booking $booking, ?int $userId = null): Booking
+    /**
+     * ทำเครื่องหมายไม่มาเรียน
+     *
+     * $by = 'system' คือระบบปิดให้เองหลังคลาสจบ (ดู bookings:close-past)
+     * แอดมินย้อนแก้ทีหลังได้ด้วย reopen()
+     */
+    public function markNoShow(Booking $booking, ?int $userId = null, string $by = 'admin'): Booking
     {
         if ($booking->status !== 'confirmed') {
             throw new BookingException('booking_not_confirmed');
@@ -289,9 +294,151 @@ class BookingService
                 'No-show — credit not refunded');
         }
 
-        $this->log($booking, 'confirmed', 'no_show', 'admin', $userId);
+        $this->log($booking, 'confirmed', 'no_show', $by, $userId);
 
         return $booking->fresh();
+    }
+
+    /**
+     * แอดมินแก้ผลที่ระบบปิดไปแล้ว เช่น ลูกค้ามาเรียนจริงแต่ลืมเช็คอิน
+     * ย้อนกลับไปเป็น confirmed แล้วค่อยกดเช็คอิน/ยกเลิกใหม่ตามจริง
+     */
+    public function reopen(Booking $booking, ?int $userId = null, ?string $reason = null): Booking
+    {
+        if (! in_array($booking->status, ['no_show', 'attended', 'late_cancelled', 'cancelled'], true)) {
+            throw new BookingException('booking_not_reopenable');
+        }
+
+        return DB::transaction(function () use ($booking, $userId, $reason) {
+            $booking = Booking::lockForUpdate()->findOrFail($booking->id);
+            $fromStatus = $booking->status;
+
+            // เคยยกเลิกไว้ ที่นั่งถูกคืนเข้ากองกลางไปแล้ว ต้องจองที่คืนและตัดเครดิตใหม่
+            $wasCancelled = in_array($fromStatus, ['cancelled', 'late_cancelled'], true);
+
+            if ($wasCancelled) {
+                $session = ClassSession::lockForUpdate()->findOrFail($booking->class_session_id);
+
+                if ($session->booked_count >= $session->capacity) {
+                    throw new BookingException('class_full');
+                }
+
+                $session->increment('booked_count');
+
+                // เคยคืนเครดิตตอนยกเลิก ต้องตัดกลับ ไม่งั้นลูกค้าได้เรียนฟรี
+                if ($booking->credit_refunded && $booking->credit_used > 0 && $booking->customerPackage) {
+                    $this->deductCredit(
+                        $booking->customer,
+                        $booking->customerPackage,
+                        $booking,
+                        (float) $booking->credit_used,
+                        $session,
+                    );
+                }
+            }
+
+            if ($fromStatus === 'attended') {
+                $booking->classSession()->decrement('attended_count');
+            }
+
+            $booking->update([
+                'status' => 'confirmed',
+                'checked_in_at' => null,
+                'checked_in_by' => null,
+                'cancelled_at' => null,
+                'cancelled_by' => null,
+                'cancel_reason' => null,
+                'credit_refunded' => false,
+            ]);
+
+            $this->log($booking, $fromStatus, 'confirmed', 'admin', $userId, $reason ?: 'reopened_by_admin');
+
+            return $booking->fresh();
+        });
+    }
+
+    /**
+     * ปิดคลาสที่จบไปแล้วแต่ไม่มีใครกดเช็คอิน
+     * ตัดเครดิตไปตั้งแต่ตอนจองแล้ว ตรงนี้แค่ปิดสถานะให้ตรงความจริง
+     * ไม่งั้นการจองค้างเป็น confirmed ตลอดไป กินโควตา max_future_bookings ของลูกค้าด้วย
+     */
+    public function closePastBookings(?int $graceMinutes = null): array
+    {
+        $grace = $graceMinutes ?? (int) Setting::get('auto_no_show_after_minutes', 120);
+        $cutoff = now()->subMinutes($grace);
+
+        $noShow = 0;
+        $expiredWaitlist = 0;
+
+        Booking::where('status', 'confirmed')
+            ->whereHas('classSession', fn ($q) => $q
+                ->where('end_at', '<', $cutoff)
+                ->where('status', '!=', 'cancelled'))
+            ->chunkById(200, function ($bookings) use (&$noShow) {
+                foreach ($bookings as $booking) {
+                    try {
+                        $this->markNoShow($booking, null, 'system');
+                        $noShow++;
+                    } catch (BookingException $e) {
+                        // สถานะเปลี่ยนไปแล้วระหว่างนี้ ข้ามไป
+                    }
+                }
+            });
+
+        // คิวสำรองที่ไม่เคยได้ที่นั่ง ปิดทิ้งแบบไม่ตัดเครดิต เพราะยังไม่เคยตัด
+        Booking::where('status', 'waitlisted')
+            ->whereHas('classSession', fn ($q) => $q->where('end_at', '<', $cutoff))
+            ->chunkById(200, function ($bookings) use (&$expiredWaitlist) {
+                foreach ($bookings as $booking) {
+                    $booking->update([
+                        'status' => 'cancelled',
+                        'cancelled_at' => now(),
+                        'cancelled_by' => 'system',
+                        'cancel_reason' => 'waitlist_not_promoted',
+                        'waitlist_position' => null,
+                    ]);
+
+                    $this->log($booking, 'waitlisted', 'cancelled', 'system', null, 'waitlist_not_promoted');
+                    $expiredWaitlist++;
+                }
+            });
+
+        return ['no_show' => $noShow, 'waitlist_expired' => $expiredWaitlist];
+    }
+
+    /**
+     * ปิดแพ็กที่หมดอายุแล้ว เครดิตที่เหลือถือว่าหมดสิทธิ์
+     * บันทึกลง credit_transactions ไว้ด้วย เวลาลูกค้าถามว่าเครดิตหายไปไหนจะตอบได้
+     */
+    public function expirePackages(): int
+    {
+        $expired = 0;
+
+        CustomerPackage::whereIn('status', ['active', 'frozen', 'used_up'])
+            ->whereDate('expires_at', '<', now()->toDateString())
+            ->chunkById(200, function ($packages) use (&$expired) {
+                foreach ($packages as $package) {
+                    $remaining = (float) ($package->credit_remaining ?? 0);
+
+                    $package->update(['status' => 'expired']);
+
+                    if ($remaining > 0) {
+                        CreditTransaction::create([
+                            'customer_id' => $package->customer_id,
+                            'customer_package_id' => $package->id,
+                            'amount' => -$remaining,
+                            'balance_after' => $package->customer->totalCredits(),
+                            'type' => 'expire',
+                            'reason_th' => 'แพ็กหมดอายุ เครดิตคงเหลือ ' . $remaining . ' ถูกตัด',
+                            'reason_en' => 'Package expired — ' . $remaining . ' credit(s) forfeited',
+                        ]);
+                    }
+
+                    $expired++;
+                }
+            });
+
+        return $expired;
     }
 
     /** แอดมินยกเลิกทั้งรอบ คืนเครดิตทุกคนอัตโนมัติ */

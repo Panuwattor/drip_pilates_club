@@ -68,6 +68,18 @@ class BookingException extends Exception
             'th' => 'การจองนี้ไม่ได้อยู่ในสถานะยืนยัน',
             'en' => 'This booking is not in a confirmed state.',
         ],
+        'booking_not_reopenable' => [
+            'th' => 'การจองนี้ย้อนกลับไม่ได้',
+            'en' => 'This booking cannot be reopened.',
+        ],
+        'invalid_credit_amount' => [
+            'th' => 'จำนวนเครดิตต้องมากกว่า 0',
+            'en' => 'Credit amount must be greater than zero.',
+        ],
+        'no_package_to_credit' => [
+            'th' => 'ลูกค้าไม่มีแพ็กที่ยังใช้ได้ ให้ขายแพ็กใหม่ก่อน',
+            'en' => 'Customer has no usable package — sell a new package first.',
+        ],
     ];
 
     public function localizedMessage(?string $locale = null): string

@@ -77,6 +77,18 @@ class BookingController extends Controller
         return back()->with('status', 'บันทึกว่าไม่มาเรียนแล้ว');
     }
 
+    /** ย้อนสถานะที่ระบบปิดไปแล้ว ให้แอดมินแก้ตามจริง เช่น ลูกค้ามาเรียนแต่ลืมเช็คอิน */
+    public function reopen(Request $request, Booking $booking)
+    {
+        try {
+            $this->bookings->reopen($booking, auth()->id(), $request->input('reason'));
+        } catch (BookingException $e) {
+            return back()->with('error', $e->localizedMessage('th'));
+        }
+
+        return back()->with('status', 'ย้อนสถานะเป็นยืนยันแล้ว แก้ไขได้เลย');
+    }
+
     public function cancel(Request $request, Booking $booking)
     {
         $reason = $request->input('reason');

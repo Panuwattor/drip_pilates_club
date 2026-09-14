@@ -84,7 +84,9 @@ return [
             'url' => env('R2_URL'),
             // R2 ต้องใช้ path-style = false (virtual-hosted ผ่าน endpoint ของ account)
             'use_path_style_endpoint' => false,
-            'throw' => false,
+            // อัปโหลดพลาดต้องโยน exception ไม่ใช่คืน false เงียบๆ
+            // ไม่งั้นจะบันทึก path ว่างลง DB แล้วรูปหายแบบไม่มีใครรู้
+            'throw' => true,
             'report' => false,
         ],
 

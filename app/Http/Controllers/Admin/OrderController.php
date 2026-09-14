@@ -4,12 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
-use App\Models\CreditTransaction;
 use App\Models\Customer;
 use App\Models\CustomerPackage;
 use App\Models\Order;
 use App\Models\Package;
 use App\Models\Payment;
+use App\Services\PackageFulfillment;
 use App\Support\MediaStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -110,7 +110,7 @@ class OrderController extends Controller
 
             // ชำระเงินสดหน้าร้าน ยืนยันได้เลย
             if ($request->boolean('mark_paid')) {
-                $payment = $order->payments()->create([
+                $order->payments()->create([
                     'amount' => $total,
                     'method' => $data['payment_method'] ?? 'cash',
                     'paid_at' => now(),
@@ -119,7 +119,7 @@ class OrderController extends Controller
                     'verified_at' => now(),
                 ]);
 
-                $this->fulfillOrder($order);
+                app(PackageFulfillment::class)->fulfill($order, auth()->id());
             }
 
             return $order;
@@ -151,7 +151,7 @@ class OrderController extends Controller
                 'paid_at' => $payment->paid_at ?? now(),
             ]);
 
-            $this->fulfillOrder($payment->order);
+            app(PackageFulfillment::class)->fulfill($payment->order, auth()->id());
         });
 
         return back()->with('status', 'ยืนยันการชำระเงินและออกแพ็กเกจให้ลูกค้าแล้ว');
@@ -203,64 +203,6 @@ class OrderController extends Controller
         $order->update(['status' => 'cancelled']);
 
         return back()->with('status', 'ยกเลิกคำสั่งซื้อแล้ว');
-    }
-
-    /** ออกแพ็กให้ลูกค้าเมื่อชำระครบ */
-    private function fulfillOrder(Order $order): void
-    {
-        $order->refresh();
-
-        if ($order->status === 'paid') {
-            return;
-        }
-
-        if ($order->paidAmount() < $order->total) {
-            return;
-        }
-
-        foreach ($order->items as $item) {
-            $package = $item->package;
-
-            if (! $package) {
-                continue;
-            }
-
-            for ($i = 0; $i < $item->quantity; $i++) {
-                $customerPackage = CustomerPackage::create([
-                    'code' => 'CP-' . now()->format('ymd') . '-' . strtoupper(bin2hex(random_bytes(3))),
-                    'customer_id' => $order->customer_id,
-                    'package_id' => $package->id,
-                    'order_id' => $order->id,
-                    'type' => $package->type,
-                    'purchased_at' => now(),
-                    'starts_at' => now()->toDateString(),
-                    'expires_at' => now()->addDays($package->valid_days)->toDateString(),
-                    'credit_total' => $package->credit_amount,
-                    'credit_used' => 0,
-                    'credit_remaining' => $package->credit_amount,
-                    'max_per_day' => $package->max_per_day,
-                    'max_per_week' => $package->max_per_week,
-                    'max_future_bookings' => $package->max_future_bookings,
-                    'status' => 'active',
-                    'created_by' => auth()->id(),
-                ]);
-
-                if ($package->credit_amount) {
-                    CreditTransaction::create([
-                        'customer_id' => $order->customer_id,
-                        'customer_package_id' => $customerPackage->id,
-                        'amount' => $package->credit_amount,
-                        'balance_after' => $order->customer->totalCredits(),
-                        'type' => 'purchase',
-                        'reason_th' => 'ซื้อ ' . $package->name_th,
-                        'reason_en' => 'Purchased ' . $package->name_en,
-                        'user_id' => auth()->id(),
-                    ]);
-                }
-            }
-        }
-
-        $order->update(['status' => 'paid', 'paid_at' => now()]);
     }
 
     private function nextOrderCode(): string

@@ -38,7 +38,7 @@
           @endif
         </div>
       </div>
-      <a href="{{ route('customer.profile.index') }}" class="cc-btn text-decoration-none">{{ __t('เติมแพ็กเกจ', 'Top Up') }}</a>
+      <a href="{{ route('customer.purchase.index') }}" class="cc-btn text-decoration-none">{{ __t('เติมแพ็กเกจ', 'Top Up') }}</a>
     </div>
   </div>
 
@@ -83,7 +83,7 @@
 <div class="row row-cols-2 row-cols-md-4 g-3 mb-2">
   <div class="col"><a href="{{ route('customer.schedule') }}" class="quick-item"><div class="qi-icon"><i class="bi bi-plus-lg"></i></div><span>{{ __t('จองคลาส', 'Book Class') }}</span></a></div>
   <div class="col"><a href="{{ route('customer.bookings') }}" class="quick-item"><div class="qi-icon"><i class="bi bi-arrow-repeat"></i></div><span>{{ __t('การจองของฉัน', 'My Bookings') }}</span></a></div>
-  <div class="col"><a href="{{ route('customer.profile.index') }}" class="quick-item"><div class="qi-icon"><i class="bi bi-ticket-perforated"></i></div><span>{{ __t('ซื้อแพ็กเกจ', 'Buy Package') }}</span></a></div>
+  <div class="col"><a href="{{ route('customer.purchase.index') }}" class="quick-item"><div class="qi-icon"><i class="bi bi-ticket-perforated"></i></div><span>{{ __t('ซื้อแพ็กเกจ', 'Buy Package') }}</span></a></div>
   <div class="col">
     @php $branch = $branches->firstWhere('id', $currentBranchId); @endphp
     <a href="{{ $branch?->google_map_url ?: '#' }}" @if($branch?->google_map_url) target="_blank" @endif class="quick-item"><div class="qi-icon"><i class="bi bi-geo-alt"></i></div><span>{{ __t('แผนที่สาขา', 'Find Us') }}</span></a>

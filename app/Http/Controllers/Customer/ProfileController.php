@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Announcement;
 use App\Models\Booking;
 use App\Models\Branch;
-use App\Models\Package;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -35,7 +34,6 @@ class ProfileController extends Controller
             'packages' => $customer->packages()->with('package')->where('status', '!=', 'cancelled')->orderBy('expires_at')->get(),
             'totalCredits' => $customer->totalCredits(),
             'hasUnlimited' => $customer->hasUnlimited(),
-            'shopPackages' => Package::active()->public()->orderBy('sort_order')->get(),
         ]);
     }
 

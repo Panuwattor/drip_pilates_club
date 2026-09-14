@@ -20,12 +20,15 @@ Route::get('/articles/{announcement}', [Customer\LandingController::class, 'arti
 | ฝั่งลูกค้า (หน้าแอปหลังบ้าน อยู่ใต้ /customer)
 |--------------------------------------------------------------------------
 */
-Route::get('/customer', [Customer\HomeController::class, 'index'])->name('home');
-Route::get('/schedule', [Customer\ScheduleController::class, 'index'])->name('customer.schedule');
-Route::get('/bookings', [Customer\BookingListController::class, 'index'])->name('customer.bookings');
 Route::get('/locale/{locale}', [Customer\HomeController::class, 'setLocale'])->name('locale.set');
 
-Route::get('/api/sessions', [Customer\HomeController::class, 'sessions'])->name('api.sessions');
+// หน้าแอปของลูกค้า ต้องล็อกอินก่อนทั้งหมด — คนทั่วไปให้ดูหน้าแนะนำตัวด้านบนแทน
+Route::middleware('auth:customer')->group(function () {
+    Route::get('/customer', [Customer\HomeController::class, 'index'])->name('home');
+    Route::get('/schedule', [Customer\ScheduleController::class, 'index'])->name('customer.schedule');
+    Route::get('/bookings', [Customer\BookingListController::class, 'index'])->name('customer.bookings');
+    Route::get('/api/sessions', [Customer\HomeController::class, 'sessions'])->name('api.sessions');
+});
 
 Route::controller(Customer\AuthController::class)->group(function () {
     Route::get('/login', 'showLogin')->name('customer.login');
@@ -61,6 +64,17 @@ Route::middleware(['auth:customer', 'profile.complete'])->group(function () {
     Route::post('/sessions/{session}/book', [Customer\HomeController::class, 'book'])->name('customer.book');
     Route::get('/bookings/{booking}/cancel-preview', [Customer\HomeController::class, 'cancelPreview'])->name('customer.cancel.preview');
     Route::post('/bookings/{booking}/cancel', [Customer\HomeController::class, 'cancel'])->name('customer.cancel');
+
+    // ซื้อแพ็กเกจ: เลือกแพ็ก -> สร้างคำสั่งซื้อ -> โอนเงิน -> แนบสลิป -> แอดมินอนุมัติเพิ่มเครดิต
+    Route::controller(Customer\PurchaseController::class)->group(function () {
+        Route::get('/purchase', 'index')->name('customer.purchase.index');
+        Route::get('/purchase/orders', 'orders')->name('customer.purchase.orders');
+        Route::get('/purchase/{package}', 'checkout')->name('customer.purchase.checkout');
+        Route::post('/purchase/{package}', 'store')->middleware('throttle:20,1')->name('customer.purchase.store');
+        Route::get('/orders/{order}/pay', 'pay')->name('customer.purchase.pay');
+        Route::post('/orders/{order}/slip', 'uploadSlip')->middleware('throttle:10,1')->name('customer.purchase.slip');
+        Route::post('/orders/{order}/cancel', 'cancel')->name('customer.purchase.cancel');
+    });
 
     Route::controller(Customer\ProfileController::class)->group(function () {
         Route::get('/profile', 'index')->name('customer.profile.index');
@@ -116,6 +130,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/{booking}/check-in', 'checkIn')->name('checkin');
             Route::post('/{booking}/no-show', 'noShow')->name('noshow');
             Route::post('/{booking}/cancel', 'cancel')->name('cancel');
+            Route::post('/{booking}/reopen', 'reopen')->name('reopen');
+        });
+
+        // หน้าเคาน์เตอร์ — งานหน้าร้านที่ทำบ่อย ค้นหาลูกค้าแล้วหัก/เพิ่มเครดิตได้ในหน้าเดียว
+        Route::controller(Admin\CounterController::class)->prefix('counter')->name('counter.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/{customer}/deduct', 'deduct')->name('deduct');
+            Route::post('/{customer}/add', 'add')->name('add');
         });
 
         // ลูกค้า

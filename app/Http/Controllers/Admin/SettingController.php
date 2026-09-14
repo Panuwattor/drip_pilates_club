@@ -19,6 +19,7 @@ class SettingController extends Controller
                 'cancellation' => 'การยกเลิก',
                 'waitlist' => 'คิวสำรอง',
                 'package' => 'แพ็กเกจ',
+                'payment' => 'บัญชีรับเงิน/การชำระเงิน',
                 'general' => 'ทั่วไป',
                 'contact' => 'ช่องทางติดต่อ',
             ],

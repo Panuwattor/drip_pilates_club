@@ -158,7 +158,7 @@
   </button>
 
   <div class="text-center mt-3">
-    <a href="{{ route('home') }}" class="back-link">
+    <a href="{{ route('landing') }}" class="back-link">
       <i class="bi bi-arrow-left"></i> กลับหน้าเว็บลูกค้า
     </a>
   </div>

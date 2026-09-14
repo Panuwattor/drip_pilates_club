@@ -73,6 +73,20 @@
                     @csrf
                     <button class="btn btn-sm btn-outline-secondary" type="submit" title="ไม่มาเรียน"><i class="bi bi-person-x"></i></button>
                   </form>
+                  <form method="POST" action="{{ route('admin.bookings.cancel', $b) }}" class="d-inline"
+                        data-confirm="ยกเลิกการจองและคืนเครดิตให้ลูกค้า?">
+                    @csrf
+                    <button class="btn btn-sm btn-outline-danger" type="submit" title="ยกเลิกและคืนเครดิต"><i class="bi bi-x-lg"></i></button>
+                  </form>
+                @elseif(in_array($b->status, ['no_show', 'attended', 'late_cancelled', 'cancelled']))
+                  {{-- ระบบปิดให้อัตโนมัติหลังคลาสจบ แอดมินย้อนกลับมาแก้ตามจริงได้ --}}
+                  <form method="POST" action="{{ route('admin.bookings.reopen', $b) }}" class="d-inline"
+                        data-confirm="ย้อนกลับเป็น 'ยืนยันแล้ว' เพื่อแก้ไข? @if($b->credit_refunded)เครดิตที่คืนไปจะถูกตัดกลับ@endif">
+                    @csrf
+                    <button class="btn btn-sm btn-outline-secondary" type="submit" title="ย้อนสถานะเพื่อแก้ไข">
+                      <i class="bi bi-arrow-counterclockwise"></i>
+                    </button>
+                  </form>
                 @endif
                 <a href="{{ route('admin.sessions.show', $b->classSession) }}"
                    class="btn btn-sm btn-outline-secondary" title="ดูรอบเรียน"><i class="bi bi-list-check"></i></a>

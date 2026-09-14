@@ -119,7 +119,12 @@
     }
     .site-nav .nav-links.open{ display:flex; }
     .nav-links a{ padding:.75rem 0; border-bottom:1px solid var(--line); }
-    .nav-links .btn-nav-cta{ margin-top:.75rem; text-align:center; }
+    /* ปุ่มสลับภาษาเป็นปุ่มกลม ไม่ใช่แถวเมนู จึงไม่เอาเส้นคั่น/ความกว้างเต็ม */
+    .nav-links .lang-switch{
+      align-self:flex-start; width:auto; margin-top:.9rem;
+      padding:.4rem .9rem; border:1px solid var(--line); border-bottom:1px solid var(--line);
+    }
+    .nav-links .btn-nav-cta{ margin-top:.75rem; text-align:center; border-bottom:0; }
     .nav-toggle{ display:flex; align-items:center; justify-content:center; }
   }
 

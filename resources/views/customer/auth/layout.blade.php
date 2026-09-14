@@ -64,11 +64,27 @@
     letter-spacing:.5em; text-align:center; font-size:1.3rem;
     font-weight:600; padding:.7rem .5rem;
   }
+
+  /* ปุ่มสลับภาษา มุมขวาบนของการ์ด */
+  .auth-card{ position:relative; }
+  .lang-switch{
+    position:absolute; top:1rem; right:1rem;
+    background:var(--ground); border:1px solid var(--line); border-radius:999px;
+    font-size:.72rem; font-weight:700; padding:.3rem .7rem; color:var(--ink);
+    text-decoration:none; display:inline-flex; align-items:center; gap:.35rem;
+  }
+  .lang-switch:hover{ border-color:var(--accent); color:var(--ink); }
 </style>
 </head>
 <body>
 
 <div class="auth-card">
+  <a href="{{ route('locale.set', app()->getLocale() === 'th' ? 'en' : 'th') }}" class="lang-switch">
+    <img src="{{ asset('images/' . (app()->getLocale() === 'th' ? 'en' : 'th') . '.png') }}"
+         width="14" height="14" style="border-radius:50%;object-fit:cover;" alt="">
+    {{ app()->getLocale() === 'th' ? 'EN' : 'TH' }}
+  </a>
+
   <div class="auth-brand">
     <img src="{{ asset('images/logo.jpg') }}" alt="Drip Pilates">
     <span class="bm">Drip Pilates</span>
@@ -77,8 +93,8 @@
   @yield('content')
 
   <div class="text-center mt-3">
-    <a href="{{ route('home') }}" class="small text-decoration-none" style="color:var(--ink-soft);">
-      <i class="bi bi-arrow-left"></i> กลับหน้าแรก
+    <a href="{{ route('landing') }}" class="small text-decoration-none" style="color:var(--ink-soft);">
+      <i class="bi bi-arrow-left"></i> {{ __t('กลับหน้าแรก', 'Back to home') }}
     </a>
   </div>
 </div>
