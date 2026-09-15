@@ -67,7 +67,10 @@ class BookingServiceTest extends TestCase
 
     private function futureSession(): ClassSession
     {
+        // เลือกคลาสประเภท trio-reformer ให้ตรงกับแพ็ก trio-10 ที่ givePackage() ใช้เป็นค่าเริ่มต้น
+        // ไม่งั้นจะสุ่มได้คลาสประเภทที่แพ็กใช้ไม่ได้ แล้ว book() โยน package_not_valid_for_class (flaky)
         return ClassSession::where('start_at', '>', now()->addDays(2))
+            ->whereHas('classType', fn ($q) => $q->where('code', 'trio-reformer'))
             ->orderBy('start_at')
             ->firstOrFail();
     }
@@ -408,5 +411,52 @@ class BookingServiceTest extends TestCase
         $this->assertCount(2, $logs);
         $this->assertSame('confirmed', $logs[0]->to_status);
         $this->assertSame('cancelled', $logs[1]->to_status);
+    }
+
+    public function test_class_reminder_notifies_confirmed_bookings_in_window(): void
+    {
+        $customer = $this->customer();
+        $this->givePackage($customer);
+        $session = $this->futureSession();
+
+        $booking = $this->service->book($customer, $session);
+
+        // ขยับคลาสให้เริ่มในอีก 3 ชม. (อยู่ในหน้าต่างเตือน 12 ชม.)
+        $session->update([
+            'start_at' => now()->addHours(3),
+            'end_at' => now()->addHours(4),
+        ]);
+
+        $sent = $this->service->sendClassReminders();
+
+        $this->assertSame(1, $sent);
+        $this->assertDatabaseHas('notifications', [
+            'customer_id' => $customer->id,
+            'type' => 'class_reminder',
+        ]);
+
+        // รันซ้ำต้องไม่ส่งเตือนอีก (กันสแปม)
+        $this->assertSame(0, $this->service->sendClassReminders());
+    }
+
+    public function test_class_reminder_skips_bookings_outside_window(): void
+    {
+        $customer = $this->customer();
+        $this->givePackage($customer);
+        $session = $this->futureSession();
+
+        // คลาสเริ่มอีก 3 วัน อยู่นอกหน้าต่างเตือน
+        $session->update([
+            'start_at' => now()->addDays(3),
+            'end_at' => now()->addDays(3)->addHour(),
+        ]);
+
+        $this->service->book($customer, $session);
+
+        $this->assertSame(0, $this->service->sendClassReminders());
+        $this->assertDatabaseMissing('notifications', [
+            'customer_id' => $customer->id,
+            'type' => 'class_reminder',
+        ]);
     }
 }

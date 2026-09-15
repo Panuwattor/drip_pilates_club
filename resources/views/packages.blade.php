@@ -33,26 +33,33 @@
 @php $allPackages = $groups->flatten(); @endphp
 @if($allPackages->isNotEmpty())
 {{-- แต่ละแพ็กเป็น Product/Offer ช่วยให้ราคาขึ้น rich result ได้ --}}
-<script type="application/ld+json">
-{!! json_encode([
-    '@context' => 'https://schema.org',
-    '@type' => 'ItemList',
-    'itemListElement' => $allPackages->values()->map(fn ($p, $i) => [
-        '@type' => 'ListItem',
-        'position' => $i + 1,
-        'item' => [
-            '@type' => 'Product',
-            'name' => $p->name,
-            'description' => $p->description ?: $p->name,
-            'offers' => [
-                '@type' => 'Offer',
-                'price' => (string) $p->price,
-                'priceCurrency' => 'THB',
-                'availability' => 'https://schema.org/InStock',
+{{-- key '@context'/'@type' ต้องประกอบผ่านตัวแปร ไม่งั้น Blade parse @context เป็น directive แล้ว JSON พัง --}}
+@php
+    $c = '@' . 'context';
+    $t = '@' . 'type';
+
+    $ldPackages = [
+        $c => 'https://schema.org',
+        $t => 'ItemList',
+        'itemListElement' => $allPackages->values()->map(fn ($p, $i) => [
+            $t => 'ListItem',
+            'position' => $i + 1,
+            'item' => [
+                $t => 'Product',
+                'name' => $p->name,
+                'description' => $p->description ?: $p->name,
+                'offers' => [
+                    $t => 'Offer',
+                    'price' => (string) $p->price,
+                    'priceCurrency' => 'THB',
+                    'availability' => 'https://schema.org/InStock',
+                ],
             ],
-        ],
-    ])->all(),
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
+        ])->all(),
+    ];
+@endphp
+<script type="application/ld+json">
+{!! json_encode($ldPackages, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
 </script>
 @endif
 

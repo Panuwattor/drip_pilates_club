@@ -483,6 +483,18 @@
     letter-spacing:.5em; text-align:center; font-size:1.3rem;
     font-weight:600; padding:.7rem .5rem;
   }
+
+  .notif-bell{
+    position:relative; background:var(--ground); border:1px solid var(--line);
+    border-radius:999px; width:34px; height:34px; display:flex; align-items:center;
+    justify-content:center; color:var(--ink-soft); text-decoration:none; flex:0 0 auto;
+  }
+  .notif-bell:hover{ border-color:var(--accent); color:var(--accent); }
+  .notif-badge{
+    position:absolute; top:-4px; right:-4px; min-width:16px; height:16px; padding:0 4px;
+    border-radius:999px; background:#9B3232; color:#fff; font-size:.62rem; font-weight:700;
+    line-height:16px; text-align:center; border:2px solid var(--panel);
+  }
   @yield('extra-style')
 </style>
 </head>
@@ -498,6 +510,12 @@
       @hasSection('branch-switcher')
         @yield('branch-switcher')
       @endif
+      @auth('customer')
+        <a href="{{ route('customer.notifications.index') }}" class="notif-bell" id="notifBell" title="{{ __t('การแจ้งเตือน', 'Notifications') }}">
+          <i class="bi bi-bell"></i>
+          <span class="notif-badge" id="notifBadge" hidden>0</span>
+        </a>
+      @endauth
       <button class="theme-btn" id="themeToggle" type="button"><i class="bi bi-circle-half"></i> <span data-th="โหมดมืด/สว่าง" data-en="Dark/Light">โหมดมืด/สว่าง</span></button>
       <button class="lang-btn" id="langToggle" type="button" title="Change language"><img id="langFlag" src="{{ asset('images/' . app()->getLocale() . '.png') }}" alt="{{ strtoupper(app()->getLocale()) }}"></button>
     </div>
@@ -720,6 +738,36 @@ if('serviceWorker' in navigator){
       console.warn('SW registration failed', err);
     });
   });
+}
+
+// อัปเดตตัวเลขแจ้งเตือนที่ยังไม่อ่านบนกระดิ่ง
+if(IS_LOGGED_IN){
+  (function(){
+    var badge = document.getElementById('notifBadge');
+    if(!badge) return;
+
+    function refreshNotifCount(){
+      fetch('{{ route('customer.notifications.count') }}', {
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+      })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(data){
+        if(!data) return;
+        var n = data.count || 0;
+        if(n > 0){
+          badge.textContent = n > 99 ? '99+' : n;
+          badge.hidden = false;
+        } else {
+          badge.hidden = true;
+        }
+      })
+      .catch(function(){ /* เงียบไว้ ไม่ต้องรบกวนผู้ใช้ */ });
+    }
+
+    refreshNotifCount();
+    // เช็คซ้ำเป็นระยะ เผื่อได้คิว waitlist ระหว่างเปิดหน้าค้างไว้
+    setInterval(refreshNotifCount, 60000);
+  })();
 }
 
 @yield('extra-script')

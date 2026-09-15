@@ -61,7 +61,12 @@ class CustomerFlowTest extends TestCase
 
     private function futureSession(): ClassSession
     {
-        return ClassSession::where('start_at', '>', now()->addDays(2))->orderBy('start_at')->firstOrFail();
+        // เลือกคลาสประเภท trio-reformer ให้ตรงกับแพ็ก trio-10 ที่ givePackage() ใช้เป็นค่าเริ่มต้น
+        // ไม่งั้นจะสุ่มได้คลาสประเภทที่แพ็กใช้ไม่ได้ แล้ว book() โยน package_not_valid_for_class (flaky)
+        return ClassSession::where('start_at', '>', now()->addDays(2))
+            ->whereHas('classType', fn ($q) => $q->where('code', 'trio-reformer'))
+            ->orderBy('start_at')
+            ->firstOrFail();
     }
 
     public function test_homepage_loads_for_guest(): void
@@ -74,8 +79,9 @@ class CustomerFlowTest extends TestCase
         $customer = $this->customer();
         $this->givePackage($customer);
 
+        // หน้าแอปของลูกค้าอยู่ที่ route('home') = /customer ส่วน / เป็นหน้า marketing ที่ไม่โชว์ชื่อ
         $this->actingAs($customer, 'customer')
-            ->get('/')
+            ->get(route('home'))
             ->assertOk()
             ->assertSee($customer->first_name, false);
     }
@@ -130,10 +136,11 @@ class CustomerFlowTest extends TestCase
     {
         $session = $this->futureSession();
 
-        $response = $this->getJson(route('api.sessions', [
-            'branch' => $session->branch_id,
-            'date' => $session->start_at->toDateString(),
-        ]));
+        $response = $this->actingAs($this->customer(), 'customer')
+            ->getJson(route('api.sessions', [
+                'branch' => $session->branch_id,
+                'date' => $session->start_at->toDateString(),
+            ]));
 
         $response->assertOk()
             ->assertJsonStructure(['html', 'count']);
@@ -146,6 +153,8 @@ class CustomerFlowTest extends TestCase
     {
         $branches = Branch::orderBy('id')->take(2)->get();
         $date = $this->futureSession()->start_at->toDateString();
+
+        $this->actingAs($this->customer(), 'customer');
 
         $first = $this->getJson(route('api.sessions', ['branch' => $branches[0]->id, 'date' => $date]));
         $second = $this->getJson(route('api.sessions', ['branch' => $branches[1]->id, 'date' => $date]));
@@ -240,9 +249,11 @@ class CustomerFlowTest extends TestCase
 
     public function test_locale_switch_changes_page_language(): void
     {
+        $this->actingAs($this->customer(), 'customer');
         $this->get(route('locale.set', 'en'));
 
-        $response = $this->get('/');
+        // "Overview" อยู่ในหน้าแอปของลูกค้า (route('home')) ไม่ใช่หน้า marketing ที่ /
+        $response = $this->get(route('home'));
         $response->assertOk();
         $response->assertSee('Overview', false);
     }
@@ -252,10 +263,11 @@ class CustomerFlowTest extends TestCase
         $session = $this->futureSession();
         $this->get(route('locale.set', 'en'));
 
-        $response = $this->getJson(route('api.sessions', [
-            'branch' => $session->branch_id,
-            'date' => $session->start_at->toDateString(),
-        ]));
+        $response = $this->actingAs($this->customer(), 'customer')
+            ->getJson(route('api.sessions', [
+                'branch' => $session->branch_id,
+                'date' => $session->start_at->toDateString(),
+            ]));
 
         $html = $response->json('html');
         $this->assertStringContainsString('Book Now', $html);

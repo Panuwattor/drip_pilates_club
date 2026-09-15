@@ -25,8 +25,13 @@ class TrainerScheduleTest extends TestCase
 
     private function trainerWithSession(): array
     {
+        // เลือกคลาส trio-reformer ที่เริ่มอีกอย่างน้อย 2 วัน เพื่อให้:
+        //  - ยังเปิดรับจอง (ไม่งั้น book() โยน booking_closed)
+        //  - ตรงกับแพ็ก trio-10 ที่ test ใช้ (ไม่งั้นโยน package_not_valid_for_class)
+        // กันไม่ให้ test flaky ตามลำดับ/ประเภท session ที่ generate มา
         $session = ClassSession::whereNotNull('trainer_id')
-            ->where('start_at', '>', now())
+            ->where('start_at', '>', now()->addDays(2))
+            ->whereHas('classType', fn ($q) => $q->where('code', 'trio-reformer'))
             ->orderBy('start_at')
             ->firstOrFail();
 

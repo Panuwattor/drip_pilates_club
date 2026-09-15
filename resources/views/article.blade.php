@@ -33,18 +33,25 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 
+{{-- key '@context'/'@type' ต้องประกอบผ่านตัวแปร ไม่งั้น Blade parse @context เป็น directive แล้ว JSON พัง --}}
+@php
+    $c = '@' . 'context';
+    $t = '@' . 'type';
+
+    $ldArticle = [
+        $c => 'https://schema.org',
+        $t => 'Article',
+        'headline' => $announcement->title,
+        'description' => \Illuminate\Support\Str::limit(strip_tags($announcement->body ?? $announcement->title), 160),
+        'image' => asset($announcement->image ?: 'images/01.jpg'),
+        'datePublished' => optional($announcement->starts_at)->toAtomString(),
+        'author' => [$t => 'Organization', 'name' => 'Drip Pilates Club'],
+        'publisher' => [$t => 'Organization', 'name' => 'Drip Pilates Club'],
+        'mainEntityOfPage' => route('articles.show', $announcement),
+    ];
+@endphp
 <script type="application/ld+json">
-{!! json_encode([
-    '@context' => 'https://schema.org',
-    '@type' => 'Article',
-    'headline' => $announcement->title,
-    'description' => \Illuminate\Support\Str::limit(strip_tags($announcement->body ?? $announcement->title), 160),
-    'image' => asset($announcement->image ?: 'images/01.jpg'),
-    'datePublished' => optional($announcement->starts_at)->toAtomString(),
-    'author' => ['@type' => 'Organization', 'name' => 'Drip Pilates Club'],
-    'publisher' => ['@type' => 'Organization', 'name' => 'Drip Pilates Club'],
-    'mainEntityOfPage' => route('articles.show', $announcement),
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
+{!! json_encode($ldArticle, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
 </script>
 
 <style>

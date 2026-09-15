@@ -15,6 +15,8 @@ class SettingSeeder extends Seeder
             ['booking_close_minutes_before', '30', 'int', 'booking', 'ปิดรับจองก่อนคลาสเริ่มกี่นาที', 'Close booking (minutes before start)'],
             ['session_generate_days_ahead', '90', 'int', 'booking', 'สร้างรอบเรียนล่วงหน้ากี่วัน', 'Generate sessions (days ahead)'],
             ['schedule_past_days', '2', 'int', 'booking', 'ให้ดูตารางย้อนหลังกี่วัน', 'Schedule past days visible'],
+            ['class_reminder_enabled', 'true', 'bool', 'booking', 'ส่งแจ้งเตือนก่อนคลาสเริ่ม', 'Send class reminder before start'],
+            ['class_reminder_hours', '12', 'int', 'booking', 'เตือนก่อนคลาสเริ่มกี่ชั่วโมง', 'Class reminder lead time (hours)'],
 
             // ยกเลิก
             ['cancel_deadline_hours', '6', 'int', 'cancellation', 'ยกเลิกฟรีก่อนคลาสกี่ชั่วโมง', 'Free cancellation window (hours)'],

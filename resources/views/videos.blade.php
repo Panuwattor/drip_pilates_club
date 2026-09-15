@@ -32,24 +32,31 @@
 
 @if($videos->isNotEmpty())
 {{-- VideoObject list ช่วยให้คลิปมีสิทธิ์ขึ้น rich result / video carousel บน Google --}}
+{{-- key '@context'/'@type' ต้องประกอบผ่านตัวแปร ไม่งั้น Blade parse @context เป็น directive แล้ว JSON พัง --}}
+@php
+    $c = '@' . 'context';
+    $t = '@' . 'type';
+
+    $ldVideos = [
+        $c => 'https://schema.org',
+        $t => 'ItemList',
+        'itemListElement' => $videos->values()->map(fn ($v, $i) => [
+            $t => 'ListItem',
+            'position' => $i + 1,
+            'item' => array_filter([
+                $t => 'VideoObject',
+                'name' => $v->title ?: 'Drip Pilates Club',
+                'description' => $v->caption ?: __t('คลิปจาก Drip Pilates Club', 'A clip from Drip Pilates Club'),
+                'thumbnailUrl' => $v->thumbnail ? asset($v->thumbnail) : asset('images/01.jpg'),
+                'uploadDate' => $v->created_at?->toIso8601String(),
+                'contentUrl' => $v->url,
+                'embedUrl' => $v->url,
+            ]),
+        ])->all(),
+    ];
+@endphp
 <script type="application/ld+json">
-{!! json_encode([
-    '@context' => 'https://schema.org',
-    '@type' => 'ItemList',
-    'itemListElement' => $videos->values()->map(fn ($v, $i) => [
-        '@type' => 'ListItem',
-        'position' => $i + 1,
-        'item' => array_filter([
-            '@type' => 'VideoObject',
-            'name' => $v->title ?: 'Drip Pilates Club',
-            'description' => $v->caption ?: __t('คลิปจาก Drip Pilates Club', 'A clip from Drip Pilates Club'),
-            'thumbnailUrl' => $v->thumbnail ? asset($v->thumbnail) : asset('images/01.jpg'),
-            'uploadDate' => $v->created_at?->toIso8601String(),
-            'contentUrl' => $v->url,
-            'embedUrl' => $v->url,
-        ]),
-    ])->all(),
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
+{!! json_encode($ldVideos, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
 </script>
 @endif
 

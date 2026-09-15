@@ -28,6 +28,14 @@ Route::middleware('auth:customer')->group(function () {
     Route::get('/schedule', [Customer\ScheduleController::class, 'index'])->name('customer.schedule');
     Route::get('/bookings', [Customer\BookingListController::class, 'index'])->name('customer.bookings');
     Route::get('/api/sessions', [Customer\HomeController::class, 'sessions'])->name('api.sessions');
+
+    // ศูนย์แจ้งเตือน
+    Route::controller(Customer\NotificationController::class)->group(function () {
+        Route::get('/notifications', 'index')->name('customer.notifications.index');
+        Route::get('/notifications/unread-count', 'unreadCount')->name('customer.notifications.count');
+        Route::post('/notifications/read-all', 'readAll')->name('customer.notifications.readAll');
+        Route::get('/notifications/{notification}/read', 'read')->name('customer.notifications.read');
+    });
 });
 
 Route::controller(Customer\AuthController::class)->group(function () {

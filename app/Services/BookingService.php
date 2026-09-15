@@ -441,6 +441,52 @@ class BookingService
         return $expired;
     }
 
+    /**
+     * ส่งแจ้งเตือนก่อนคลาสเริ่ม ให้ลูกค้าที่จองยืนยันแล้ว (ลด no-show)
+     *
+     * ยิงเมื่อคลาสจะเริ่มภายในหน้าต่าง [ตอนนี้, ตอนนี้ + X ชม.] แต่ยังไม่เริ่มจริง
+     * กันส่งซ้ำด้วยการเช็ค notification type class_reminder ของ booking เดิม
+     * (คำสั่งนี้ตั้งให้รันบ่อยได้ ทุกครั้งจะส่งเฉพาะคนที่ยังไม่เคยได้เตือน)
+     *
+     * @return int จำนวนแจ้งเตือนที่ส่งรอบนี้
+     */
+    public function sendClassReminders(?int $hoursBefore = null): int
+    {
+        if (! Setting::get('class_reminder_enabled', true)) {
+            return 0;
+        }
+
+        $hours = $hoursBefore ?? (int) Setting::get('class_reminder_hours', 12);
+        $windowEnd = now()->addHours($hours);
+
+        $sent = 0;
+
+        Booking::where('status', 'confirmed')
+            ->whereHas('classSession', fn ($q) => $q
+                ->where('status', 'scheduled')
+                ->where('start_at', '>', now())
+                ->where('start_at', '<=', $windowEnd))
+            ->with(['classSession.classType', 'classSession.branch', 'customer'])
+            ->chunkById(200, function ($bookings) use (&$sent) {
+                foreach ($bookings as $booking) {
+                    // เคยเตือนคลาสนี้ให้ลูกค้าคนนี้แล้ว ข้าม
+                    $already = Notification::where('customer_id', $booking->customer_id)
+                        ->where('type', 'class_reminder')
+                        ->whereJsonContains('data->booking_id', $booking->id)
+                        ->exists();
+
+                    if ($already) {
+                        continue;
+                    }
+
+                    $this->notifyClassReminder($booking->customer, $booking->classSession, $booking);
+                    $sent++;
+                }
+            });
+
+        return $sent;
+    }
+
     /** แอดมินยกเลิกทั้งรอบ คืนเครดิตทุกคนอัตโนมัติ */
     public function cancelSession(
         ClassSession $session,
@@ -780,6 +826,20 @@ class BookingService
             'body_th' => $session->classType->name_th . ' ' . $session->start_at->format('d/m/Y H:i') . ' ถูกยกเลิก (' . $reasonTh . ') เครดิตคืนเข้าบัญชีแล้ว',
             'body_en' => $session->classType->name_en . ' on ' . $session->start_at->format('d M Y, H:i') . ' was cancelled (' . $reasonEn . '). Your credit has been refunded.',
             'data' => ['session_id' => $session->id],
+            'sent_at' => now(),
+        ]);
+    }
+
+    private function notifyClassReminder(Customer $customer, ClassSession $session, Booking $booking): void
+    {
+        Notification::create([
+            'customer_id' => $customer->id,
+            'type' => 'class_reminder',
+            'title_th' => 'เตือนคลาสที่จองไว้',
+            'title_en' => 'Class reminder',
+            'body_th' => $session->classType->name_th . ' ' . $session->start_at->format('d/m/Y H:i') . ' ที่' . $session->branch->name_th . ' อย่าลืมมาเรียนนะคะ',
+            'body_en' => $session->classType->name_en . ' on ' . $session->start_at->format('d M Y, H:i') . ' at ' . $session->branch->name_en . '. See you there!',
+            'data' => ['booking_id' => $booking->id, 'session_id' => $session->id],
             'sent_at' => now(),
         ]);
     }

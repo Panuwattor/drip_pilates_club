@@ -26,3 +26,9 @@ Schedule::command('bookings:close-past')
 Schedule::command('classes:generate')
     ->dailyAt('03:00')
     ->withoutOverlapping();
+
+// เตือนลูกค้าก่อนคลาสเริ่ม ทุก 15 นาที (กันส่งซ้ำในตัว) เพื่อลด no-show
+Schedule::command('bookings:send-reminders')
+    ->everyFifteenMinutes()
+    ->withoutOverlapping()
+    ->runInBackground();

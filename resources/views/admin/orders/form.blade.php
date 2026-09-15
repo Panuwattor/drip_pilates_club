@@ -2,7 +2,7 @@
 @section('title', 'เปิดบิลขายแพ็กเกจ')
 
 @section('content')
-<form method="POST" action="{{ route('admin.orders.store') }}">
+<form method="POST" action="{{ route('admin.orders.store') }}" enctype="multipart/form-data">
   @csrf
 
   <div class="row g-3">
@@ -115,6 +115,10 @@
             <option value="credit_card">บัตรเครดิต</option>
             <option value="other">อื่นๆ</option>
           </select>
+
+          <label class="form-label mt-2">สลิป / หลักฐานการชำระ</label>
+          <input class="form-control" type="file" name="slip_image" accept="image/jpeg,image/png,image/webp">
+          <div class="form-text small">แนบได้ไม่บังคับ — รองรับ JPG, PNG, WebP ขนาดไม่เกิน 4MB</div>
         </div>
 
         <div class="form-text small mt-2">

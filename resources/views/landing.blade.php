@@ -31,44 +31,57 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 
 {{-- JSON-LD ช่วย SEO ให้ Google เข้าใจว่านี่คือธุรกิจสตูดิโอออกกำลังกาย มีหลายสาขา --}}
+{{-- สำคัญ: ห้ามพิมพ์ @context / @type ติดกันตรงๆ ในไฟล์ Blade เพราะ Blade จะ parse เป็น directive
+     ทำให้ JSON พัง (เคยมี PHP โผล่ในหน้าเว็บ + Google อ่าน structured data ไม่ได้)
+     จึงประกอบ key ด้วยตัวแปร $c/$t ที่ตั้งเป็น '@context'/'@type' แทน --}}
+@php
+    $c = '@' . 'context';
+    $t = '@' . 'type';
+
+    $ldOrganization = array_filter([
+        $c => 'https://schema.org',
+        $t => 'ExerciseGym',
+        'name' => 'Drip Pilates Club',
+        'image' => asset('images/homepage/486542663_17877082824282795_2736433454500093176_n.jpg'),
+        'url' => url('/'),
+        'telephone' => optional($branches->first())->phone,
+        // sameAs = ช่องทางโซเชียลของธุรกิจ ช่วยให้ Google เชื่อมโปรไฟล์เข้ากับ Knowledge Panel
+        'sameAs' => array_values(array_filter($contacts ?? [])),
+        'location' => $branches->map(fn ($b) => [
+            $t => 'Place',
+            'name' => $b->name,
+            'address' => $b->address,
+        ])->values(),
+    ]);
+
+    $ldVideos = (! empty($videos) && $videos->isNotEmpty())
+        ? [
+            $c => 'https://schema.org',
+            $t => 'ItemList',
+            'itemListElement' => $videos->values()->map(fn ($v, $i) => [
+                $t => 'ListItem',
+                'position' => $i + 1,
+                'item' => array_filter([
+                    $t => 'VideoObject',
+                    'name' => $v->title ?: 'Drip Pilates Club',
+                    'description' => $v->caption ?: __t('คลิปจาก Drip Pilates Club', 'A clip from Drip Pilates Club'),
+                    'thumbnailUrl' => $v->thumbnail ? asset($v->thumbnail) : asset('images/01.jpg'),
+                    'uploadDate' => $v->created_at?->toIso8601String(),
+                    'contentUrl' => $v->url,
+                    'embedUrl' => $v->url,
+                ]),
+            ])->all(),
+        ]
+        : null;
+@endphp
 <script type="application/ld+json">
-{!! json_encode(array_filter([
-    '@context' => 'https://schema.org',
-    '@type' => 'ExerciseGym',
-    'name' => 'Drip Pilates Club',
-    'image' => asset('images/homepage/486542663_17877082824282795_2736433454500093176_n.jpg'),
-    'url' => url('/'),
-    'telephone' => optional($branches->first())->phone,
-    // sameAs = ช่องทางโซเชียลของธุรกิจ ช่วยให้ Google เชื่อมโปรไฟล์เข้ากับ Knowledge Panel
-    'sameAs' => array_values(array_filter($contacts ?? [])),
-    'location' => $branches->map(fn ($b) => [
-        '@type' => 'Place',
-        'name' => $b->name,
-        'address' => $b->address,
-    ])->values(),
-]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
+{!! json_encode($ldOrganization, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
 </script>
 
-@if(!empty($videos) && $videos->isNotEmpty())
+@if($ldVideos)
 {{-- VideoObject list ช่วยให้คลิปมีสิทธิ์ขึ้น rich result / video carousel บน Google --}}
 <script type="application/ld+json">
-{!! json_encode([
-    '@context' => 'https://schema.org',
-    '@type' => 'ItemList',
-    'itemListElement' => $videos->values()->map(fn ($v, $i) => [
-        '@type' => 'ListItem',
-        'position' => $i + 1,
-        'item' => array_filter([
-            '@type' => 'VideoObject',
-            'name' => $v->title ?: 'Drip Pilates Club',
-            'description' => $v->caption ?: __t('คลิปจาก Drip Pilates Club', 'A clip from Drip Pilates Club'),
-            'thumbnailUrl' => $v->thumbnail ? asset($v->thumbnail) : asset('images/01.jpg'),
-            'uploadDate' => $v->created_at?->toIso8601String(),
-            'contentUrl' => $v->url,
-            'embedUrl' => $v->url,
-        ]),
-    ])->all(),
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
+{!! json_encode($ldVideos, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
 </script>
 @endif
 

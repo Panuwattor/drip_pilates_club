@@ -64,6 +64,7 @@ class OrderController extends Controller
             'note' => ['nullable', 'string'],
             'mark_paid' => ['nullable', 'boolean'],
             'payment_method' => ['nullable', 'in:cash,transfer,promptpay,credit_card,other'],
+            'slip_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ]);
 
         $package = Package::findOrFail($data['package_id']);
@@ -110,9 +111,15 @@ class OrderController extends Controller
 
             // ชำระเงินสดหน้าร้าน ยืนยันได้เลย
             if ($request->boolean('mark_paid')) {
+                // แนบสลิป/หลักฐานได้ ไม่บังคับ — กันแอดมินเปิดบิลจ่ายแล้วลอยๆ
+                $slip = $request->hasFile('slip_image')
+                    ? MediaStorage::store($request->file('slip_image'), 'slips')
+                    : null;
+
                 $order->payments()->create([
                     'amount' => $total,
                     'method' => $data['payment_method'] ?? 'cash',
+                    'slip_image' => $slip,
                     'paid_at' => now(),
                     'status' => 'verified',
                     'verified_by' => auth()->id(),
