@@ -141,6 +141,11 @@
         <span>{{ __t('คำสั่งซื้อของฉัน', 'My Orders') }}</span>
         <div class="chev"><i class="bi bi-chevron-right"></i></div>
       </a>
+      <a href="{{ route('customer.guide') }}" class="menu-row">
+        <div class="mi"><i class="bi bi-book"></i></div>
+        <span>{{ __t('คู่มือการใช้งาน', 'How to Use') }}</span>
+        <div class="chev"><i class="bi bi-chevron-right"></i></div>
+      </a>
       @if($branches->firstWhere('id', $currentBranchId)?->phone)
         <a href="tel:{{ $branches->firstWhere('id', $currentBranchId)->phone }}" class="menu-row">
           <div class="mi"><i class="bi bi-headset"></i></div>

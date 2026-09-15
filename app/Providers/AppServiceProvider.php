@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Payment;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -21,6 +22,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // หน้าแอดมินใช้ Bootstrap ถ้าไม่บอกไว้ Laravel จะออก markup แบบ Tailwind
+        // แล้วลูกศร SVG ในแถบหน้าถัดไปจะไม่มีขนาด บานเต็มจอ
+        Paginator::useBootstrapFive();
+
         // ตัวเลขสลิปรออนุมัติบนเมนูแอดมิน ต้องเห็นทุกหน้า ไม่ใช่แค่หน้าแดชบอร์ด
         // เพราะลูกค้าส่งสลิปเข้ามาเองได้ตลอดเวลา ปล่อยค้างไว้ลูกค้ารอเครดิต
         View::composer('admin.layouts.app', function ($view) {

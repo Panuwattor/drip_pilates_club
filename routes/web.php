@@ -15,6 +15,9 @@ Route::get('/videos', [Customer\LandingController::class, 'videos'])->name('vide
 Route::get('/packages', [Customer\LandingController::class, 'packages'])->name('packages.index');
 Route::get('/articles/{announcement}', [Customer\LandingController::class, 'article'])->name('articles.show');
 
+// คู่มือการใช้งาน — เปิดอ่านได้ทุกคน คนที่ยังไม่สมัครก็ดูได้ว่าต้องทำอะไรบ้าง
+Route::get('/guide', [Customer\GuideController::class, 'index'])->name('customer.guide');
+
 /*
 |--------------------------------------------------------------------------
 | ฝั่งลูกค้า (หน้าแอปหลังบ้าน อยู่ใต้ /customer)
@@ -184,6 +187,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('/holidays/{holiday}', [Admin\HolidayController::class, 'destroy'])->name('holidays.destroy');
 
         Route::get('/reports', [Admin\ReportController::class, 'index'])->name('reports.index');
+
+        Route::get('/manual', [Admin\ManualController::class, 'index'])->name('manual.index');
 
         // เฉพาะเจ้าของระบบ
         Route::middleware('owner')->group(function () {

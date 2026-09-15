@@ -25,13 +25,16 @@ class AuthController extends Controller
         $data = $request->validate([
             'phone' => ['required', 'string'],
             'password' => ['required'],
+        ], [
+            'phone.required' => __t('กรุณากรอกเบอร์โทรศัพท์', 'Please enter your phone number.'),
+            'password.required' => __t('กรุณากรอกรหัสผ่าน', 'Please enter your password.'),
         ]);
 
         $phone = preg_replace('/\D/', '', $data['phone']);
 
         if (! Auth::guard('customer')->attempt(['phone' => $phone, 'password' => $data['password']], $request->boolean('remember'))) {
             throw ValidationException::withMessages([
-                'phone' => 'เบอร์โทรหรือรหัสผ่านไม่ถูกต้อง',
+                'phone' => __t('เบอร์โทรหรือรหัสผ่านไม่ถูกต้อง', 'That phone number or password is incorrect.'),
             ]);
         }
 
@@ -41,7 +44,7 @@ class AuthController extends Controller
             Auth::guard('customer')->logout();
 
             throw ValidationException::withMessages([
-                'phone' => 'บัญชีนี้ถูกระงับการใช้งาน กรุณาติดต่อเจ้าหน้าที่',
+                'phone' => __t('บัญชีนี้ถูกระงับการใช้งาน กรุณาติดต่อเจ้าหน้าที่', 'This account has been suspended. Please contact our staff.'),
             ]);
         }
 
@@ -67,6 +70,30 @@ class AuthController extends Controller
             'email' => ['nullable', 'email', 'max:255', 'unique:customers,email'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
             'home_branch_id' => ['nullable', 'exists:branches,id'],
+        ], [
+            'first_name.required' => __t('กรุณากรอกชื่อ', 'Please enter your first name.'),
+            'first_name.max' => __t('ชื่อยาวเกินไป (ไม่เกิน 120 ตัวอักษร)', 'First name is too long (max 120 characters).'),
+            'last_name.max' => __t('นามสกุลยาวเกินไป (ไม่เกิน 120 ตัวอักษร)', 'Last name is too long (max 120 characters).'),
+
+            'phone.required' => __t('กรุณากรอกเบอร์โทรศัพท์', 'Please enter your phone number.'),
+            'phone.max' => __t('เบอร์โทรศัพท์ยาวเกินไป', 'That phone number is too long.'),
+            'phone.unique' => __t(
+                'เบอร์นี้เคยสมัครไว้แล้ว กรุณาเข้าสู่ระบบ หรือใช้เบอร์อื่น',
+                'This phone number is already registered. Please log in, or use another number.'
+            ),
+
+            'email.email' => __t('รูปแบบอีเมลไม่ถูกต้อง เช่น name@example.com', 'That email address looks invalid, e.g. name@example.com'),
+            'email.max' => __t('อีเมลยาวเกินไป', 'That email address is too long.'),
+            'email.unique' => __t(
+                'อีเมลนี้เคยสมัครไว้แล้ว กรุณาเข้าสู่ระบบ หรือใช้อีเมลอื่น',
+                'This email is already registered. Please log in, or use another email.'
+            ),
+
+            'password.required' => __t('กรุณาตั้งรหัสผ่าน', 'Please choose a password.'),
+            'password.min' => __t('รหัสผ่านต้องยาวอย่างน้อย 6 ตัวอักษร', 'Your password must be at least 6 characters.'),
+            'password.confirmed' => __t('รหัสผ่านทั้งสองช่องไม่ตรงกัน กรุณากรอกใหม่', 'The two passwords do not match. Please re-enter them.'),
+
+            'home_branch_id.exists' => __t('ไม่พบสาขาที่เลือก กรุณาเลือกใหม่', 'That branch was not found. Please choose again.'),
         ]);
 
         $data['phone'] = preg_replace('/\D/', '', $data['phone']);
@@ -79,7 +106,7 @@ class AuthController extends Controller
         Auth::guard('customer')->login($customer);
         $request->session()->regenerate();
 
-        return redirect()->route('home')->with('status', 'สมัครสมาชิกเรียบร้อยแล้ว');
+        return redirect()->route('home')->with('status', __t('สมัครสมาชิกเรียบร้อยแล้ว', 'Your account has been created.'));
     }
 
     public function logout(Request $request)

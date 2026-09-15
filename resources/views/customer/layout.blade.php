@@ -563,7 +563,7 @@
           <span class="notif-badge" id="notifBadge" hidden>0</span>
         </a>
       @endauth
-      <button class="theme-btn" id="themeToggle" type="button"><i class="bi bi-circle-half"></i> <span data-th="โหมดมืด/สว่าง" data-en="Dark/Light">โหมดมืด/สว่าง</span></button>
+      <button class="theme-btn" id="themeToggle" type="button"><i class="bi bi-circle-half"></i> <span>{{ __t('โหมดมืด/สว่าง', 'Dark/Light') }}</span></button>
       <button class="lang-btn" id="langToggle" type="button" title="Change language"><img id="langFlag" src="{{ asset('images/' . app()->getLocale() . '.png') }}" alt="{{ strtoupper(app()->getLocale()) }}"></button>
     </div>
   </div>
@@ -573,13 +573,13 @@
   <div id="installBanner" class="install-banner hidden" role="dialog" aria-live="polite">
     <div class="install-icon"><i class="bi bi-phone"></i></div>
     <div class="install-copy">
-      <strong id="installTitle" data-th="ติดตั้ง Drip Pilates" data-en="Install Drip Pilates">ติดตั้ง Drip Pilates</strong>
+      <strong id="installTitle">{{ __t('ติดตั้ง Drip Pilates', 'Install Drip Pilates') }}</strong>
       <div id="installMessage">เพิ่มลงหน้าจอโฮม เปิดใช้งานได้เร็วเหมือนแอป</div>
       <div id="installInstructions" class="install-instructions hidden"></div>
       <div class="install-actions">
-        <button id="installBtn" class="btn-install" type="button" data-th="ติดตั้ง" data-en="Install">ติดตั้ง</button>
-        <button id="openInChromeBtn" class="btn-openchrome hidden" type="button" data-th="เปิดใน Chrome" data-en="Open in Chrome">เปิดใน Chrome</button>
-        <button id="dismissInstallBtn" class="btn-dismiss" type="button" data-th="ปิด" data-en="Dismiss">ปิด</button>
+        <button id="installBtn" class="btn-install" type="button">{{ __t('ติดตั้ง', 'Install') }}</button>
+        <button id="openInChromeBtn" class="btn-openchrome hidden" type="button">{{ __t('เปิดใน Chrome', 'Open in Chrome') }}</button>
+        <button id="dismissInstallBtn" class="btn-dismiss" type="button">{{ __t('ปิด', 'Dismiss') }}</button>
       </div>
     </div>
   </div>
@@ -592,16 +592,16 @@
 <nav class="footer-nav">
   <div class="nav-inner">
     <a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">
-      <span class="ic"><i class="bi bi-house"></i></span><span data-th="หน้าแรก" data-en="Home">หน้าแรก</span>
+      <span class="ic"><i class="bi bi-house"></i></span><span>{{ __t('หน้าแรก', 'Home') }}</span>
     </a>
     <a class="nav-link {{ request()->routeIs('customer.schedule') ? 'active' : '' }}" href="{{ route('customer.schedule') }}">
-      <span class="ic"><i class="bi bi-grid-3x3-gap"></i></span><span data-th="ตารางคลาส" data-en="Schedule">ตารางคลาส</span>
+      <span class="ic"><i class="bi bi-grid-3x3-gap"></i></span><span>{{ __t('ตารางคลาส', 'Schedule') }}</span>
     </a>
     <a class="nav-link {{ request()->routeIs('customer.bookings') ? 'active' : '' }}" href="{{ route('customer.bookings') }}">
-      <span class="ic"><i class="bi bi-check-circle"></i></span><span data-th="การจอง" data-en="Bookings">การจอง</span>
+      <span class="ic"><i class="bi bi-check-circle"></i></span><span>{{ __t('การจอง', 'Bookings') }}</span>
     </a>
     <a class="nav-link {{ request()->routeIs('customer.profile.*') ? 'active' : '' }}" href="{{ route('customer.profile.index') }}">
-      <span class="ic"><i class="bi bi-person-circle"></i></span><span data-th="โปรไฟล์" data-en="Profile">โปรไฟล์</span>
+      <span class="ic"><i class="bi bi-person-circle"></i></span><span>{{ __t('โปรไฟล์', 'Profile') }}</span>
     </a>
   </div>
 </nav>

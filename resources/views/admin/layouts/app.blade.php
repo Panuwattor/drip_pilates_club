@@ -422,6 +422,9 @@
     <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
       <i class="bi bi-graph-up"></i> รายงาน
     </a>
+    <a href="{{ route('admin.manual.index') }}" class="{{ request()->routeIs('admin.manual.*') ? 'active' : '' }}">
+      <i class="bi bi-book"></i> คู่มือการใช้งาน
+    </a>
     @if(auth()->user()?->isOwner())
     <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
       <i class="bi bi-shield-lock"></i> ผู้ใช้งานระบบ
@@ -442,6 +445,11 @@
 
     <div class="ms-auto d-flex align-items-center gap-2">
       @yield('topbar-actions')
+      <a class="icon-btn" href="{{ route('locale.set', app()->getLocale() === 'th' ? 'en' : 'th') }}"
+         title="{{ __t('เปลี่ยนเป็นภาษาอังกฤษ', 'Switch to Thai') }}"
+         style="width:auto; padding-inline:.6rem; font-size:.72rem; font-weight:700; letter-spacing:.04em;">
+        {{ app()->getLocale() === 'th' ? 'EN' : 'ไทย' }}
+      </a>
       <button class="icon-btn" id="themeToggle" type="button" title="สลับโหมดสว่าง/มืด"><i class="bi bi-circle-half"></i></button>
       <div class="dropdown">
         <button class="icon-btn" data-bs-toggle="dropdown" type="button" title="{{ auth()->user()?->name }}">
@@ -490,13 +498,19 @@
 <script>
 // สลับโหมดสว่าง/มืด จำค่าไว้
 (function(){
-  var saved = localStorage.getItem('adminTheme');
+  // localStorage โยน error ได้ถ้าเบราว์เซอร์บล็อกคุกกี้/เปิดโหมดส่วนตัว
+  function read(){ try { return localStorage.getItem('adminTheme'); } catch(err){ return null; } }
+  function save(v){ try { localStorage.setItem('adminTheme', v); } catch(err){} }
+
+  var saved = read();
   if(saved){ document.documentElement.setAttribute('data-bs-theme', saved); }
-  document.getElementById('themeToggle').addEventListener('click', function(){
+
+  var btn = document.getElementById('themeToggle');
+  btn && btn.addEventListener('click', function(){
     var html = document.documentElement;
     var next = html.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
     html.setAttribute('data-bs-theme', next);
-    localStorage.setItem('adminTheme', next);
+    save(next);
   });
 })();
 
@@ -505,7 +519,7 @@
   var sb = document.getElementById('adminSidebar');
   var bd = document.getElementById('sidebarBackdrop');
   var tg = document.getElementById('sidebarToggle');
-  function close(){ sb.classList.remove('open'); bd.classList.remove('open'); }
+  function close(){ sb && sb.classList.remove('open'); bd && bd.classList.remove('open'); }
   tg && tg.addEventListener('click', function(){ sb.classList.toggle('open'); bd.classList.toggle('open'); });
   bd && bd.addEventListener('click', close);
   document.addEventListener('keydown', function(e){ if(e.key === 'Escape') close(); });
