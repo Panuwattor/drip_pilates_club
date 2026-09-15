@@ -32,23 +32,23 @@
           </div>
 
           @if($booking && $booking->status === 'confirmed')
-            <span class="badge rounded-pill" style="background:#D8ECD9;color:#2F6B33;">
+            <span class="badge rounded-pill" style="background:var(--c-green-soft);color:var(--c-green-ink);">
               {{ app()->getLocale() === 'th' ? 'จองแล้ว' : 'Booked' }}
             </span>
           @elseif($booking && $booking->status === 'waitlisted')
-            <span class="badge rounded-pill" style="background:#F4E3C7;color:#8A6112;">
+            <span class="badge rounded-pill" style="background:var(--c-amber-soft);color:var(--c-amber-ink);">
               {{ app()->getLocale() === 'th' ? 'คิวที่ ' . $booking->waitlist_position : 'Queue #' . $booking->waitlist_position }}
             </span>
           @elseif($full)
-            <span class="badge rounded-pill" style="background:var(--accent-soft);color:var(--accent-deep);">
+            <span class="badge rounded-pill" style="background:var(--c-pink-soft);color:var(--c-pink-ink);">
               {{ app()->getLocale() === 'th' ? 'เต็ม' : 'Full' }}
             </span>
           @elseif($spots <= 2)
-            <span class="badge rounded-pill" style="background:#F4E3C7;color:#8A6112;">
+            <span class="badge rounded-pill" style="background:var(--c-orange-soft);color:var(--c-orange-ink);">
               {{ app()->getLocale() === 'th' ? "เหลือ {$spots} ที่" : "{$spots} left" }}
             </span>
           @else
-            <span class="badge rounded-pill" style="background:var(--sage-soft);color:var(--sage);">
+            <span class="badge rounded-pill" style="background:var(--c-blue-soft);color:var(--c-blue-ink);">
               {{ app()->getLocale() === 'th' ? "เหลือ {$spots} ที่" : "{$spots} spots left" }}
             </span>
           @endif

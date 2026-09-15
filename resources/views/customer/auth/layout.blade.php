@@ -8,12 +8,12 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <style>
   :root{
-    --ground:#EEF1F6; --panel:#FFFFFF; --ink:#2B3242; --ink-soft:#6B7690;
-    --accent:#7C93B8; --accent-deep:#5E7699; --accent-soft:#DCE3EF; --line:#DCE1EB;
+    --ground:#F1EEFB; --panel:#FFFFFF; --ink:#241F3A; --ink-soft:#6E6A86;
+    --accent:#7C6BF0; --accent-deep:#5B47D6; --accent-soft:#E7E2FC; --line:#E9E5F5;
   }
   [data-bs-theme="dark"]{
-    --ground:#161A22; --panel:#20252F; --ink:#E9ECF3; --ink-soft:#A0ABC2;
-    --accent:#9BB0D1; --accent-deep:#B7C6E2; --accent-soft:#2C3547; --line:#333B4C;
+    --ground:#15121F; --panel:#211C31; --ink:#EEEAF7; --ink-soft:#A59FBE;
+    --accent:#9E8FF5; --accent-deep:#B7ABF8; --accent-soft:#2E2748; --line:#332C48;
   }
   body{
     background:var(--ground); color:var(--ink); min-height:100vh;
@@ -36,7 +36,7 @@
   }
   .form-control:focus, .form-select:focus{
     background:var(--panel); color:var(--ink);
-    border-color:var(--accent); box-shadow:0 0 0 .2rem rgba(124,147,184,.18);
+    border-color:var(--accent); box-shadow:0 0 0 .2rem rgba(124,107,240,.18);
   }
   .btn-accent{
     background:var(--accent); border:1px solid var(--accent); color:#FBF3F0;

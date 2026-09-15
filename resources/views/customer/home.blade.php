@@ -1,6 +1,28 @@
 @extends('customer.layout')
 @section('title', __t('หน้าแรก', 'Home'))
 
+@section('extra-style')
+  .announce-card{
+    display:flex; align-items:flex-start; gap:.85rem;
+    background:linear-gradient(135deg,var(--c-purple),#B58BF2);
+    color:#fff; border-radius:22px; padding:1.1rem 1.25rem;
+    box-shadow:0 10px 24px rgba(124,107,240,.24);
+  }
+  .announce-card .announce-icon{
+    width:40px; height:40px; border-radius:14px; flex:0 0 auto;
+    background:rgba(255,255,255,.22); display:flex; align-items:center; justify-content:center; font-size:1.1rem;
+  }
+  .announce-card strong{ font-size:.98rem; }
+
+  /* อวาตาร์ครูผู้สอน ไล่สีวนไปให้ดูสนุก */
+  .instructors-grid > *:nth-child(6n+1) .avatar-round{ background:var(--c-purple-soft); color:var(--c-purple-ink); }
+  .instructors-grid > *:nth-child(6n+2) .avatar-round{ background:var(--c-orange-soft); color:var(--c-orange-ink); }
+  .instructors-grid > *:nth-child(6n+3) .avatar-round{ background:var(--c-green-soft);  color:var(--c-green-ink); }
+  .instructors-grid > *:nth-child(6n+4) .avatar-round{ background:var(--c-blue-soft);   color:var(--c-blue-ink); }
+  .instructors-grid > *:nth-child(6n+5) .avatar-round{ background:var(--c-pink-soft);   color:var(--c-pink-ink); }
+  .instructors-grid > *:nth-child(6n+6) .avatar-round{ background:var(--c-amber-soft);  color:var(--c-amber-ink); }
+@endsection
+
 @section('content')
 <div class="page-header">
   <div class="brandmark">{{ __t('ภาพรวม', 'Overview') }}</div>
@@ -15,9 +37,12 @@
 </div>
 
 @foreach($announcements as $ann)
-  <div class="mb-3 p-3 rounded-4" style="background:var(--accent-soft);color:var(--accent-deep);">
-    <strong>{{ $ann->title }}</strong>
-    @if($ann->body)<div class="small mt-1">{{ \Illuminate\Support\Str::limit(strip_tags($ann->body), 140) }}</div>@endif
+  <div class="announce-card mb-3">
+    <div class="announce-icon"><i class="bi bi-megaphone-fill"></i></div>
+    <div class="min-width-0">
+      <strong>{{ $ann->title }}</strong>
+      @if($ann->body)<div class="small mt-1 opacity-90">{{ \Illuminate\Support\Str::limit(strip_tags($ann->body), 140) }}</div>@endif
+    </div>
   </div>
 @endforeach
 
@@ -80,7 +105,7 @@
 </div>
 
 <div class="section-title mt-4">{{ __t('บริการด่วน', 'Quick Actions') }}</div>
-<div class="row row-cols-2 row-cols-md-4 g-3 mb-2">
+<div class="row row-cols-2 row-cols-md-4 g-3 mb-2 quick-grid">
   <div class="col"><a href="{{ route('customer.schedule') }}" class="quick-item"><div class="qi-icon"><i class="bi bi-plus-lg"></i></div><span>{{ __t('จองคลาส', 'Book Class') }}</span></a></div>
   <div class="col"><a href="{{ route('customer.bookings') }}" class="quick-item"><div class="qi-icon"><i class="bi bi-arrow-repeat"></i></div><span>{{ __t('การจองของฉัน', 'My Bookings') }}</span></a></div>
   <div class="col"><a href="{{ route('customer.purchase.index') }}" class="quick-item"><div class="qi-icon"><i class="bi bi-ticket-perforated"></i></div><span>{{ __t('ซื้อแพ็กเกจ', 'Buy Package') }}</span></a></div>
@@ -91,7 +116,7 @@
 </div>
 
 <div class="section-title mt-4">{{ __t('ครูผู้สอน', 'Instructors') }}</div>
-<div class="row row-cols-4 row-cols-md-6 g-3">
+<div class="row row-cols-4 row-cols-md-6 g-3 instructors-grid">
   @foreach($trainers as $t)
     <div class="col text-center">
       <div class="avatar-round mx-auto mb-2">

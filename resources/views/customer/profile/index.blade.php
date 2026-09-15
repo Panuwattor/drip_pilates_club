@@ -1,6 +1,19 @@
 @extends('customer.layout')
 @section('title', __t('โปรไฟล์', 'Profile'))
 
+@section('extra-style')
+  .stat-box.tint-green{ background:var(--c-green-soft); border-color:transparent; }
+  .stat-box.tint-blue{ background:var(--c-blue-soft); border-color:transparent; }
+  .stat-box.tint-orange{ background:var(--c-orange-soft); border-color:transparent; }
+
+  /* ไอคอนในเมนู ไล่สีเป็นชุดให้ดูมีมิติ */
+  .menu-list .menu-row:nth-child(5n+1) .mi{ background:var(--c-purple-soft); color:var(--c-purple-ink); }
+  .menu-list .menu-row:nth-child(5n+2) .mi{ background:var(--c-blue-soft);   color:var(--c-blue-ink); }
+  .menu-list .menu-row:nth-child(5n+3) .mi{ background:var(--c-green-soft);  color:var(--c-green-ink); }
+  .menu-list .menu-row:nth-child(5n+4) .mi{ background:var(--c-orange-soft); color:var(--c-orange-ink); }
+  .menu-list .menu-row:nth-child(5n+5) .mi{ background:var(--c-pink-soft);   color:var(--c-pink-ink); }
+@endsection
+
 @section('content')
 <div class="page-header">
   <h1>{{ __t('โปรไฟล์', 'Profile') }}</h1>
@@ -25,22 +38,22 @@
 
 <div class="row row-cols-3 g-2 mb-4">
   <div class="col">
-    <div class="stat-box">
-      <div class="stat-icon" style="background:var(--accent-soft);color:var(--accent-deep);"><i class="bi bi-activity"></i></div>
+    <div class="stat-box tint-green">
+      <div class="stat-icon" style="background:var(--c-green);color:#fff;"><i class="bi bi-activity"></i></div>
       <div class="num">{{ $customer->bookings()->where('status', 'attended')->count() }}</div>
       <div class="lbl">{{ __t('คลาสทั้งหมด', 'Classes') }}</div>
     </div>
   </div>
   <div class="col">
-    <div class="stat-box">
-      <div class="stat-icon" style="background:var(--sage-soft);color:var(--sage);"><i class="bi bi-ticket-perforated"></i></div>
+    <div class="stat-box tint-blue">
+      <div class="stat-icon" style="background:var(--c-blue);color:#fff;"><i class="bi bi-ticket-perforated"></i></div>
       <div class="num">{{ $hasUnlimited ? '∞' : $totalCredits }}</div>
       <div class="lbl">{{ __t('เครดิตคงเหลือ', 'Credits') }}</div>
     </div>
   </div>
   <div class="col">
-    <div class="stat-box">
-      <div class="stat-icon" style="background:#F4E3C7;color:#8A6112;"><i class="bi bi-calendar-check"></i></div>
+    <div class="stat-box tint-orange">
+      <div class="stat-icon" style="background:var(--c-orange);color:#fff;"><i class="bi bi-calendar-check"></i></div>
       <div class="num">{{ $upcoming->count() }}</div>
       <div class="lbl">{{ __t('จองไว้', 'Upcoming') }}</div>
     </div>
