@@ -107,6 +107,55 @@ class CustomerFlowTest extends TestCase
         $this->assertAuthenticated('customer');
     }
 
+    /** เบอร์ที่คนพิมพ์จริงมักมีขีด/เว้นวรรค ต้องเก็บเป็นตัวเลขล้วน ไม่งั้นผูก LINE แล้วหาบัญชีไม่เจอ */
+    public function test_register_normalises_phone_before_saving(): void
+    {
+        $this->post(route('customer.register'), [
+            'first_name' => 'สมหญิง',
+            'phone' => '089-999-0001',
+            'password' => 'secret123',
+            'password_confirmation' => 'secret123',
+        ])->assertRedirect(route('home'));
+
+        $this->assertDatabaseHas('customers', ['phone' => '0899990001']);
+    }
+
+    /**
+     * เบอร์ปลอมต้องถูกปฏิเสธตั้งแต่ validation
+     *
+     * ของเดิมตรวจแค่ required|string|max:30 แล้วค่อยตัดอักขระทิ้งตอนบันทึก
+     * ทำให้ "123" สมัครผ่าน ส่วน "abc" กับ "!!!" กลายเป็นค่าว่างเหมือนกัน
+     * แล้วไปชน unique ที่ระดับฐานข้อมูล ลูกค้าเห็นหน้า error ของ SQL
+     */
+    public function test_register_rejects_malformed_phone_numbers(): void
+    {
+        $before = Customer::count();
+
+        foreach (['123', '000', 'abcdefg', '!!!???', '08123456789012345'] as $bad) {
+            $this->post(route('customer.register'), [
+                'first_name' => 'ทดสอบ',
+                'phone' => $bad,
+                'password' => 'secret123',
+                'password_confirmation' => 'secret123',
+            ])->assertSessionHasErrors('phone', "เบอร์ [{$bad}] ไม่ควรสมัครผ่าน");
+        }
+
+        $this->assertSame($before, Customer::count(), 'ต้องไม่มีบัญชีขยะถูกสร้าง');
+    }
+
+    /** สมัครด้วยเบอร์ที่มีคนใช้แล้ว ต้องได้ข้อความบอก ไม่ใช่หน้า SQL error */
+    public function test_register_rejects_duplicate_phone_gracefully(): void
+    {
+        $existing = $this->customer();
+
+        $this->post(route('customer.register'), [
+            'first_name' => 'ซ้ำ',
+            'phone' => $existing->phone,
+            'password' => 'secret123',
+            'password_confirmation' => 'secret123',
+        ])->assertSessionHasErrors('phone');
+    }
+
     public function test_customer_can_login_with_phone(): void
     {
         $customer = $this->customer();

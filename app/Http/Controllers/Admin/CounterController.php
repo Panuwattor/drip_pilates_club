@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Exceptions\BookingException;
 use App\Http\Controllers\Controller;
+use App\Models\ClassSession;
 use App\Models\CreditTransaction;
 use App\Models\Customer;
 use App\Models\CustomerPackage;
+use App\Services\BookingService;
 use App\Services\CreditAdjuster;
 use Illuminate\Http\Request;
 
@@ -18,7 +20,10 @@ use Illuminate\Http\Request;
  */
 class CounterController extends Controller
 {
-    public function __construct(private CreditAdjuster $credits) {}
+    public function __construct(
+        private CreditAdjuster $credits,
+        private BookingService $bookings,
+    ) {}
 
     public function index(Request $request)
     {
@@ -74,7 +79,57 @@ class CounterController extends Controller
                     ->where('type', '!=', 'unlimited')
                     ->filter(fn ($p) => $p->expires_at->gte(now()->startOfDay()))
                 : collect(),
+            // คลาสวันนี้ที่ยังไม่จบ ให้เลือกตอนบันทึก walk-in
+            // เอาที่ยังไม่จบเท่านั้น กันกดผิดไปลงคลาสเมื่อวาน
+            'todaySessions' => $customer
+                ? ClassSession::with(['classType', 'trainer', 'room'])
+                    ->where('status', 'scheduled')
+                    ->whereDate('start_at', now()->toDateString())
+                    ->where('end_at', '>', now())
+                    ->orderBy('start_at')
+                    ->get()
+                : collect(),
         ]);
+    }
+
+    /**
+     * ลูกค้า walk-in มาเรียนสด — สร้าง booking จริงแล้วเช็คอินให้เลย
+     *
+     * ต่างจาก deduct() ตรงที่อันนี้ผูกกับคลาส ทำให้ยอดคนเข้าเรียน รายงานครู
+     * และเครดิตที่หัก (ตาม credit_cost ของคลาสนั้น) ตรงกับความจริงทั้งหมด
+     */
+    public function walkIn(Request $request, Customer $customer)
+    {
+        $data = $request->validate([
+            'class_session_id' => ['required', 'integer', 'exists:class_sessions,id'],
+            // พนักงานเห็นคำเตือนว่าคลาสเต็มแล้วกดยืนยันมา ถึงจะรับเกินความจุได้
+            'confirm_overbook' => ['nullable', 'boolean'],
+        ], [], ['class_session_id' => 'คลาส']);
+
+        $session = ClassSession::with('classType')->findOrFail($data['class_session_id']);
+
+        $isFull = $session->booked_count >= $session->capacity;
+
+        if ($isFull && ! $request->boolean('confirm_overbook')) {
+            return back()->with('error',
+                "คลาส {$session->classType->name_th} เต็มแล้ว ({$session->booked_count}/{$session->capacity}) — กดยืนยันอีกครั้งถ้าต้องการรับเพิ่ม");
+        }
+
+        try {
+            $booking = $this->bookings->book($customer, $session, 'walk_in', auth()->id());
+            // มาเรียนสดอยู่แล้ว เช็คอินให้เลย ไม่ต้องให้พนักงานกดซ้ำอีกหน้า
+            $this->bookings->checkIn($booking, auth()->id());
+        } catch (BookingException $e) {
+            return back()->with('error', $e->localizedMessage('th'));
+        }
+
+        $credit = (float) $booking->credit_used;
+        $detail = $credit > 0
+            ? "หักเครดิต {$credit} เหลือ {$customer->fresh()->totalCredits()}"
+            : 'แพ็กเหมาจ่าย ไม่หักเครดิต';
+
+        return back()->with('status',
+            "บันทึก {$customer->full_name} เข้าคลาส {$session->classType->name_th} แล้ว — {$detail}");
     }
 
     /** หักเครดิต — ตัดจากแพ็กที่ใกล้หมดอายุก่อนอัตโนมัติ */

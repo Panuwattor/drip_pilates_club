@@ -187,7 +187,7 @@
                     <tr>
                       <td class="small">
                         {{ $b->classSession->classType->name_th }}
-                        <div class="text-secondary">{{ $b->classSession->start_at->format('j/n/y H:i') }}</div>
+                        <div class="text-secondary">{{ $b->classSession->start_at->format('d/m/Y H:i') }}</div>
                       </td>
                       <td class="text-end">@include('admin.partials.booking-status', ['status' => $b->status])</td>
                     </tr>
@@ -213,7 +213,7 @@
                       <td class="small">
                         {{ $tx->reason_th }}
                         <div class="text-secondary">
-                          {{ $tx->created_at->format('j/n/y H:i') }}
+                          {{ $tx->created_at->format('d/m/Y H:i') }}
                           @if($tx->user)· {{ $tx->user->name }}@endif
                         </div>
                       </td>
@@ -253,7 +253,7 @@
           <select class="form-select" name="customer_package_id" required>
             @foreach($packages->where('status', '!=', 'cancelled')->where('type', '!=', 'unlimited') as $cp)
               <option value="{{ $cp->id }}">
-                {{ $cp->package->name_th }} — เหลือ {{ $cp->credit_remaining }} (หมดอายุ {{ $cp->expires_at->format('j/n/y') }})
+                {{ $cp->package->name_th }} — เหลือ {{ $cp->credit_remaining }} (หมดอายุ {{ $cp->expires_at->format('d/m/Y') }})
               </option>
             @endforeach
           </select>

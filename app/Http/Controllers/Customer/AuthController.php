@@ -63,10 +63,20 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
+        // ล้างเบอร์เป็นตัวเลขล้วนก่อนตรวจ ไม่งั้น unique จะเช็คค่าดิบที่ไม่ตรงกับค่าที่บันทึกจริง
+        // (เช่น "!!!???" กับ "abc" ต่างกันตอนตรวจ แต่กลายเป็นค่าว่างเหมือนกันตอนบันทึก แล้วชน unique ที่ระดับ DB)
+        if ($request->filled('phone')) {
+            $request->merge([
+                'phone' => app(\App\Services\PhoneVerificationService::class)
+                    ->normalize($request->input('phone')),
+            ]);
+        }
+
         $data = $request->validate([
             'first_name' => ['required', 'string', 'max:120'],
             'last_name' => ['nullable', 'string', 'max:120'],
-            'phone' => ['required', 'string', 'max:30', 'unique:customers,phone'],
+            // เบอร์ไทยมี 9-10 หลัก ตรวจหลังล้างแล้วเพื่อกันเบอร์ปลอมอย่าง "123"
+            'phone' => ['required', 'string', 'digits_between:9,10', 'unique:customers,phone'],
             'email' => ['nullable', 'email', 'max:255', 'unique:customers,email'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
             'home_branch_id' => ['nullable', 'exists:branches,id'],
@@ -76,7 +86,10 @@ class AuthController extends Controller
             'last_name.max' => __t('นามสกุลยาวเกินไป (ไม่เกิน 120 ตัวอักษร)', 'Last name is too long (max 120 characters).'),
 
             'phone.required' => __t('กรุณากรอกเบอร์โทรศัพท์', 'Please enter your phone number.'),
-            'phone.max' => __t('เบอร์โทรศัพท์ยาวเกินไป', 'That phone number is too long.'),
+            'phone.digits_between' => __t(
+                'เบอร์โทรศัพท์ไม่ถูกต้อง กรุณากรอกเบอร์ 9-10 หลัก เช่น 0812345678',
+                'That phone number looks invalid. Please enter 9-10 digits, e.g. 0812345678'
+            ),
             'phone.unique' => __t(
                 'เบอร์นี้เคยสมัครไว้แล้ว กรุณาเข้าสู่ระบบ หรือใช้เบอร์อื่น',
                 'This phone number is already registered. Please log in, or use another number.'

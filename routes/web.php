@@ -147,6 +147,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // หน้าเคาน์เตอร์ — งานหน้าร้านที่ทำบ่อย ค้นหาลูกค้าแล้วหัก/เพิ่มเครดิตได้ในหน้าเดียว
         Route::controller(Admin\CounterController::class)->prefix('counter')->name('counter.')->group(function () {
             Route::get('/', 'index')->name('index');
+            Route::post('/{customer}/walk-in', 'walkIn')->name('walkin');
             Route::post('/{customer}/deduct', 'deduct')->name('deduct');
             Route::post('/{customer}/add', 'add')->name('add');
         });

@@ -3,6 +3,10 @@
 
 @section('content')
 <form method="GET" class="d-flex flex-wrap gap-2 mb-3">
+  {{-- คงลำดับการเรียงไว้เมื่อกดค้นหา ไม่งั้นเด้งกลับไปค่าเริ่มต้น --}}
+  <input type="hidden" name="sort" value="{{ $sort }}">
+  <input type="hidden" name="dir" value="{{ $dir }}">
+
   <input class="form-control form-control-sm" name="q" value="{{ request('q') }}"
          placeholder="รหัสจอง ชื่อ หรือเบอร์โทร" style="max-width:250px;">
 
@@ -26,7 +30,9 @@
 
   <button class="btn btn-sm btn-primary" type="submit"><i class="bi bi-search"></i> ค้นหา</button>
   @if(request()->hasAny(['q','status','branch','from','to']))
-    <a href="{{ route('admin.bookings.index') }}" class="btn btn-sm btn-outline-secondary">ล้าง</a>
+    {{-- ล้างเฉพาะตัวกรอง ยังคงลำดับการเรียงที่เลือกไว้ --}}
+    <a href="{{ route('admin.bookings.index', ['sort' => $sort, 'dir' => $dir]) }}"
+       class="btn btn-sm btn-outline-secondary">ล้าง</a>
   @endif
 </form>
 
@@ -37,7 +43,15 @@
     <div class="table-wrap">
       <table class="table align-middle">
         <thead>
-          <tr><th>รหัส</th><th>ลูกค้า</th><th>คลาส</th><th>วันเวลา</th><th>สาขา</th><th>สถานะ</th><th></th></tr>
+          <tr>
+            @include('admin.partials.sort-header', ['key' => 'code', 'label' => 'รหัส'])
+            @include('admin.partials.sort-header', ['key' => 'customer', 'label' => 'ลูกค้า'])
+            <th>คลาส</th>
+            @include('admin.partials.sort-header', ['key' => 'date', 'label' => 'วันเวลา'])
+            <th>สาขา</th>
+            @include('admin.partials.sort-header', ['key' => 'status', 'label' => 'สถานะ'])
+            <th></th>
+          </tr>
         </thead>
         <tbody>
           @foreach($bookings as $b)
@@ -50,7 +64,7 @@
               </td>
               <td class="small">{{ $b->classSession->classType->name_th }}</td>
               <td class="small" style="white-space:nowrap;">
-                {{ $b->classSession->start_at->format('j/n/y') }}
+                {{ $b->classSession->start_at->format('d/m/Y') }}
                 <div class="text-secondary">{{ $b->classSession->start_at->format('H:i') }}</div>
               </td>
               <td class="small text-secondary">

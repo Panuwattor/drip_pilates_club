@@ -64,7 +64,7 @@
                   <div class="small" style="color:var(--warn);">มีสลิปรอยืนยัน</div>
                 @endif
               </td>
-              <td class="small text-secondary">{{ $o->created_at->format('j/n/y') }}</td>
+              <td class="small text-secondary">{{ $o->created_at->format('d/m/Y') }}</td>
               <td class="text-end">
                 <a href="{{ route('admin.orders.show', $o) }}" class="btn btn-sm btn-outline-secondary">
                   <i class="bi bi-eye"></i>

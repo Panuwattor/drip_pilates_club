@@ -83,18 +83,26 @@ class ProfileController extends Controller
             $rules['current_password'] = ['required', 'string'];
         }
 
-        $data = $request->validate($rules);
+        $data = $request->validate($rules, [
+            'password.required' => __t('กรุณาตั้งรหัสผ่าน', 'Please choose a password.'),
+            'password.min' => __t('รหัสผ่านต้องยาวอย่างน้อย 6 ตัวอักษร', 'Your password must be at least 6 characters.'),
+            'password.confirmed' => __t('รหัสผ่านทั้งสองช่องไม่ตรงกัน กรุณากรอกใหม่', 'The two passwords do not match. Please re-enter them.'),
+            'current_password.required' => __t('กรุณากรอกรหัสผ่านปัจจุบัน', 'Please enter your current password.'),
+        ]);
 
         if ($customer->hasPassword() && ! Hash::check($data['current_password'], $customer->password)) {
             throw ValidationException::withMessages([
-                'current_password' => 'รหัสผ่านปัจจุบันไม่ถูกต้อง',
+                'current_password' => __t('รหัสผ่านปัจจุบันไม่ถูกต้อง', 'That current password is incorrect.'),
             ]);
         }
 
         $customer->forceFill(['password' => $data['password']])->save();
 
         return back()->with('status', $customer->wasChanged()
-            ? 'ตั้งรหัสผ่านเรียบร้อยแล้ว ตอนนี้เข้าสู่ระบบด้วยเบอร์โทรได้แล้ว'
-            : 'บันทึกรหัสผ่านแล้ว');
+            ? __t(
+                'ตั้งรหัสผ่านเรียบร้อยแล้ว ตอนนี้เข้าสู่ระบบด้วยเบอร์โทรได้แล้ว',
+                'Your password is set. You can now log in with your phone number.'
+            )
+            : __t('บันทึกรหัสผ่านแล้ว', 'Your password has been saved.'));
     }
 }

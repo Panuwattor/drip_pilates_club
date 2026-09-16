@@ -32,7 +32,7 @@
               <span class="badge-soft {{ $rm[$u->role][1] }}">{{ $rm[$u->role][0] }}</span>
             </td>
             <td class="small text-secondary">{{ $u->branch?->name_th ?? 'ทุกสาขา' }}</td>
-            <td class="small text-secondary">{{ $u->last_login_at?->format('j/n/y H:i') ?? 'ยังไม่เคย' }}</td>
+            <td class="small text-secondary">{{ $u->last_login_at?->format('d/m/Y H:i') ?? 'ยังไม่เคย' }}</td>
             <td>
               @if($u->is_active)
                 <span class="badge-soft badge-ok">ใช้งาน</span>

@@ -1,5 +1,5 @@
 @extends('admin.layouts.app')
-@section('title', 'ตั้งค่าระบบ')
+@section('title', __t('ตั้งค่าระบบ', 'Settings'))
 
 @section('content')
 <form method="POST" action="{{ route('admin.settings.update') }}">
@@ -19,12 +19,12 @@
                          id="s_{{ $setting->key }}" name="settings[{{ $setting->key }}]" value="1"
                          {{ filter_var($setting->value, FILTER_VALIDATE_BOOL) ? 'checked' : '' }}>
                   <label class="form-check-label" for="s_{{ $setting->key }}">
-                    {{ $setting->label_th ?? $setting->key }}
+                    {{ $setting->label ?? $setting->key }}
                   </label>
                 </div>
               @else
                 <label class="form-label" for="s_{{ $setting->key }}">
-                  {{ $setting->label_th ?? $setting->key }}
+                  {{ $setting->label ?? $setting->key }}
                 </label>
                 <input class="form-control" id="s_{{ $setting->key }}"
                        type="{{ $setting->type === 'int' ? 'number' : 'text' }}"
@@ -40,7 +40,7 @@
   </div>
 
   <div class="mt-3">
-    <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> บันทึกการตั้งค่า</button>
+    <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> {{ __t('บันทึกการตั้งค่า', 'Save settings') }}</button>
   </div>
 </form>
 @endsection

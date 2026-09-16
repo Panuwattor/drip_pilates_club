@@ -191,6 +191,17 @@
     color:var(--ink-faint); font-weight:700; border-bottom:1px solid var(--line);
     white-space:nowrap; padding-top:.45rem; padding-bottom:.45rem;
   }
+  /* หัวตารางที่กดเรียงได้ */
+  .table thead th .sort-link{
+    color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:.3rem;
+    white-space:nowrap;
+  }
+  .table thead th .sort-link:hover{ color:var(--accent-deep); }
+  .table thead th .sort-link.active{ color:var(--accent-deep); }
+  /* ไอคอนจาง ๆ ให้รู้ว่ากดได้ แต่ไม่แย่งสายตาคอลัมน์ที่เรียงอยู่ */
+  .table thead th .sort-idle{ opacity:.35; }
+  .table thead th .sort-link:hover .sort-idle{ opacity:.7; }
+
   .table tbody tr{ transition:background .12s ease; }
   .table tbody tr:hover{ background:var(--panel-2); }
   .table tbody tr:last-child > *{ border-bottom:0; }
@@ -319,6 +330,33 @@
   .alert-danger{
     background:var(--danger-soft); color:var(--danger); border-color:transparent;
   }
+
+  /* ── กล่องยืนยัน/แจ้งเตือน (SweetAlert2) ────────
+     ใช้ตัวแปรสีชุดเดียวกับหลังบ้าน จึงตามโหมดมืดเองอัตโนมัติ */
+  .swal2-popup.swal-admin{
+    background:var(--panel); color:var(--ink);
+    border:1px solid var(--line); border-radius:var(--r-lg, 14px);
+    box-shadow:var(--shadow-lg); font-size:.92rem; padding:1.6rem 1.5rem 1.35rem;
+  }
+  .swal2-popup.swal-admin .swal2-title{ color:var(--ink); font-size:1.08rem; font-weight:700; }
+  .swal2-popup.swal-admin .swal2-html-container{ color:var(--ink-soft); font-size:.9rem; margin-top:.5rem; }
+  .swal2-popup.swal-admin .swal2-actions{ gap:.5rem; margin-top:1.25rem; }
+  .swal2-popup.swal-admin .swal2-styled{
+    border-radius:999px; padding:.5rem 1.35rem; font-weight:700; font-size:.88rem;
+    box-shadow:none; margin:0;
+  }
+  .swal2-popup.swal-admin .swal2-styled:focus{ box-shadow:0 0 0 3px rgba(var(--accent-ring), .35); }
+  .swal2-popup.swal-admin .swal2-confirm{ background:var(--accent); color:#fff; }
+  .swal2-popup.swal-admin .swal2-confirm:hover{ background:var(--accent-deep); }
+  .swal2-popup.swal-admin .swal2-confirm.swal-confirm-danger{ background:var(--danger); }
+  .swal2-popup.swal-admin .swal2-cancel{ background:transparent; color:var(--ink-soft); border:1px solid var(--line); }
+  .swal2-popup.swal-admin .swal2-cancel:hover{ background:var(--ground-2); color:var(--ink); }
+  .swal2-popup.swal-admin .swal2-icon{ margin:.4rem auto .2rem; }
+  /* กล่องข้อความยาว ๆ ต้องตัดคำ ไม่งั้นดันกล่องกว้างเกิน */
+  .swal2-popup.swal-admin .swal2-title,
+  .swal2-popup.swal-admin .swal2-html-container{ overflow-wrap:break-word; word-break:break-word; }
+  .swal2-container .swal2-toast{ background:var(--panel); color:var(--ink); border:1px solid var(--line); box-shadow:var(--shadow-md); }
+  .swal2-container .swal2-toast .swal2-title{ color:var(--ink); font-size:.88rem; }
 
   .divider{ height:1px; background:var(--line-soft); margin:1rem 0; border:0; }
 
@@ -495,6 +533,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
 <script>
 // สลับโหมดสว่าง/มืด จำค่าไว้
 (function(){
@@ -536,10 +575,56 @@ document.addEventListener('click', function(e){
   group.querySelectorAll('.lang-pane').forEach(function(p){ p.classList.toggle('active', p.dataset.lang === lang); });
 });
 
+// กล่องยืนยันมาตรฐานของหลังบ้าน
+window.adminConfirm = function(opts){
+  opts = opts || {};
+  // ถ้า CDN โหลดไม่ติด ยังต้องยืนยันได้อยู่ จึงถอยไปใช้ confirm ของเบราว์เซอร์
+  if(!window.Swal){
+    return Promise.resolve(window.confirm(opts.text || opts.title || 'ยืนยัน?'));
+  }
+  return Swal.fire({
+    title: opts.title || __swalT('ยืนยันการทำรายการ', 'Please confirm'),
+    text: opts.text || '',
+    icon: opts.icon || 'question',
+    showCancelButton: true,
+    confirmButtonText: opts.confirmText || __swalT('ยืนยัน', 'Confirm'),
+    cancelButtonText: opts.cancelText || __swalT('ยกเลิก', 'Cancel'),
+    reverseButtons: true,
+    focusCancel: !!opts.danger,
+    buttonsStyling: false,
+    customClass: {
+      popup: 'swal-admin',
+      confirmButton: 'swal2-confirm swal2-styled' + (opts.danger ? ' swal-confirm-danger' : ''),
+      cancelButton: 'swal2-cancel swal2-styled'
+    }
+  }).then(function(r){ return r.isConfirmed; });
+};
+
+function __swalT(th, en){
+  return document.documentElement.lang === 'en' ? en : th;
+}
+
+// คำที่บอกว่าเป็นการกระทำที่ย้อนกลับไม่ได้ → ปุ่มยืนยันเป็นสีแดง
+var DANGER_WORDS = /ลบ|ยกเลิก|หัก|ไม่มาเรียน|ย้อนกลับ|delete|remove|cancel|revoke/i;
+
 // ยืนยันก่อนทำสิ่งที่ย้อนกลับไม่ได้
 document.addEventListener('submit', function(e){
-  var msg = e.target.dataset.confirm;
-  if(msg && !window.confirm(msg)){ e.preventDefault(); }
+  var form = e.target;
+  var msg = form.dataset.confirm;
+  // ผ่านด่านมาแล้ว ปล่อยให้ส่งจริง
+  if(!msg || form.dataset.confirmed === '1') return;
+
+  // SweetAlert เป็น async จึงต้องหยุดการส่งไว้ก่อน แล้วค่อยสั่งส่งใหม่เมื่อผู้ใช้กดยืนยัน
+  e.preventDefault();
+  var danger = DANGER_WORDS.test(msg);
+  adminConfirm({ text: msg, danger: danger, icon: danger ? 'warning' : 'question' })
+    .then(function(ok){
+      if(!ok) return;
+      form.dataset.confirmed = '1';
+      // requestSubmit ทำให้ปุ่มที่กดถูกส่งไปด้วย (submit() ธรรมดาจะตกหล่น)
+      if(typeof form.requestSubmit === 'function'){ form.requestSubmit(); }
+      else { form.submit(); }
+    });
 });
 
 // กันกดปุ่มส่งฟอร์มซ้ำ

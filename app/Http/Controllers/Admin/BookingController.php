@@ -11,6 +11,18 @@ use Illuminate\Http\Request;
 
 class BookingController extends Controller
 {
+    /**
+     * คอลัมน์ที่ยอมให้กดเรียงได้ — รับเฉพาะคีย์ในนี้เท่านั้น
+     * ค่าจาก query string จึงไม่มีทางหลุดเข้า SQL โดยตรง
+     */
+    private const SORTABLE = [
+        'date' => 'class_sessions.start_at',
+        'customer' => 'customers.first_name',
+        'status' => 'bookings.status',
+        'code' => 'bookings.code',
+        'booked' => 'bookings.id',
+    ];
+
     public function __construct(private BookingService $bookings) {}
 
     public function index(Request $request)
@@ -20,13 +32,15 @@ class BookingController extends Controller
         $query = Booking::with(['customer', 'classSession.classType', 'classSession.branch'])
             ->whereHas('classSession', fn ($q) => $q->whereIn('branch_id', $branchIds));
 
+        // ระบุชื่อตารางให้ชัด เพราะการกดเรียงจะ join customers/class_sessions
+        // ซึ่งมีคอลัมน์ status และ code ชื่อซ้ำกัน
         if ($status = $request->input('status')) {
-            $query->where('status', $status);
+            $query->where('bookings.status', $status);
         }
 
         if ($search = $request->input('q')) {
             $query->where(function ($q) use ($search) {
-                $q->where('code', 'like', "%{$search}%")
+                $q->where('bookings.code', 'like', "%{$search}%")
                     ->orWhereHas('customer', fn ($c) => $c
                         ->where('first_name', 'like', "%{$search}%")
                         ->orWhere('last_name', 'like', "%{$search}%")
@@ -47,11 +61,38 @@ class BookingController extends Controller
             $query->whereHas('classSession', fn ($q) => $q->whereDate('start_at', '<=', $to));
         }
 
-        $bookings = $query->latest('id')->paginate(30)->withQueryString();
+        // เรียงตามวันเวลาเรียนเป็นค่าเริ่มต้น ให้ตรงกับคอลัมน์ "วันเวลา" ที่เห็นในตาราง
+        $sort = $request->input('sort');
+        $sort = isset(self::SORTABLE[$sort]) ? $sort : 'date';
+        $dir = $request->input('dir') === 'asc' ? 'asc' : 'desc';
+
+        // คอลัมน์ที่อยู่คนละตารางต้อง join ก่อน แล้ว select เฉพาะ bookings.*
+        // ไม่งั้นคอลัมน์ชื่อซ้ำ (id, status, created_at) จะทับค่าของ booking
+        if ($sort === 'date') {
+            $query->join('class_sessions', 'class_sessions.id', '=', 'bookings.class_session_id')
+                ->select('bookings.*');
+        } elseif ($sort === 'customer') {
+            $query->join('customers', 'customers.id', '=', 'bookings.customer_id')
+                ->select('bookings.*');
+        }
+
+        $query->orderBy(self::SORTABLE[$sort], $dir);
+
+        // เรียงชื่อลูกค้าต้องดูนามสกุลต่อ และทุกแบบปิดท้ายด้วย id กันลำดับสลับไปมาเมื่อค่าซ้ำ
+        if ($sort === 'customer') {
+            $query->orderBy('customers.last_name', $dir);
+        }
+        if ($sort !== 'booked') {
+            $query->orderBy('bookings.id', 'desc');
+        }
+
+        $bookings = $query->paginate(30)->withQueryString();
 
         return view('admin.bookings.index', [
             'bookings' => $bookings,
             'branches' => Branch::whereIn('id', $branchIds)->orderBy('sort_order')->get(),
+            'sort' => $sort,
+            'dir' => $dir,
         ]);
     }
 

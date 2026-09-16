@@ -37,8 +37,8 @@
               </td>
               <td class="small text-secondary">{{ $a->branch?->name_th ?? 'ทุกสาขา' }}</td>
               <td class="small text-secondary">
-                {{ $a->starts_at?->format('j/n/y') ?? 'ทันที' }} –
-                {{ $a->ends_at?->format('j/n/y') ?? 'ไม่กำหนด' }}
+                {{ $a->starts_at?->format('d/m/Y') ?? 'ทันที' }} –
+                {{ $a->ends_at?->format('d/m/Y') ?? 'ไม่กำหนด' }}
               </td>
               <td>
                 @if($a->is_active)

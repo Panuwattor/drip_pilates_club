@@ -15,13 +15,13 @@ class SettingController extends Controller
         return view('admin.settings.edit', [
             'settings' => $settings,
             'groupLabels' => [
-                'booking' => 'การจอง',
-                'cancellation' => 'การยกเลิก',
-                'waitlist' => 'คิวสำรอง',
-                'package' => 'แพ็กเกจ',
-                'payment' => 'บัญชีรับเงิน/การชำระเงิน',
-                'general' => 'ทั่วไป',
-                'contact' => 'ช่องทางติดต่อ',
+                'booking' => __t('การจอง', 'Booking'),
+                'cancellation' => __t('การยกเลิก', 'Cancellation'),
+                'waitlist' => __t('คิวสำรอง', 'Waitlist'),
+                'package' => __t('แพ็กเกจ', 'Packages'),
+                'payment' => __t('บัญชีรับเงิน/การชำระเงิน', 'Payment details'),
+                'general' => __t('ทั่วไป', 'General'),
+                'contact' => __t('ช่องทางติดต่อ', 'Contact channels'),
             ],
         ]);
     }
@@ -54,6 +54,6 @@ class SettingController extends Controller
             Setting::put($key, $request->boolean("settings.{$key}") ? 'true' : 'false');
         }
 
-        return back()->with('status', 'บันทึกการตั้งค่าแล้ว');
+        return back()->with('status', __t('บันทึกการตั้งค่าแล้ว', 'Settings saved'));
     }
 }

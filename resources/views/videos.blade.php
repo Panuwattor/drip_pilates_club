@@ -81,6 +81,20 @@
   }
   .site-nav .brand{ font-weight:700; font-size:1.2rem; color:var(--ink); display:flex; align-items:center; gap:.5rem; text-decoration:none; }
   .site-nav .brand img{ width:36px; height:36px; border-radius:50%; object-fit:cover; }
+  /* ปุ่มสลับภาษาหน้าตาเดียวกับหน้า landing */
+  .lang-switch{
+    background:var(--ground); border:1px solid var(--line); border-radius:999px;
+    font-size:.78rem; font-weight:700; padding:.4rem .9rem; color:var(--ink); text-decoration:none;
+  }
+  .lang-switch:hover{ color:var(--accent-deep); border-color:var(--accent); }
+  .btn-nav-cta{
+    background:var(--accent); border:1px solid var(--accent); color:#fff;
+    border-radius:999px; padding:.5rem 1.2rem; font-weight:700; font-size:.9rem; text-decoration:none;
+  }
+  .btn-nav-cta:hover{ background:var(--accent-deep); color:#fff; }
+  @media (max-width: 575.98px){
+    .site-nav .brand span{ display:none; }
+  }
 
   .page-head{ padding:3rem 0 1.5rem; text-align:center; }
   .page-head .breadcrumb-link{ font-size:.85rem; font-weight:700; color:var(--accent-deep); text-decoration:none; }
@@ -104,9 +118,13 @@
       <img src="{{ asset('images/logo.jpg') }}" alt="Drip Pilates Club">
       <span>Drip Pilates Club</span>
     </a>
-    <a href="{{ route('customer.login') }}" style="background:var(--accent);border:1px solid var(--accent);color:#fff;border-radius:999px;padding:.5rem 1.2rem;font-weight:700;font-size:.9rem;text-decoration:none;">
-      {{ __t('เข้าสู่ระบบ', 'Log In') }}
-    </a>
+    <div class="d-flex align-items-center gap-2">
+      <a href="{{ route('locale.set', app()->getLocale() === 'th' ? 'en' : 'th') }}" class="lang-switch d-inline-flex align-items-center gap-1">
+        <img src="{{ asset('images/' . (app()->getLocale() === 'th' ? 'en' : 'th') . '.png') }}" width="16" height="16" style="border-radius:50%;object-fit:cover;" alt="">
+        {{ app()->getLocale() === 'th' ? 'EN' : 'TH' }}
+      </a>
+      <a href="{{ route('customer.login') }}" class="btn-nav-cta">{{ __t('เข้าสู่ระบบ', 'Log In') }}</a>
+    </div>
   </div>
 </nav>
 

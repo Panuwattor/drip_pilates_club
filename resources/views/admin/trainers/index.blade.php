@@ -75,16 +75,42 @@
 
 @push('scripts')
 <script>
+// แสดงลิงก์ให้คัดลอกเองเมื่อ clipboard ใช้ไม่ได้ (เช่นหน้าเว็บไม่ได้อยู่บน https)
+function showLinkFallback(link){
+  if(!window.Swal){ window.prompt('คัดลอกลิงก์นี้ส่งให้ครู', link); return; }
+  Swal.fire({
+    title: 'คัดลอกลิงก์นี้ส่งให้ครู',
+    input: 'text',
+    inputValue: link,
+    inputAttributes: { readonly: 'readonly' },
+    confirmButtonText: 'ปิด',
+    buttonsStyling: false,
+    customClass: { popup: 'swal-admin', confirmButton: 'swal2-confirm swal2-styled', input: 'form-control' },
+    didOpen: function(){
+      var el = Swal.getInput();
+      el && el.select();
+    }
+  });
+}
+
 document.querySelectorAll('.copy-link').forEach(function(btn){
   btn.addEventListener('click', function(){
     var link = this.dataset.link;
     var done = this;
+    // clipboard API ไม่มีบน http จึงต้องเช็คก่อน ไม่งั้น .then โยน error
+    if(!navigator.clipboard){ showLinkFallback(link); return; }
     navigator.clipboard.writeText(link).then(function(){
       var old = done.innerHTML;
       done.innerHTML = '<i class="bi bi-check-lg"></i>';
       setTimeout(function(){ done.innerHTML = old; }, 1400);
+      if(window.Swal){
+        Swal.fire({
+          toast: true, position: 'top-end', icon: 'success',
+          title: 'คัดลอกลิงก์แล้ว', showConfirmButton: false, timer: 1800, timerProgressBar: true
+        });
+      }
     }).catch(function(){
-      window.prompt('คัดลอกลิงก์นี้ส่งให้ครู', link);
+      showLinkFallback(link);
     });
   });
 });

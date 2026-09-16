@@ -109,7 +109,7 @@
     @if($nearest)
       <div class="small text-secondary mt-2 pt-2" style="border-top:1px solid var(--line);">
         ใบที่จะถูกตัดก่อน: <strong>{{ $nearest->package->name_th }}</strong>
-        เหลือ {{ $nearest->credit_remaining }} · หมดอายุ {{ $nearest->expires_at->format('j/n/y') }}
+        เหลือ {{ $nearest->credit_remaining }} · หมดอายุ {{ $nearest->expires_at->format('d/m/Y') }}
         @if($usablePackages->count() > 1)
           <span class="text-secondary">(มีอีก {{ $usablePackages->count() - 1 }} ใบ)</span>
         @endif
@@ -132,15 +132,69 @@
         @elseif($credits <= 0)
           <div class="empty-note py-3">ไม่มีเครดิตให้หัก</div>
         @else
-          <form method="POST" action="{{ route('admin.counter.deduct', $customer) }}" id="deductForm">
+          {{-- เลือกโหมด: ผูกกับคลาสจริง หรือปรับเครดิตล้วนๆ --}}
+          <div class="btn-group w-100 mb-3" role="group">
+            <button type="button" class="btn btn-sm btn-primary mode-btn" data-mode="walkin">
+              <i class="bi bi-person-walking"></i> มาเรียนคลาสนี้
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary mode-btn" data-mode="adjust">
+              <i class="bi bi-sliders"></i> ปรับเครดิตอย่างเดียว
+            </button>
+          </div>
+
+          {{-- ── โหมด walk-in: สร้าง booking จริง นับยอดคนเข้าคลาส ── --}}
+          <div id="modeWalkin">
+            @if($todaySessions->isEmpty())
+              <div class="empty-note py-3">
+                วันนี้ไม่มีคลาสที่ยังไม่จบ — ถ้าต้องแก้ย้อนหลังให้ใช้ "ปรับเครดิตอย่างเดียว"
+              </div>
+            @else
+              <form method="POST" action="{{ route('admin.counter.walkin', $customer) }}" id="walkinForm">
+                @csrf
+                <label class="form-label small">เลือกคลาสที่ลูกค้าเข้าเรียน</label>
+                <select class="form-select form-select-sm mb-2" name="class_session_id" required>
+                  @foreach($todaySessions as $s)
+                    @php $full = $s->booked_count >= $s->capacity; @endphp
+                    <option value="{{ $s->id }}" @if($full) data-full="1" @endif>
+                      {{ $s->start_at->format('H:i') }}–{{ $s->end_at->format('H:i') }}
+                      · {{ $s->classType->name_th }}
+                      @if($s->actualTrainer()) · {{ $s->actualTrainer()->nickname ?? $s->actualTrainer()->first_name }} @endif
+                      · {{ $s->booked_count }}/{{ $s->capacity }}{{ $full ? ' (เต็ม)' : '' }}
+                      · {{ rtrim(rtrim(number_format((float) $s->credit_cost, 2), '0'), '.') }} เครดิต
+                    </option>
+                  @endforeach
+                </select>
+
+                @if(session('error') && str_contains(session('error'), 'เต็มแล้ว'))
+                  <input type="hidden" name="confirm_overbook" value="1">
+                  <div class="small mb-2" style="color:var(--warn);">
+                    <i class="bi bi-exclamation-triangle"></i> กดอีกครั้งเพื่อยืนยันรับเกินความจุ
+                  </div>
+                @endif
+
+                <button class="btn btn-danger w-100" type="submit">
+                  <i class="bi bi-box-arrow-in-right"></i> บันทึกเข้าคลาส + เช็คอิน
+                </button>
+                <div class="form-text small mt-1">
+                  หักเครดิตตามที่คลาสนั้นกำหนด และนับเป็นคนเข้าเรียนในรายงาน
+                </div>
+              </form>
+            @endif
+          </div>
+
+          {{-- ── โหมดปรับเครดิตล้วนๆ: ไม่มีคลาสมาเกี่ยว ── --}}
+          <div id="modeAdjust" style="display:none;">
+          <form method="POST" action="{{ route('admin.counter.deduct', $customer) }}" id="deductForm"
+                data-confirm="ยืนยันหักเครดิตของ {{ $customer->full_name }}?">
             @csrf
-            <input type="hidden" name="preset" id="deductPreset" value="walk_in">
+            <input type="hidden" name="preset" id="deductPreset" value="correction_deduct">
 
             <div class="small text-secondary mb-2">เลือกเหตุผล</div>
             <div class="d-flex flex-wrap gap-2 mb-3">
               @foreach($presets as $key => [$label, $dir, $type])
-                @if($dir === -1)
-                  <button type="button" class="btn btn-sm preset-btn {{ $loop->first ? 'btn-primary' : 'btn-outline-secondary' }}"
+                {{-- walk_in/manual_class ย้ายไปโหมดบนแล้ว เพราะต้องผูกกับคลาสจริง --}}
+                @if($dir === -1 && ! in_array($key, ['walk_in', 'manual_class'], true))
+                  <button type="button" class="btn btn-sm preset-btn {{ $key === 'correction_deduct' ? 'btn-primary' : 'btn-outline-secondary' }}"
                           data-target="deductPreset" data-value="{{ $key }}">{{ $label }}</button>
                 @endif
               @endforeach
@@ -167,12 +221,12 @@
               </div>
             </div>
 
-            <button class="btn btn-danger w-100 mt-3" type="submit"
-                    data-confirm="ยืนยันหักเครดิตของ {{ $customer->full_name }}?">
+            <button class="btn btn-danger w-100 mt-3" type="submit">
               <i class="bi bi-dash-lg"></i> หักเครดิต
             </button>
-            <div class="form-text small mt-1">ตัดจากแพ็กที่ใกล้หมดอายุก่อนอัตโนมัติ</div>
+            <div class="form-text small mt-1">ตัดจากแพ็กที่ใกล้หมดอายุก่อนอัตโนมัติ · ไม่นับเป็นคนเข้าคลาส</div>
           </form>
+          </div>
         @endif
       </div>
     </div>
@@ -231,7 +285,7 @@
                 <option value="">ใบที่ใกล้หมดอายุที่สุด (แนะนำ)</option>
                 @foreach($customer->packages->where('type', '!=', 'unlimited')->whereIn('status', ['active', 'used_up', 'frozen']) as $cp)
                   <option value="{{ $cp->id }}">
-                    {{ $cp->package->name_th }} — เหลือ {{ $cp->credit_remaining }} (หมดอายุ {{ $cp->expires_at->format('j/n/y') }})
+                    {{ $cp->package->name_th }} — เหลือ {{ $cp->credit_remaining }} (หมดอายุ {{ $cp->expires_at->format('d/m/Y') }})
                   </option>
                 @endforeach
               </select>
@@ -275,7 +329,7 @@
             @foreach($recent as $tx)
               <tr>
                 <td class="small text-secondary" style="width:1%;white-space:nowrap;">
-                  {{ $tx->created_at->format('j/n/y H:i') }}
+                  {{ $tx->created_at->format('d/m/Y H:i') }}
                 </td>
                 <td class="num-cell" style="width:1%;white-space:nowrap;">
                   @if($tx->amount > 0)
@@ -300,8 +354,26 @@
 @endif
 @endsection
 
-@section('extra-script')
+@push('scripts')
 <script>
+  // สลับโหมดหักเครดิต: ผูกกับคลาสจริง หรือปรับเครดิตล้วนๆ
+  document.querySelectorAll('.mode-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var walkin = btn.dataset.mode === 'walkin';
+
+      document.querySelectorAll('.mode-btn').forEach(function (b) {
+        var on = b === btn;
+        b.classList.toggle('btn-primary', on);
+        b.classList.toggle('btn-outline-secondary', !on);
+      });
+
+      var mw = document.getElementById('modeWalkin');
+      var ma = document.getElementById('modeAdjust');
+      if (mw) mw.style.display = walkin ? '' : 'none';
+      if (ma) ma.style.display = walkin ? 'none' : '';
+    });
+  });
+
   // ปุ่มเลือกเหตุผล/จำนวน: เขียนค่าลง hidden input แล้วไฮไลต์ปุ่มที่เลือก
   document.querySelectorAll('.preset-btn, .amount-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
@@ -348,4 +420,4 @@
     });
   });
 </script>
-@endsection
+@endpush

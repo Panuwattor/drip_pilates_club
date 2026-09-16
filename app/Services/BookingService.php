@@ -40,7 +40,9 @@ class BookingService
 
             $isFull = $session->booked_count >= $session->capacity;
 
-            if ($isFull) {
+            // walk-in ยืนอยู่หน้าเคาน์เตอร์แล้ว เข้าคิวไม่มีความหมาย
+            // พนักงานเป็นคนตัดสินใจรับเกินความจุเอง (หน้า counter ถามยืนยันก่อน)
+            if ($isFull && $via !== 'walk_in') {
                 return $this->joinWaitlist($customer, $session, $via, $userId);
             }
 
@@ -542,7 +544,13 @@ class BookingService
             throw new BookingException('session_not_available');
         }
 
-        if (now()->gte($session->start_at)) {
+        // walk-in คือลูกค้าเดินเข้ามาเรียนสด มักมาถึงตอนคลาสเริ่มไปแล้ว
+        // จึงให้บันทึกย้อนได้จนกว่าคลาสจะจบ แต่ไม่ให้ย้อนข้ามคลาสที่จบแล้ว
+        if ($via === 'walk_in') {
+            if (now()->gte($session->end_at)) {
+                throw new BookingException('session_already_ended');
+            }
+        } elseif (now()->gte($session->start_at)) {
             throw new BookingException('session_already_started');
         }
 

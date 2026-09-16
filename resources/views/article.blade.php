@@ -75,19 +75,59 @@
   }
   .site-nav .brand{ font-weight:700; font-size:1.2rem; color:var(--ink); display:flex; align-items:center; gap:.5rem; text-decoration:none; }
   .site-nav .brand img{ width:36px; height:36px; border-radius:50%; object-fit:cover; }
+  /* ปุ่มสลับภาษาหน้าตาเดียวกับหน้า landing */
+  .lang-switch{
+    background:var(--ground); border:1px solid var(--line); border-radius:999px;
+    font-size:.78rem; font-weight:700; padding:.4rem .9rem; color:var(--ink); text-decoration:none;
+  }
+  .lang-switch:hover{ color:var(--accent-deep); border-color:var(--accent); }
+  .btn-nav-cta{
+    background:var(--accent); border:1px solid var(--accent); color:#fff;
+    border-radius:999px; padding:.5rem 1.2rem; font-weight:700; font-size:.9rem; text-decoration:none;
+  }
+  .btn-nav-cta:hover{ background:var(--accent-deep); color:#fff; }
+  /* จอแคบ: ย่อแบรนด์ให้ปุ่มทั้งสองยังอยู่ในแถวเดียวได้ */
+  @media (max-width: 575.98px){
+    .site-nav .brand span{ display:none; }
+  }
 
-  .article-header{ padding:3rem 0 2rem; }
+  /* ทุกบล็อกในบทความกว้างเท่ากันและอยู่กึ่งกลางคอนเทนเนอร์ */
+  .article-wrap{ max-width:820px; margin-inline:auto; }
+
+  .article-header{ padding:3rem 0 2rem; text-align:center; }
   .article-header .breadcrumb-link{ font-size:.85rem; font-weight:700; color:var(--accent-deep); text-decoration:none; }
   .article-header .ac-date{ font-size:.75rem; color:var(--accent-deep); font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-top:1.25rem; }
-  .article-header h1{ font-size:clamp(1.6rem,3.4vw,2.4rem); font-weight:700; margin:.5rem 0 0; max-width:820px; }
+  .article-header h1{ font-size:clamp(1.6rem,3.4vw,2.4rem); font-weight:700; margin:.5rem auto 0; }
 
-  .article-hero{ max-width:820px; border-radius:20px; overflow:hidden; box-shadow:0 16px 32px rgba(43,50,66,.1); }
+  .article-hero{ border-radius:20px; overflow:hidden; box-shadow:0 16px 32px rgba(43,50,66,.1); }
   .article-hero img{ width:100%; max-height:420px; object-fit:cover; display:block; }
 
-  .article-body{ background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:2.25rem; max-width:820px; }
+  .article-body{ background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:2.25rem; }
   .article-body .article-content{ color:var(--ink); font-size:1rem; line-height:1.85; }
   .article-body .article-content > *:first-child{ margin-top:0; }
   .article-body .article-content > *:last-child{ margin-bottom:0; }
+
+  /* เนื้อหามาจาก HTML ที่แอดมินใส่เอง — บังคับไม่ให้ภาพ/สื่อ/ตารางดันกรอบแตก */
+  .article-body .article-content img,
+  .article-body .article-content video,
+  .article-body .article-content iframe{
+    display:block; max-width:100%; height:auto;
+    margin:1.25rem auto; border-radius:14px;
+  }
+  .article-body .article-content iframe{ aspect-ratio:16/9; width:100%; }
+  .article-body .article-content figure{ margin:1.25rem 0; max-width:100%; }
+  .article-body .article-content figcaption{ font-size:.85rem; color:var(--ink-soft); text-align:center; margin-top:.5rem; }
+  /* ตารางและโค้ดยาวเลื่อนในกล่องตัวเอง แทนที่จะดันหน้าให้เลื่อนแนวนอน
+     (ตารางถูกห่อด้วย .table-scroll อัตโนมัติด้วยสคริปต์ท้ายหน้า) */
+  .article-body .article-content table{ width:100%; border-collapse:collapse; }
+  .article-body .article-content th,
+  .article-body .article-content td{ border:1px solid var(--line); padding:.5rem .75rem; text-align:left; }
+  .article-body .article-content .table-scroll,
+  .article-body .article-content pre{ overflow-x:auto; max-width:100%; }
+  .article-body .article-content .table-scroll{ margin:0 0 1rem; }
+  .article-body .article-content pre{ background:var(--sage-soft); padding:1rem; border-radius:12px; }
+  /* ลิงก์/ข้อความยาวที่ไม่มีช่องว่างต้องตัดบรรทัด ไม่งั้นดันกรอบเช่นกัน */
+  .article-body .article-content{ overflow-wrap:break-word; word-break:break-word; }
   .article-body .article-content p{ margin:0 0 1rem; }
   .article-body .article-content h2{ font-size:1.35rem; margin:1.5rem 0 .75rem; }
   .article-body .article-content h3{ font-size:1.15rem; margin:1.25rem 0 .6rem; }
@@ -123,58 +163,64 @@
       <img src="{{ asset('images/logo.jpg') }}" alt="Drip Pilates Club">
       <span>Drip Pilates Club</span>
     </a>
-    <a href="{{ route('customer.login') }}" class="btn-nav-cta" style="background:var(--accent);border:1px solid var(--accent);color:#fff;border-radius:999px;padding:.5rem 1.2rem;font-weight:700;font-size:.9rem;text-decoration:none;">
-      {{ __t('เข้าสู่ระบบ', 'Log In') }}
-    </a>
+    <div class="d-flex align-items-center gap-2">
+      <a href="{{ route('locale.set', app()->getLocale() === 'th' ? 'en' : 'th') }}" class="lang-switch d-inline-flex align-items-center gap-1">
+        <img src="{{ asset('images/' . (app()->getLocale() === 'th' ? 'en' : 'th') . '.png') }}" width="16" height="16" style="border-radius:50%;object-fit:cover;" alt="">
+        {{ app()->getLocale() === 'th' ? 'EN' : 'TH' }}
+      </a>
+      <a href="{{ route('customer.login') }}" class="btn-nav-cta">{{ __t('เข้าสู่ระบบ', 'Log In') }}</a>
+    </div>
   </div>
 </nav>
 
 <div class="container-lg">
-  <div class="article-header">
-    <a href="{{ route('landing') }}#articles" class="breadcrumb-link"><i class="bi bi-arrow-left"></i> {{ __t('กลับไปหน้าข่าวสาร', 'Back to Articles') }}</a>
-    @if($announcement->starts_at)
-      <div class="ac-date">{{ $announcement->starts_at->locale(app()->getLocale())->isoFormat('D MMMM YYYY') }}</div>
-    @endif
-    <h1>{{ $announcement->title }}</h1>
-  </div>
-
-  @if($announcement->image)
-    <div class="article-hero mb-4">
-      <img src="{{ asset($announcement->image) }}" alt="{{ $announcement->title }}">
+  <div class="article-wrap">
+    <div class="article-header">
+      <a href="{{ route('landing') }}#articles" class="breadcrumb-link"><i class="bi bi-arrow-left"></i> {{ __t('กลับไปหน้าข่าวสาร', 'Back to Articles') }}</a>
+      @if($announcement->starts_at)
+        <div class="ac-date">{{ $announcement->starts_at->locale(app()->getLocale())->isoFormat('D MMMM YYYY') }}</div>
+      @endif
+      <h1>{{ $announcement->title }}</h1>
     </div>
-  @endif
 
-  <div class="article-body mb-5">
-    @if($announcement->body)
-      <div class="article-content">{!! $announcement->body !!}</div>
-    @endif
-    @if($announcement->link_url)
-      <a href="{{ $announcement->link_url }}" class="btn-accent" target="_blank" rel="noopener noreferrer">
-        {{ __t('ดูเพิ่มเติม', 'Learn more') }} <i class="bi bi-box-arrow-up-right"></i>
-      </a>
-    @endif
-  </div>
-
-  @if($related->isNotEmpty())
-    <div class="mb-5">
-      <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:1rem;">{{ __t('บทความอื่นๆ', 'More Articles') }}</h2>
-      <div class="row g-3">
-        @foreach($related as $r)
-          <div class="col-md-4">
-            <a href="{{ route('articles.show', $r) }}" class="related-card">
-              <div class="rc-thumb" style="background-image:url('{{ asset($r->image ?: 'images/01.jpg') }}');"></div>
-              <div class="rc-body">
-                @if($r->starts_at)
-                  <div class="ac-date">{{ $r->starts_at->locale(app()->getLocale())->isoFormat('D MMM YYYY') }}</div>
-                @endif
-                <h3>{{ $r->title }}</h3>
-              </div>
-            </a>
-          </div>
-        @endforeach
+    @if($announcement->image)
+      <div class="article-hero mb-4">
+        <img src="{{ asset($announcement->image) }}" alt="{{ $announcement->title }}">
       </div>
+    @endif
+
+    <div class="article-body mb-5">
+      @if($announcement->body)
+        <div class="article-content">{!! $announcement->body !!}</div>
+      @endif
+      @if($announcement->link_url)
+        <a href="{{ $announcement->link_url }}" class="btn-accent" target="_blank" rel="noopener noreferrer">
+          {{ __t('ดูเพิ่มเติม', 'Learn more') }} <i class="bi bi-box-arrow-up-right"></i>
+        </a>
+      @endif
     </div>
-  @endif
+
+    @if($related->isNotEmpty())
+      <div class="mb-5">
+        <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:1rem;">{{ __t('บทความอื่นๆ', 'More Articles') }}</h2>
+        <div class="row g-3">
+          @foreach($related as $r)
+            <div class="col-md-4">
+              <a href="{{ route('articles.show', $r) }}" class="related-card">
+                <div class="rc-thumb" style="background-image:url('{{ asset($r->image ?: 'images/01.jpg') }}');"></div>
+                <div class="rc-body">
+                  @if($r->starts_at)
+                    <div class="ac-date">{{ $r->starts_at->locale(app()->getLocale())->isoFormat('D MMM YYYY') }}</div>
+                  @endif
+                  <h3>{{ $r->title }}</h3>
+                </div>
+              </a>
+            </div>
+          @endforeach
+        </div>
+      </div>
+    @endif
+  </div>
 </div>
 
 <footer class="site-footer">
@@ -182,6 +228,17 @@
     <div class="fbottom">&copy; {{ date('Y') }} Drip Pilates Club. {{ __t('สงวนลิขสิทธิ์', 'All rights reserved.') }}</div>
   </div>
 </footer>
+
+<script>
+  // เนื้อหาบทความเป็น HTML จากแอดมิน จึงห่อตารางให้เลื่อนแนวนอนได้เองแทนที่จะดันกรอบแตก
+  document.querySelectorAll('.article-content table').forEach(function (table) {
+    if (table.parentElement.classList.contains('table-scroll')) return;
+    var wrap = document.createElement('div');
+    wrap.className = 'table-scroll';
+    table.parentNode.insertBefore(wrap, table);
+    wrap.appendChild(table);
+  });
+</script>
 
 </body>
 </html>

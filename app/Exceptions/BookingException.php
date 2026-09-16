@@ -52,6 +52,10 @@ class BookingException extends Exception
             'th' => 'คลาสรอบนี้เริ่มไปแล้ว',
             'en' => 'This class has already started.',
         ],
+        'session_already_ended' => [
+            'th' => 'คลาสรอบนี้จบไปแล้ว บันทึก walk-in ย้อนหลังไม่ได้',
+            'en' => 'This class has already ended; a walk-in cannot be recorded.',
+        ],
         'booking_closed' => [
             'th' => 'ปิดรับจองคลาสรอบนี้แล้ว',
             'en' => 'Booking for this class has closed.',
