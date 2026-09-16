@@ -101,10 +101,10 @@ class BookingController extends Controller
         try {
             $this->bookings->checkIn($booking, auth()->id());
         } catch (BookingException $e) {
-            return back()->with('error', $e->localizedMessage('th'));
+            return back()->with('error', $e->localizedMessage());
         }
 
-        return back()->with('status', 'เช็คอินเรียบร้อยแล้ว');
+        return back()->with('status', __t('เช็คอินเรียบร้อยแล้ว', 'Checked in'));
     }
 
     public function noShow(Booking $booking)
@@ -112,10 +112,10 @@ class BookingController extends Controller
         try {
             $this->bookings->markNoShow($booking, auth()->id());
         } catch (BookingException $e) {
-            return back()->with('error', $e->localizedMessage('th'));
+            return back()->with('error', $e->localizedMessage());
         }
 
-        return back()->with('status', 'บันทึกว่าไม่มาเรียนแล้ว');
+        return back()->with('status', __t('บันทึกว่าไม่มาเรียนแล้ว', 'Marked as no-show'));
     }
 
     /** ย้อนสถานะที่ระบบปิดไปแล้ว ให้แอดมินแก้ตามจริง เช่น ลูกค้ามาเรียนแต่ลืมเช็คอิน */
@@ -124,10 +124,10 @@ class BookingController extends Controller
         try {
             $this->bookings->reopen($booking, auth()->id(), $request->input('reason'));
         } catch (BookingException $e) {
-            return back()->with('error', $e->localizedMessage('th'));
+            return back()->with('error', $e->localizedMessage());
         }
 
-        return back()->with('status', 'ย้อนสถานะเป็นยืนยันแล้ว แก้ไขได้เลย');
+        return back()->with('status', __t('ย้อนสถานะเป็นยืนยันแล้ว แก้ไขได้เลย', 'Reverted to Confirmed — you can edit it now'));
     }
 
     public function cancel(Request $request, Booking $booking)
@@ -137,9 +137,9 @@ class BookingController extends Controller
         try {
             $this->bookings->cancel($booking, 'admin', $reason, auth()->id());
         } catch (BookingException $e) {
-            return back()->with('error', $e->localizedMessage('th'));
+            return back()->with('error', $e->localizedMessage());
         }
 
-        return back()->with('status', 'ยกเลิกการจองและคืนเครดิตแล้ว');
+        return back()->with('status', __t('ยกเลิกการจองและคืนเครดิตแล้ว', 'Booking cancelled and credit refunded'));
     }
 }

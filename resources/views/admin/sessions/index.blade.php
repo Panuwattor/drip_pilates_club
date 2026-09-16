@@ -1,11 +1,11 @@
 @extends('admin.layouts.app')
-@section('title', 'รอบเรียน')
+@section('title', __t('รอบเรียน', 'Class Sessions'))
 
 @section('content')
 <form method="GET" class="d-flex flex-wrap align-items-center gap-2 mb-3">
   <select class="form-select form-select-sm" name="branch" style="width:auto;" onchange="this.form.submit()">
     @foreach($branches as $branch)
-      <option value="{{ $branch->id }}" @selected($branch->id == $branchId)>{{ $branch->name_th }}</option>
+      <option value="{{ $branch->id }}" @selected($branch->id == $branchId)>{{ $branch->name }}</option>
     @endforeach
   </select>
 
@@ -14,27 +14,27 @@
 
   <div class="btn-group btn-group-sm">
     <button class="btn {{ $view === 'day' ? 'btn-primary' : 'btn-outline-secondary' }}"
-            type="submit" name="view" value="day">รายวัน</button>
+            type="submit" name="view" value="day">{{ __t('รายวัน', 'Day') }}</button>
     <button class="btn {{ $view === 'week' ? 'btn-primary' : 'btn-outline-secondary' }}"
-            type="submit" name="view" value="week">รายสัปดาห์</button>
+            type="submit" name="view" value="week">{{ __t('รายสัปดาห์', 'Week') }}</button>
   </div>
 
   <a href="{{ route('admin.sessions.index', ['branch' => $branchId, 'date' => now()->toDateString(), 'view' => $view]) }}"
-     class="btn btn-sm btn-outline-secondary">วันนี้</a>
+     class="btn btn-sm btn-outline-secondary">{{ __t('วันนี้', 'Today') }}</a>
 
   <div class="ms-auto small text-secondary">
-    ทั้งหมด {{ $flatSessions->count() }} รอบ ·
-    จอง {{ $flatSessions->sum('booked_count') }}/{{ $flatSessions->sum('capacity') }} ที่
+    {{ __t('ทั้งหมด', 'Total') }} {{ $flatSessions->count() }} {{ __t('รอบ', 'sessions') }} ·
+    {{ __t('จอง', 'Booked') }} {{ $flatSessions->sum('booked_count') }}/{{ $flatSessions->sum('capacity') }} {{ __t('ที่', 'seats') }}
   </div>
 </form>
 
 @if($flatSessions->isEmpty())
-  <div class="empty-note"><i class="bi bi-calendar3"></i>ไม่มีรอบเรียนในช่วงที่เลือก</div>
+  <div class="empty-note"><i class="bi bi-calendar3"></i>{{ __t('ไม่มีรอบเรียนในช่วงที่เลือก', 'No sessions in the selected range') }}</div>
 @else
   @foreach($sessions as $groupKey => $groupSessions)
     @if($view === 'week')
       <div class="ttl mt-3 mb-2" style="font-size:.72rem;">
-        {{ \Carbon\Carbon::parse($groupKey)->locale('th')->isoFormat('dddd D MMMM') }}
+        {{ \Carbon\Carbon::parse($groupKey)->locale(app()->getLocale())->isoFormat('dddd D MMMM') }}
       </div>
     @endif
 
@@ -43,9 +43,9 @@
         <table class="table align-middle">
           <thead>
             <tr>
-              <th>เวลา</th><th>คลาส</th><th>ครู</th><th>ห้อง</th>
-              <th class="text-center">จอง</th><th class="text-center">คิว</th>
-              <th>สถานะ</th><th></th>
+              <th>{{ __t('เวลา', 'Time') }}</th><th>{{ __t('คลาส', 'Class') }}</th><th>{{ __t('ครู', 'Trainer') }}</th><th>{{ __t('ห้อง', 'Room') }}</th>
+              <th class="text-center">{{ __t('จอง', 'Booked') }}</th><th class="text-center">{{ __t('คิว', 'Waitlist') }}</th>
+              <th>{{ __t('สถานะ', 'Status') }}</th><th></th>
             </tr>
           </thead>
           <tbody>
@@ -60,18 +60,18 @@
                   <div class="d-flex align-items-center gap-2">
                     <span style="width:4px;height:28px;border-radius:2px;background:{{ $s->classType->color ?: 'var(--accent)' }};"></span>
                     <div>
-                      <div class="fw-semibold">{{ $s->classType->name_th }}</div>
-                      <div class="small text-secondary">{{ $s->classType->name_en }}</div>
+                      <div class="fw-semibold">{{ $s->classType->name }}</div>
+                      <div class="small text-secondary">{{ app()->getLocale() === 'en' ? $s->classType->name_th : $s->classType->name_en }}</div>
                     </div>
                   </div>
                 </td>
                 <td>
-                  {{ $t?->nickname_th ?: $t?->name_th ?: '—' }}
+                  {{ $t?->nickname ?: $t?->name ?: '—' }}
                   @if($s->substitute_trainer_id)
-                    <span class="badge-soft badge-warn">สอนแทน</span>
+                    <span class="badge-soft badge-warn">{{ __t('สอนแทน', 'Substitute') }}</span>
                   @endif
                 </td>
-                <td class="small text-secondary">{{ $s->room?->name_th ?? '—' }}</td>
+                <td class="small text-secondary">{{ $s->room?->name ?? '—' }}</td>
                 <td class="text-center" style="font-variant-numeric:tabular-nums;">
                   <span class="{{ $s->isFull() ? 'text-danger fw-bold' : '' }}">
                     {{ $s->booked_count }}/{{ $s->capacity }}
@@ -86,16 +86,16 @@
                 </td>
                 <td>
                   @if($s->status === 'cancelled')
-                    <span class="badge-soft badge-danger">ยกเลิก</span>
+                    <span class="badge-soft badge-danger">{{ __t('ยกเลิก', 'Cancelled') }}</span>
                   @elseif($s->start_at->isPast())
-                    <span class="badge-soft">จบแล้ว</span>
+                    <span class="badge-soft">{{ __t('จบแล้ว', 'Finished') }}</span>
                   @else
-                    <span class="badge-soft badge-ok">ปกติ</span>
+                    <span class="badge-soft badge-ok">{{ __t('ปกติ', 'Scheduled') }}</span>
                   @endif
                 </td>
                 <td class="text-end">
                   <a href="{{ route('admin.sessions.show', $s) }}" class="btn btn-sm btn-outline-secondary">
-                    <i class="bi bi-list-check"></i> รายชื่อ
+                    <i class="bi bi-list-check"></i> {{ __t('รายชื่อ', 'Roster') }}
                   </a>
                 </td>
               </tr>

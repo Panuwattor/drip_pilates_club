@@ -19,6 +19,17 @@ class ClassScheduleController extends Controller
         4 => 'พฤหัสบดี', 5 => 'ศุกร์', 6 => 'เสาร์',
     ];
 
+    /** ชื่อวันตามภาษาปัจจุบัน (const แปลเองไม่ได้ เลยต้องมาทำตรงนี้) */
+    public static function dayNames(): array
+    {
+        return [
+            0 => __t('อาทิตย์', 'Sunday'), 1 => __t('จันทร์', 'Monday'),
+            2 => __t('อังคาร', 'Tuesday'), 3 => __t('พุธ', 'Wednesday'),
+            4 => __t('พฤหัสบดี', 'Thursday'), 5 => __t('ศุกร์', 'Friday'),
+            6 => __t('เสาร์', 'Saturday'),
+        ];
+    }
+
     public function index(Request $request)
     {
         $branchIds = auth()->user()->accessibleBranchIds();
@@ -39,7 +50,7 @@ class ClassScheduleController extends Controller
             'schedules' => $schedules,
             'branches' => Branch::whereIn('id', $branchIds)->orderBy('sort_order')->get(),
             'branchId' => $branchId,
-            'days' => self::DAYS,
+            'days' => self::dayNames(),
         ]);
     }
 
@@ -60,7 +71,10 @@ class ClassScheduleController extends Controller
         $result = $generator->generate(CarbonImmutable::today());
 
         return redirect()->route('admin.schedules.index', ['branch' => $schedule->branch_id])
-            ->with('status', "เพิ่มตารางแล้ว สร้างรอบเรียนใหม่ {$result['created']} รอบ");
+            ->with('status', __t(
+                "เพิ่มตารางแล้ว สร้างรอบเรียนใหม่ {$result['created']} รอบ",
+                "Schedule added — {$result['created']} sessions generated"
+            ));
     }
 
     public function edit(ClassSchedule $schedule)
@@ -73,7 +87,7 @@ class ClassScheduleController extends Controller
         $schedule->update($this->validated($request));
 
         return redirect()->route('admin.schedules.index', ['branch' => $schedule->branch_id])
-            ->with('status', 'บันทึกตารางแล้ว (รอบเรียนที่สร้างไว้แล้วไม่เปลี่ยนตาม ต้องแก้รายรอบเอง)');
+            ->with('status', __t('บันทึกตารางแล้ว (รอบเรียนที่สร้างไว้แล้วไม่เปลี่ยนตาม ต้องแก้รายรอบเอง)', 'Schedule saved (sessions already generated are unchanged — edit those individually)'));
     }
 
     public function destroy(ClassSchedule $schedule)
@@ -89,7 +103,10 @@ class ClassScheduleController extends Controller
         $schedule->update(['is_active' => false, 'effective_until' => now()->toDateString()]);
 
         return redirect()->route('admin.schedules.index', ['branch' => $branchId])
-            ->with('status', "ปิดตารางแล้ว ลบรอบที่ยังไม่มีคนจอง {$deleted} รอบ");
+            ->with('status', __t(
+                "ปิดตารางแล้ว ลบรอบที่ยังไม่มีคนจอง {$deleted} รอบ",
+                "Schedule turned off — {$deleted} sessions with no bookings removed"
+            ));
     }
 
     /** ปุ่มสร้างรอบเรียนล่วงหน้าด้วยตัวเอง */
@@ -99,7 +116,10 @@ class ClassScheduleController extends Controller
         $result = $generator->generate(CarbonImmutable::today(), $days);
 
         return back()->with('status', sprintf(
-            'สร้างรอบเรียนใหม่ %d รอบ (มีอยู่แล้ว %d, ข้ามวันหยุด %d)',
+            __t(
+                'สร้างรอบเรียนใหม่ %d รอบ (มีอยู่แล้ว %d, ข้ามวันหยุด %d)',
+                '%d sessions generated (%d already existed, %d skipped for holidays)'
+            ),
             $result['created'], $result['skipped'], $result['holiday_skipped']
         ));
     }
@@ -114,7 +134,7 @@ class ClassScheduleController extends Controller
             'rooms' => Room::active()->with('branch')->orderBy('branch_id')->get(),
             'classTypes' => ClassType::active()->orderBy('sort_order')->get(),
             'trainers' => Trainer::active()->orderBy('sort_order')->get(),
-            'days' => self::DAYS,
+            'days' => self::dayNames(),
         ];
     }
 

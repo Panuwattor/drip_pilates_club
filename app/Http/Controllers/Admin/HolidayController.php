@@ -40,10 +40,13 @@ class HolidayController extends Controller
             ->when($data['branch_id'] ?? null, fn ($q, $id) => $q->where('branch_id', $id))
             ->count();
 
-        $message = 'บันทึกวันหยุดแล้ว';
+        $message = __t('บันทึกวันหยุดแล้ว', 'Holiday saved');
 
         if ($affected > 0) {
-            $message .= " (มีรอบเรียน {$affected} รอบในวันนั้นที่สร้างไว้แล้ว ต้องเข้าไปยกเลิกเอง)";
+            $message .= __t(
+                " (มีรอบเรียน {$affected} รอบในวันนั้นที่สร้างไว้แล้ว ต้องเข้าไปยกเลิกเอง)",
+                " ({$affected} sessions already exist on that date — cancel them individually)"
+            );
         }
 
         return back()->with('status', $message);
@@ -53,6 +56,6 @@ class HolidayController extends Controller
     {
         $holiday->delete();
 
-        return back()->with('status', 'ลบวันหยุดแล้ว');
+        return back()->with('status', __t('ลบวันหยุดแล้ว', 'Holiday deleted'));
     }
 }

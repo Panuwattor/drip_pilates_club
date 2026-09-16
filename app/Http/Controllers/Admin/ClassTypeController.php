@@ -27,7 +27,7 @@ class ClassTypeController extends Controller
         $classType = ClassType::create($this->validated($request));
 
         return redirect()->route('admin.class-types.index')
-            ->with('status', 'เพิ่มประเภทคลาสเรียบร้อยแล้ว');
+            ->with('status', __t('เพิ่มประเภทคลาสเรียบร้อยแล้ว', 'Class type added'));
     }
 
     public function edit(ClassType $classType)
@@ -39,18 +39,18 @@ class ClassTypeController extends Controller
     {
         $classType->update($this->validated($request, $classType));
 
-        return back()->with('status', 'บันทึกข้อมูลประเภทคลาสแล้ว');
+        return back()->with('status', __t('บันทึกข้อมูลประเภทคลาสแล้ว', 'Class type saved'));
     }
 
     public function destroy(ClassType $classType)
     {
         if ($classType->sessions()->exists()) {
-            return back()->with('error', 'ลบไม่ได้ เพราะมีรอบเรียนใช้ประเภทนี้อยู่ ให้ปิดใช้งานแทน');
+            return back()->with('error', __t('ลบไม่ได้ เพราะมีรอบเรียนใช้ประเภทนี้อยู่ ให้ปิดใช้งานแทน', 'Cannot delete — sessions use this class type. Deactivate it instead.'));
         }
 
         $classType->delete();
 
-        return redirect()->route('admin.class-types.index')->with('status', 'ลบประเภทคลาสแล้ว');
+        return redirect()->route('admin.class-types.index')->with('status', __t('ลบประเภทคลาสแล้ว', 'Class type deleted'));
     }
 
     private function validated(Request $request, ?ClassType $classType = null): array

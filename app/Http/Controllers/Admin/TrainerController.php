@@ -40,7 +40,7 @@ class TrainerController extends Controller
         $trainer->branches()->sync($branchIds);
 
         return redirect()->route('admin.trainers.edit', $trainer)
-            ->with('status', 'เพิ่มครูผู้สอนเรียบร้อยแล้ว');
+            ->with('status', __t('เพิ่มครูผู้สอนเรียบร้อยแล้ว', 'Trainer added'));
     }
 
     public function edit(Trainer $trainer)
@@ -64,18 +64,18 @@ class TrainerController extends Controller
         $trainer->update($data);
         $trainer->branches()->sync($branchIds);
 
-        return back()->with('status', 'บันทึกข้อมูลครูแล้ว');
+        return back()->with('status', __t('บันทึกข้อมูลครูแล้ว', 'Trainer saved'));
     }
 
     public function destroy(Trainer $trainer)
     {
         if ($trainer->classSessions()->where('start_at', '>=', now())->exists()) {
-            return back()->with('error', 'ลบไม่ได้ เพราะครูคนนี้มีตารางสอนอยู่ ให้ปิดใช้งานแทน');
+            return back()->with('error', __t('ลบไม่ได้ เพราะครูคนนี้มีตารางสอนอยู่ ให้ปิดใช้งานแทน', 'Cannot delete — this trainer has scheduled classes. Deactivate them instead.'));
         }
 
         $trainer->delete();
 
-        return redirect()->route('admin.trainers.index')->with('status', 'ลบครูผู้สอนแล้ว');
+        return redirect()->route('admin.trainers.index')->with('status', __t('ลบครูผู้สอนแล้ว', 'Trainer deleted'));
     }
 
     /** สร้างลิงก์ตารางส่วนตัวใหม่ ใช้เวลาลิงก์เดิมหลุด */
@@ -83,7 +83,7 @@ class TrainerController extends Controller
     {
         $trainer->regeneratePublicToken();
 
-        return back()->with('status', 'สร้างลิงก์ใหม่แล้ว ลิงก์เดิมใช้ไม่ได้อีกต่อไป');
+        return back()->with('status', __t('สร้างลิงก์ใหม่แล้ว ลิงก์เดิมใช้ไม่ได้อีกต่อไป', 'New link generated — the old one no longer works'));
     }
 
     private function handleAvatar(Request $request): ?string

@@ -104,15 +104,20 @@ class CounterController extends Controller
             'class_session_id' => ['required', 'integer', 'exists:class_sessions,id'],
             // พนักงานเห็นคำเตือนว่าคลาสเต็มแล้วกดยืนยันมา ถึงจะรับเกินความจุได้
             'confirm_overbook' => ['nullable', 'boolean'],
-        ], [], ['class_session_id' => 'คลาส']);
+        ], [], ['class_session_id' => __t('คลาส', 'class')]);
 
         $session = ClassSession::with('classType')->findOrFail($data['class_session_id']);
 
         $isFull = $session->booked_count >= $session->capacity;
 
         if ($isFull && ! $request->boolean('confirm_overbook')) {
-            return back()->with('error',
-                "คลาส {$session->classType->name_th} เต็มแล้ว ({$session->booked_count}/{$session->capacity}) — กดยืนยันอีกครั้งถ้าต้องการรับเพิ่ม");
+            // ใช้ session key แยก ไม่ให้หน้า Blade ต้องเดาจากข้อความ (ข้อความแปลตามภาษาได้)
+            return back()
+                ->with('overbook_confirm', $session->id)
+                ->with('error', __t(
+                    "คลาส {$session->classType->name} เต็มแล้ว ({$session->booked_count}/{$session->capacity}) — กดยืนยันอีกครั้งถ้าต้องการรับเพิ่ม",
+                    "{$session->classType->name} is full ({$session->booked_count}/{$session->capacity}) — press again to confirm overbooking"
+                ));
         }
 
         try {
@@ -120,16 +125,19 @@ class CounterController extends Controller
             // มาเรียนสดอยู่แล้ว เช็คอินให้เลย ไม่ต้องให้พนักงานกดซ้ำอีกหน้า
             $this->bookings->checkIn($booking, auth()->id());
         } catch (BookingException $e) {
-            return back()->with('error', $e->localizedMessage('th'));
+            return back()->with('error', $e->localizedMessage());
         }
 
         $credit = (float) $booking->credit_used;
+        $remaining = $customer->fresh()->totalCredits();
         $detail = $credit > 0
-            ? "หักเครดิต {$credit} เหลือ {$customer->fresh()->totalCredits()}"
-            : 'แพ็กเหมาจ่าย ไม่หักเครดิต';
+            ? __t("หักเครดิต {$credit} เหลือ {$remaining}", "{$credit} credits deducted, {$remaining} left")
+            : __t('แพ็กเหมาจ่าย ไม่หักเครดิต', 'Unlimited package — no credits deducted');
 
-        return back()->with('status',
-            "บันทึก {$customer->full_name} เข้าคลาส {$session->classType->name_th} แล้ว — {$detail}");
+        return back()->with('status', __t(
+            "บันทึก {$customer->full_name} เข้าคลาส {$session->classType->name} แล้ว — {$detail}",
+            "{$customer->full_name} booked into {$session->classType->name} — {$detail}"
+        ));
     }
 
     /** หักเครดิต — ตัดจากแพ็กที่ใกล้หมดอายุก่อนอัตโนมัติ */
@@ -146,15 +154,19 @@ class CounterController extends Controller
                 $data['type'],
             );
         } catch (BookingException $e) {
-            return back()->with('error', $e->localizedMessage('th'));
+            return back()->with('error', $e->localizedMessage());
         }
 
-        $detail = count($result['packages']) > 1
-            ? ' (ตัดจาก ' . count($result['packages']) . ' แพ็ก)'
+        $packageCount = count($result['packages']);
+        $detail = $packageCount > 1
+            ? __t(" (ตัดจาก {$packageCount} แพ็ก)", " (across {$packageCount} packages)")
             : '';
+        $remaining = $customer->fresh()->totalCredits();
 
-        return back()->with('status',
-            "หักเครดิต {$data['amount']} ของ {$customer->full_name} แล้ว{$detail} เหลือ {$customer->fresh()->totalCredits()}");
+        return back()->with('status', __t(
+            "หักเครดิต {$data['amount']} ของ {$customer->full_name} แล้ว{$detail} เหลือ {$remaining}",
+            "Deducted {$data['amount']} credits from {$customer->full_name}{$detail} — {$remaining} left"
+        ));
     }
 
     /** เพิ่มเครดิต — ชดเชย คืนเครดิต หรือแก้ยอดที่ผิด */
@@ -171,7 +183,7 @@ class CounterController extends Controller
                 ->exists();
 
             if (! $owned) {
-                return back()->with('error', 'แพ็กที่เลือกไม่ใช่ของลูกค้าคนนี้');
+                return back()->with('error', __t('แพ็กที่เลือกไม่ใช่ของลูกค้าคนนี้', 'That package does not belong to this customer'));
             }
         }
 
@@ -185,11 +197,15 @@ class CounterController extends Controller
                 $packageId ? (int) $packageId : null,
             );
         } catch (BookingException $e) {
-            return back()->with('error', $e->localizedMessage('th'));
+            return back()->with('error', $e->localizedMessage());
         }
 
-        return back()->with('status',
-            "เพิ่มเครดิต {$data['amount']} ให้ {$customer->full_name} แล้ว รวมเป็น {$customer->fresh()->totalCredits()}");
+        $total = $customer->fresh()->totalCredits();
+
+        return back()->with('status', __t(
+            "เพิ่มเครดิต {$data['amount']} ให้ {$customer->full_name} แล้ว รวมเป็น {$total}",
+            "Added {$data['amount']} credits for {$customer->full_name} — {$total} total"
+        ));
     }
 
     /**
@@ -205,11 +221,11 @@ class CounterController extends Controller
             // เลือก "อื่นๆ" ต้องพิมพ์เหตุผลเอง ไม่งั้นประวัติจะอ่านไม่รู้เรื่อง
             'note' => ['nullable', 'required_if:preset,other', 'string', 'max:200'],
         ], [
-            'note.required_if' => 'เลือก "อื่นๆ" ต้องระบุเหตุผลด้วย',
+            'note.required_if' => __t('เลือก "อื่นๆ" ต้องระบุเหตุผลด้วย', 'A reason is required when you choose "Other"'),
         ], [
-            'amount' => 'จำนวนเครดิต',
-            'preset' => 'เหตุผล',
-            'note' => 'หมายเหตุ',
+            'amount' => __t('จำนวนเครดิต', 'credit amount'),
+            'preset' => __t('เหตุผล', 'reason'),
+            'note' => __t('หมายเหตุ', 'note'),
         ]);
 
         $label = CreditAdjuster::presetLabel($data['preset']);

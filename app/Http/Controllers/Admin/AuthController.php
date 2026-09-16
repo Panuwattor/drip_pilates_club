@@ -27,7 +27,7 @@ class AuthController extends Controller
 
         if (! Auth::attempt($data, $request->boolean('remember'))) {
             throw ValidationException::withMessages([
-                'email' => 'อีเมลหรือรหัสผ่านไม่ถูกต้อง',
+                'email' => __t('อีเมลหรือรหัสผ่านไม่ถูกต้อง', 'Incorrect email or password'),
             ]);
         }
 
@@ -35,7 +35,7 @@ class AuthController extends Controller
             Auth::logout();
 
             throw ValidationException::withMessages([
-                'email' => 'บัญชีนี้ถูกระงับการใช้งาน',
+                'email' => __t('บัญชีนี้ถูกระงับการใช้งาน', 'This account has been suspended'),
             ]);
         }
 

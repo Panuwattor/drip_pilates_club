@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="th" data-bs-theme="light">
+<html lang="{{ app()->getLocale() }}" data-bs-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>เข้าสู่ระบบจัดการ · Drip Pilates</title>
+<title>{{ __t('เข้าสู่ระบบจัดการ', 'Admin sign in') }} · Drip Pilates</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.bunny.net">
@@ -121,7 +121,7 @@
   <div class="login-brand">
     <img src="{{ asset('images/logo.jpg') }}" alt="Drip Pilates">
     <span class="bm">Drip Pilates</span>
-    <span class="sub">ระบบจัดการหลังบ้าน</span>
+    <span class="sub">{{ __t('ระบบจัดการหลังบ้าน', 'Admin panel') }}</span>
   </div>
 
   @if($errors->any())
@@ -132,17 +132,17 @@
   @endif
 
   <div class="mb-3">
-    <label class="form-label" for="email">อีเมล</label>
+    <label class="form-label" for="email">{{ __t('อีเมล', 'Email') }}</label>
     <input class="form-control" type="email" id="email" name="email" placeholder="you@drippilates.com"
            value="{{ old('email') }}" required autofocus autocomplete="username">
   </div>
 
   <div class="mb-3">
-    <label class="form-label" for="password">รหัสผ่าน</label>
+    <label class="form-label" for="password">{{ __t('รหัสผ่าน', 'Password') }}</label>
     <div class="pw-wrap">
       <input class="form-control" type="password" id="password" name="password" placeholder="••••••••"
              required autocomplete="current-password">
-      <button class="pw-toggle" type="button" id="pwToggle" title="แสดง/ซ่อนรหัสผ่าน" tabindex="-1">
+      <button class="pw-toggle" type="button" id="pwToggle" title="{{ __t('แสดง/ซ่อนรหัสผ่าน', 'Show/hide password') }}" tabindex="-1">
         <i class="bi bi-eye" id="pwIcon"></i>
       </button>
     </div>
@@ -150,16 +150,16 @@
 
   <div class="form-check mb-3">
     <input class="form-check-input" type="checkbox" id="remember" name="remember" value="1">
-    <label class="form-check-label small" for="remember">จดจำการเข้าสู่ระบบ</label>
+    <label class="form-check-label small" for="remember">{{ __t('จดจำการเข้าสู่ระบบ', 'Remember me') }}</label>
   </div>
 
   <button class="btn btn-primary w-100" type="submit">
-    <i class="bi bi-box-arrow-in-right"></i> เข้าสู่ระบบ
+    <i class="bi bi-box-arrow-in-right"></i> {{ __t('เข้าสู่ระบบ', 'Sign in') }}
   </button>
 
   <div class="text-center mt-3">
     <a href="{{ route('landing') }}" class="back-link">
-      <i class="bi bi-arrow-left"></i> กลับหน้าเว็บลูกค้า
+      <i class="bi bi-arrow-left"></i> {{ __t('กลับหน้าเว็บลูกค้า', 'Back to the customer site') }}
     </a>
   </div>
 </form>

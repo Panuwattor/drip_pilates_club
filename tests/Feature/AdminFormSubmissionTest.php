@@ -477,12 +477,42 @@ class AdminFormSubmissionTest extends TestCase
             'ends_at' => now()->addMonth()->toDateString(),
             'sort_order' => 1,
             'is_active' => 1,
+            'show_on_homepage' => 1,
+            'show_on_customer' => 1,
         ])->assertSessionHasNoErrors()->assertRedirect();
 
         $announcement = Announcement::where('type', 'promo')->latest('id')->firstOrFail();
         $this->assertNotNull($announcement->image);
         $this->assertStringContainsString('<strong>', $announcement->body_th);
         $this->assertSame($branch->id, $announcement->branch_id);
+        $this->assertTrue($announcement->show_on_homepage);
+        $this->assertTrue($announcement->show_on_customer);
+    }
+
+    public function test_announcement_display_location_can_be_selected(): void
+    {
+        $this->asAdmin()->post(route('admin.announcements.store'), [
+            'title_th' => 'หน้าแรกเท่านั้น',
+            'title_en' => 'Homepage only',
+            'body_th' => '<p>SEO content</p>',
+            'type' => 'info',
+            'is_active' => 1,
+            'show_on_homepage' => 1,
+        ])->assertSessionHasNoErrors()->assertRedirect();
+
+        $this->get(route('landing'))
+            ->assertOk()
+            ->assertSee('Homepage only', false);
+
+        $customer = Customer::create([
+            'code' => 'DP-TEST-DISPLAY',
+            'first_name' => 'Display',
+            'phone' => '0800000099',
+        ]);
+        $this->actingAs($customer, 'customer')
+            ->get(route('home'))
+            ->assertOk()
+            ->assertDontSee('Homepage only', false);
     }
 
     public function test_announcement_strips_dangerous_html(): void

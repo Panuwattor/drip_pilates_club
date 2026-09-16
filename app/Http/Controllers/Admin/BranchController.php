@@ -30,7 +30,7 @@ class BranchController extends Controller
         $branch = Branch::create($data);
 
         return redirect()->route('admin.branches.edit', $branch)
-            ->with('status', 'เพิ่มสาขาเรียบร้อยแล้ว');
+            ->with('status', __t('เพิ่มสาขาเรียบร้อยแล้ว', 'Branch added'));
     }
 
     public function edit(Branch $branch)
@@ -44,18 +44,18 @@ class BranchController extends Controller
     {
         $branch->update($this->validated($request, $branch));
 
-        return back()->with('status', 'บันทึกข้อมูลสาขาแล้ว');
+        return back()->with('status', __t('บันทึกข้อมูลสาขาแล้ว', 'Branch saved'));
     }
 
     public function destroy(Branch $branch)
     {
         if ($branch->classSessions()->exists()) {
-            return back()->with('error', 'ลบไม่ได้ เพราะสาขานี้มีรอบเรียนอยู่ ให้ปิดใช้งานแทน');
+            return back()->with('error', __t('ลบไม่ได้ เพราะสาขานี้มีรอบเรียนอยู่ ให้ปิดใช้งานแทน', 'Cannot delete — this branch has class sessions. Deactivate it instead.'));
         }
 
         $branch->delete();
 
-        return redirect()->route('admin.branches.index')->with('status', 'ลบสาขาแล้ว');
+        return redirect()->route('admin.branches.index')->with('status', __t('ลบสาขาแล้ว', 'Branch deleted'));
     }
 
     public function storeRoom(Request $request, Branch $branch)
@@ -69,7 +69,7 @@ class BranchController extends Controller
 
         $branch->rooms()->create($data + ['is_active' => true]);
 
-        return back()->with('status', 'เพิ่มห้องเรียบร้อยแล้ว');
+        return back()->with('status', __t('เพิ่มห้องเรียบร้อยแล้ว', 'Room added'));
     }
 
     public function updateRoom(Request $request, Room $room)
@@ -84,14 +84,14 @@ class BranchController extends Controller
 
         $room->update($data + ['is_active' => $request->boolean('is_active')]);
 
-        return back()->with('status', 'บันทึกข้อมูลห้องแล้ว');
+        return back()->with('status', __t('บันทึกข้อมูลห้องแล้ว', 'Room saved'));
     }
 
     public function destroyRoom(Room $room)
     {
         $room->delete();
 
-        return back()->with('status', 'ลบห้องแล้ว');
+        return back()->with('status', __t('ลบห้องแล้ว', 'Room deleted'));
     }
 
     private function validated(Request $request, ?Branch $branch = null): array

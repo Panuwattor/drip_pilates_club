@@ -20,6 +20,8 @@ class Announcement extends Model
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
             'is_active' => 'boolean',
+            'show_on_homepage' => 'boolean',
+            'show_on_customer' => 'boolean',
         ];
     }
 

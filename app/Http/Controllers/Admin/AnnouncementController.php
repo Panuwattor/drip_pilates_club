@@ -33,7 +33,7 @@ class AnnouncementController extends Controller
         Announcement::create($data);
 
         return redirect()->route('admin.announcements.index')
-            ->with('status', 'เพิ่มประกาศเรียบร้อยแล้ว');
+            ->with('status', __t('เพิ่มประกาศเรียบร้อยแล้ว', 'Article added'));
     }
 
     public function edit(Announcement $announcement)
@@ -54,14 +54,14 @@ class AnnouncementController extends Controller
 
         $announcement->update($data);
 
-        return back()->with('status', 'บันทึกประกาศแล้ว');
+        return back()->with('status', __t('บันทึกประกาศแล้ว', 'Article saved'));
     }
 
     public function destroy(Announcement $announcement)
     {
         $announcement->delete();
 
-        return redirect()->route('admin.announcements.index')->with('status', 'ลบประกาศแล้ว');
+        return redirect()->route('admin.announcements.index')->with('status', __t('ลบประกาศแล้ว', 'Article deleted'));
     }
 
     private function handleImage(Request $request): ?string
@@ -94,7 +94,11 @@ class AnnouncementController extends Controller
         $data['body_th'] = $this->sanitizeRichText($data['body_th'] ?? null);
         $data['body_en'] = $this->sanitizeRichText($data['body_en'] ?? null);
 
-        return $data + ['is_active' => $request->boolean('is_active')];
+        return $data + [
+            'is_active' => $request->boolean('is_active'),
+            'show_on_homepage' => $request->boolean('show_on_homepage'),
+            'show_on_customer' => $request->boolean('show_on_customer'),
+        ];
     }
 
     private function sanitizeRichText(?string $html): ?string

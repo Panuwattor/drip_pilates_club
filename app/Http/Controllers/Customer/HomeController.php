@@ -52,6 +52,7 @@ class HomeController extends Controller
             'hasUnlimited' => $customer?->hasUnlimited() ?? false,
             'trainers' => Trainer::active()->orderBy('sort_order')->take(8)->get(),
             'announcements' => Announcement::visible()
+                ->where('show_on_customer', true)
                 ->where(fn ($q) => $q->whereNull('branch_id')->orWhere('branch_id', $branchId))
                 ->orderBy('sort_order')->get(),
         ]);

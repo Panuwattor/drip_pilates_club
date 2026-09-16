@@ -1,24 +1,24 @@
 @extends('admin.layouts.app')
-@section('title', 'คลิปวิดีโอ')
+@section('title', __t('คลิปวิดีโอ', 'Videos'))
 
 @section('topbar-actions')
   <a href="{{ route('admin.videos.create') }}" class="btn btn-sm btn-primary">
-    <i class="bi bi-plus-lg"></i> เพิ่มคลิป
+    <i class="bi bi-plus-lg"></i> {{ __t('เพิ่มคลิป', 'Add video') }}
   </a>
 @endsection
 
 @section('content')
 <div class="card-panel">
   <p class="text-secondary small mb-3">
-    คลิปที่เปิดแสดงจะไปโผล่ที่หน้าแรก (landing) ในส่วน "วิดีโอ" — วางแค่ลิงก์คลิปจาก Instagram / YouTube / TikTok / Facebook ระบบสร้างตัวเล่นให้อัตโนมัติ
+    {{ __t('คลิปที่เปิดแสดงจะไปโผล่ที่หน้าแรก (landing) ในส่วน "วิดีโอ" — วางแค่ลิงก์คลิปจาก Instagram / YouTube / TikTok / Facebook ระบบสร้างตัวเล่นให้อัตโนมัติ', 'Active videos appear in the Videos section of the landing page — just paste an Instagram / YouTube / TikTok / Facebook link and the player is built automatically.') }}
   </p>
 
   @if($videos->isEmpty())
-    <div class="empty-note"><i class="bi bi-play-btn"></i>ยังไม่มีคลิป</div>
+    <div class="empty-note"><i class="bi bi-play-btn"></i>{{ __t('ยังไม่มีคลิป', 'No videos yet') }}</div>
   @else
     <div class="table-wrap">
       <table class="table align-middle">
-        <thead><tr><th></th><th>หัวข้อ</th><th>แพลตฟอร์ม</th><th>ลิงก์</th><th>ลำดับ</th><th>สถานะ</th><th></th></tr></thead>
+        <thead><tr><th></th><th>{{ __t('หัวข้อ', 'Title') }}</th><th>{{ __t('แพลตฟอร์ม', 'Platform') }}</th><th>{{ __t('ลิงก์', 'Link') }}</th><th>{{ __t('ลำดับ', 'Order') }}</th><th>{{ __t('สถานะ', 'Status') }}</th><th></th></tr></thead>
         <tbody>
           @php $pm = [
             'instagram'=>['Instagram','bi-instagram'],
@@ -38,8 +38,9 @@
                 @endif
               </td>
               <td>
-                <div class="fw-semibold">{{ $v->title_th ?: '(ไม่มีหัวข้อ)' }}</div>
-                @if($v->title_en)<div class="small text-secondary">{{ $v->title_en }}</div>@endif
+                <div class="fw-semibold">{{ $v->title ?: __t('(ไม่มีหัวข้อ)', '(untitled)') }}</div>
+                @php $altTitle = app()->getLocale() === 'en' ? $v->title_th : $v->title_en; @endphp
+                @if($altTitle)<div class="small text-secondary">{{ $altTitle }}</div>@endif
               </td>
               <td><span class="badge-soft"><i class="bi {{ $pm[$v->provider][1] ?? 'bi-play-btn' }}"></i> {{ $pm[$v->provider][0] ?? $v->provider }}</span></td>
               <td class="small text-secondary" style="max-width:220px;">
@@ -48,9 +49,9 @@
               <td class="small text-secondary">{{ $v->sort_order }}</td>
               <td>
                 @if($v->is_active)
-                  <span class="badge-soft badge-ok">แสดงอยู่</span>
+                  <span class="badge-soft badge-ok">{{ __t('แสดงอยู่', 'Visible') }}</span>
                 @else
-                  <span class="badge-soft badge-danger">ปิด</span>
+                  <span class="badge-soft badge-danger">{{ __t('ปิด', 'Off') }}</span>
                 @endif
               </td>
               <td class="text-end">

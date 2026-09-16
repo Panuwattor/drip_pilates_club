@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<title>@yield('title', 'จัดการระบบ') · Drip Pilates</title>
+<title>@yield('title', __t('จัดการระบบ', 'Administration')) · Drip Pilates</title>
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -405,70 +405,70 @@
 
   <nav class="admin-nav">
     <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-      <i class="bi bi-speedometer2"></i> แดชบอร์ด
+      <i class="bi bi-speedometer2"></i> {{ __t('แดชบอร์ด', 'Dashboard') }}
     </a>
 
-    <div class="grp">ตารางและการจอง</div>
+    <div class="grp">{{ __t('ตารางและการจอง', 'Schedule & Booking') }}</div>
     <a href="{{ route('admin.sessions.index') }}" class="{{ request()->routeIs('admin.sessions.*') ? 'active' : '' }}">
-      <i class="bi bi-calendar3"></i> รอบเรียน
+      <i class="bi bi-calendar3"></i> {{ __t('รอบเรียน', 'Class Sessions') }}
     </a>
     <a href="{{ route('admin.schedules.index') }}" class="{{ request()->routeIs('admin.schedules.*') ? 'active' : '' }}">
-      <i class="bi bi-arrow-repeat"></i> ตารางประจำสัปดาห์
+      <i class="bi bi-arrow-repeat"></i> {{ __t('ตารางประจำสัปดาห์', 'Weekly Schedule') }}
     </a>
     <a href="{{ route('admin.bookings.index') }}" class="{{ request()->routeIs('admin.bookings.*') ? 'active' : '' }}">
-      <i class="bi bi-check2-square"></i> การจอง
+      <i class="bi bi-check2-square"></i> {{ __t('การจอง', 'Bookings') }}
     </a>
 
-    <div class="grp">ลูกค้าและการขาย</div>
+    <div class="grp">{{ __t('ลูกค้าและการขาย', 'Customers & Sales') }}</div>
     <a href="{{ route('admin.counter.index') }}" class="{{ request()->routeIs('admin.counter.*') ? 'active' : '' }}">
-      <i class="bi bi-shop"></i> เคาน์เตอร์
+      <i class="bi bi-shop"></i> {{ __t('เคาน์เตอร์', 'Front Desk') }}
     </a>
     <a href="{{ route('admin.customers.index') }}" class="{{ request()->routeIs('admin.customers.*') ? 'active' : '' }}">
-      <i class="bi bi-people"></i> ลูกค้า
+      <i class="bi bi-people"></i> {{ __t('ลูกค้า', 'Customers') }}
     </a>
     <a href="{{ route('admin.orders.index') }}" class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
-      <i class="bi bi-receipt"></i> คำสั่งซื้อ
+      <i class="bi bi-receipt"></i> {{ __t('คำสั่งซื้อ', 'Orders') }}
       @if(($pendingPayments ?? 0) > 0)
         <span class="badge-count">{{ $pendingPayments }}</span>
       @endif
     </a>
     <a href="{{ route('admin.packages.index') }}" class="{{ request()->routeIs('admin.packages.*') ? 'active' : '' }}">
-      <i class="bi bi-ticket-perforated"></i> แพ็กเกจ
+      <i class="bi bi-ticket-perforated"></i> {{ __t('แพ็กเกจ', 'Packages') }}
     </a>
 
-    <div class="grp">ข้อมูลหลัก</div>
+    <div class="grp">{{ __t('ข้อมูลหลัก', 'Master Data') }}</div>
     <a href="{{ route('admin.branches.index') }}" class="{{ request()->routeIs('admin.branches.*') ? 'active' : '' }}">
-      <i class="bi bi-geo-alt"></i> สาขาและห้อง
+      <i class="bi bi-geo-alt"></i> {{ __t('สาขาและห้อง', 'Branches & Rooms') }}
     </a>
     <a href="{{ route('admin.trainers.index') }}" class="{{ request()->routeIs('admin.trainers.*') ? 'active' : '' }}">
-      <i class="bi bi-person-badge"></i> ครูผู้สอน
+      <i class="bi bi-person-badge"></i> {{ __t('ครูผู้สอน', 'Trainers') }}
     </a>
     <a href="{{ route('admin.class-types.index') }}" class="{{ request()->routeIs('admin.class-types.*') ? 'active' : '' }}">
-      <i class="bi bi-grid-3x3-gap"></i> ประเภทคลาส
+      <i class="bi bi-grid-3x3-gap"></i> {{ __t('ประเภทคลาส', 'Class Types') }}
     </a>
     <a href="{{ route('admin.holidays.index') }}" class="{{ request()->routeIs('admin.holidays.*') ? 'active' : '' }}">
-      <i class="bi bi-calendar-x"></i> วันหยุด
+      <i class="bi bi-calendar-x"></i> {{ __t('วันหยุด', 'Holidays') }}
     </a>
 
-    <div class="grp">อื่นๆ</div>
+    <div class="grp">{{ __t('อื่นๆ', 'More') }}</div>
     <a href="{{ route('admin.announcements.index') }}" class="{{ request()->routeIs('admin.announcements.*') ? 'active' : '' }}">
-      <i class="bi bi-megaphone"></i> บทความ/ประกาศ
+      <i class="bi bi-megaphone"></i> {{ __t('บทความ/ประกาศ', 'Articles & News') }}
     </a>
     <a href="{{ route('admin.videos.index') }}" class="{{ request()->routeIs('admin.videos.*') ? 'active' : '' }}">
-      <i class="bi bi-play-btn"></i> คลิปวิดีโอ
+      <i class="bi bi-play-btn"></i> {{ __t('คลิปวิดีโอ', 'Videos') }}
     </a>
     <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
-      <i class="bi bi-graph-up"></i> รายงาน
+      <i class="bi bi-graph-up"></i> {{ __t('รายงาน', 'Reports') }}
     </a>
     <a href="{{ route('admin.manual.index') }}" class="{{ request()->routeIs('admin.manual.*') ? 'active' : '' }}">
-      <i class="bi bi-book"></i> คู่มือการใช้งาน
+      <i class="bi bi-book"></i> {{ __t('คู่มือการใช้งาน', 'User Manual') }}
     </a>
     @if(auth()->user()?->isOwner())
     <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-      <i class="bi bi-shield-lock"></i> ผู้ใช้งานระบบ
+      <i class="bi bi-shield-lock"></i> {{ __t('ผู้ใช้งานระบบ', 'System Users') }}
     </a>
     <a href="{{ route('admin.settings.edit') }}" class="{{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
-      <i class="bi bi-sliders"></i> ตั้งค่าระบบ
+      <i class="bi bi-sliders"></i> {{ __t('ตั้งค่าระบบ', 'Settings') }}
     </a>
     @endif
   </nav>
@@ -479,7 +479,7 @@
 <div class="admin-main">
   <div class="admin-topbar">
     <button class="icon-btn sidebar-toggle" id="sidebarToggle" type="button"><i class="bi bi-list"></i></button>
-    <h1>@yield('title', 'จัดการระบบ')</h1>
+    <h1>@yield('title', __t('จัดการระบบ', 'Administration'))</h1>
 
     <div class="ms-auto d-flex align-items-center gap-2">
       @yield('topbar-actions')
@@ -488,7 +488,7 @@
          style="width:auto; padding-inline:.6rem; font-size:.72rem; font-weight:700; letter-spacing:.04em;">
         {{ app()->getLocale() === 'th' ? 'EN' : 'ไทย' }}
       </a>
-      <button class="icon-btn" id="themeToggle" type="button" title="สลับโหมดสว่าง/มืด"><i class="bi bi-circle-half"></i></button>
+      <button class="icon-btn" id="themeToggle" type="button" title="{{ __t('สลับโหมดสว่าง/มืด', 'Toggle light/dark mode') }}"><i class="bi bi-circle-half"></i></button>
       <div class="dropdown">
         <button class="icon-btn" data-bs-toggle="dropdown" type="button" title="{{ auth()->user()?->name }}">
           <i class="bi bi-person-circle"></i>
@@ -502,7 +502,7 @@
           <li>
             <form method="POST" action="{{ route('admin.logout') }}">
               @csrf
-              <button class="dropdown-item" type="submit"><i class="bi bi-box-arrow-right"></i> ออกจากระบบ</button>
+              <button class="dropdown-item" type="submit"><i class="bi bi-box-arrow-right"></i> {{ __t('ออกจากระบบ', 'Sign out') }}</button>
             </form>
           </li>
         </ul>
@@ -521,7 +521,7 @@
     @endif
     @if($errors->any())
       <div class="alert alert-danger py-2 mb-3">
-        <strong><i class="bi bi-exclamation-triangle-fill"></i> กรอกข้อมูลไม่ครบหรือไม่ถูกต้อง</strong>
+        <strong><i class="bi bi-exclamation-triangle-fill"></i> {{ __t('กรอกข้อมูลไม่ครบหรือไม่ถูกต้อง', 'Some fields are missing or invalid') }}</strong>
         <ul class="mb-0 mt-1 small">
           @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
         </ul>
@@ -580,7 +580,7 @@ window.adminConfirm = function(opts){
   opts = opts || {};
   // ถ้า CDN โหลดไม่ติด ยังต้องยืนยันได้อยู่ จึงถอยไปใช้ confirm ของเบราว์เซอร์
   if(!window.Swal){
-    return Promise.resolve(window.confirm(opts.text || opts.title || 'ยืนยัน?'));
+    return Promise.resolve(window.confirm(opts.text || opts.title || __swalT('ยืนยัน?', 'Are you sure?')));
   }
   return Swal.fire({
     title: opts.title || __swalT('ยืนยันการทำรายการ', 'Please confirm'),

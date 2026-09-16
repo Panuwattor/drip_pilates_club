@@ -1,20 +1,20 @@
 @extends('admin.layouts.app')
-@section('title', 'บทความ/ประกาศ')
+@section('title', __t('บทความ/ประกาศ', 'Articles & News'))
 
 @section('topbar-actions')
   <a href="{{ route('admin.announcements.create') }}" class="btn btn-sm btn-primary">
-    <i class="bi bi-plus-lg"></i> เพิ่มประกาศ
+    <i class="bi bi-plus-lg"></i> {{ __t('เพิ่มประกาศ', 'Add article') }}
   </a>
 @endsection
 
 @section('content')
 <div class="card-panel">
   @if($announcements->isEmpty())
-    <div class="empty-note"><i class="bi bi-megaphone"></i>ยังไม่มีประกาศ</div>
+    <div class="empty-note"><i class="bi bi-megaphone"></i>{{ __t('ยังไม่มีประกาศ', 'No articles yet') }}</div>
   @else
     <div class="table-wrap">
       <table class="table align-middle">
-        <thead><tr><th></th><th>หัวข้อ</th><th>ชนิด</th><th>สาขา</th><th>ช่วงเวลา</th><th>สถานะ</th><th></th></tr></thead>
+        <thead><tr><th></th><th>{{ __t('หัวข้อ', 'Title') }}</th><th>{{ __t('ชนิด', 'Type') }}</th><th>{{ __t('สาขา', 'Branch') }}</th><th>{{ __t('ช่วงเวลา', 'Period') }}</th><th>{{ __t('สถานะ', 'Status') }}</th><th></th></tr></thead>
         <tbody>
           @foreach($announcements as $a)
             <tr>
@@ -28,27 +28,27 @@
                 @endif
               </td>
               <td>
-                <div class="fw-semibold">{{ $a->title_th }}</div>
-                <div class="small text-secondary">{{ $a->title_en }}</div>
+                <div class="fw-semibold">{{ $a->title }}</div>
+                <div class="small text-secondary">{{ app()->getLocale() === 'en' ? $a->title_th : $a->title_en }}</div>
               </td>
               <td>
-                @php $tm = ['info'=>['ข้อมูล','badge-soft'],'promo'=>['โปรโมชัน','badge-accent'],'warning'=>['แจ้งเตือน','badge-warn']]; @endphp
+                @php $tm = ['info'=>[__t('ข้อมูล','Info'),'badge-soft'],'promo'=>[__t('โปรโมชัน','Promo'),'badge-accent'],'warning'=>[__t('แจ้งเตือน','Notice'),'badge-warn']]; @endphp
                 <span class="badge-soft {{ $tm[$a->type][1] }}">{{ $tm[$a->type][0] }}</span>
               </td>
-              <td class="small text-secondary">{{ $a->branch?->name_th ?? 'ทุกสาขา' }}</td>
+              <td class="small text-secondary">{{ $a->branch?->name ?? __t('ทุกสาขา', 'All branches') }}</td>
               <td class="small text-secondary">
-                {{ $a->starts_at?->format('d/m/Y') ?? 'ทันที' }} –
-                {{ $a->ends_at?->format('d/m/Y') ?? 'ไม่กำหนด' }}
+                {{ $a->starts_at?->format('d/m/Y') ?? __t('ทันที', 'Now') }} –
+                {{ $a->ends_at?->format('d/m/Y') ?? __t('ไม่กำหนด', 'No end') }}
               </td>
               <td>
                 @if($a->is_active)
-                  <span class="badge-soft badge-ok">แสดงอยู่</span>
+                  <span class="badge-soft badge-ok">{{ __t('แสดงอยู่', 'Visible') }}</span>
                 @else
-                  <span class="badge-soft badge-danger">ปิด</span>
+                  <span class="badge-soft badge-danger">{{ __t('ปิด', 'Off') }}</span>
                 @endif
               </td>
               <td class="text-end">
-                <a href="{{ route('articles.show', $a) }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="ดูหน้าที่ลูกค้าเห็น">
+                <a href="{{ route('articles.show', $a) }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="{{ __t('ดูหน้าที่ลูกค้าเห็น', 'View public page') }}">
                   <i class="bi bi-eye"></i>
                 </a>
                 <a href="{{ route('admin.announcements.edit', $a) }}" class="btn btn-sm btn-outline-secondary">

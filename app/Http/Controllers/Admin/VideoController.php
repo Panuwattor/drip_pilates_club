@@ -35,7 +35,7 @@ class VideoController extends Controller
         }
 
         return redirect()->route('admin.videos.index')
-            ->with('status', 'เพิ่มคลิปเรียบร้อยแล้ว');
+            ->with('status', __t('เพิ่มคลิปเรียบร้อยแล้ว', 'Video added'));
     }
 
     public function edit(Video $video)
@@ -62,14 +62,14 @@ class VideoController extends Controller
             $video->update(['remote_thumbnail' => VideoThumbnailFetcher::fetch($video)]);
         }
 
-        return back()->with('status', 'บันทึกคลิปแล้ว');
+        return back()->with('status', __t('บันทึกคลิปแล้ว', 'Video saved'));
     }
 
     public function destroy(Video $video)
     {
         $video->delete();
 
-        return redirect()->route('admin.videos.index')->with('status', 'ลบคลิปแล้ว');
+        return redirect()->route('admin.videos.index')->with('status', __t('ลบคลิปแล้ว', 'Video deleted'));
     }
 
     private function handleThumbnail(Request $request): ?string

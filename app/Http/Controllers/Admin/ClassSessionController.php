@@ -102,7 +102,10 @@ class ClassSessionController extends Controller
 
         // ลดที่นั่งต่ำกว่าจำนวนคนที่จองไปแล้วไม่ได้
         if ($data['capacity'] < $session->booked_count) {
-            return back()->with('error', "ลดที่นั่งเหลือ {$data['capacity']} ไม่ได้ เพราะมีคนจองแล้ว {$session->booked_count} คน");
+            return back()->with('error', __t(
+                "ลดที่นั่งเหลือ {$data['capacity']} ไม่ได้ เพราะมีคนจองแล้ว {$session->booked_count} คน",
+                "Cannot reduce seats to {$data['capacity']} — {$session->booked_count} are already booked"
+            ));
         }
 
         $start = \Carbon\Carbon::parse($data['start_at']);
@@ -117,7 +120,7 @@ class ClassSessionController extends Controller
         }
 
         return redirect()->route('admin.sessions.show', $session)
-            ->with('status', 'บันทึกรอบเรียนแล้ว');
+            ->with('status', __t('บันทึกรอบเรียนแล้ว', 'Session saved'));
     }
 
     /** เปลี่ยนครูสอนแทนแบบเร็ว */
@@ -130,8 +133,8 @@ class ClassSessionController extends Controller
         $session->update($data);
 
         return back()->with('status', $data['substitute_trainer_id']
-            ? 'บันทึกครูสอนแทนแล้ว'
-            : 'ยกเลิกครูสอนแทนแล้ว');
+            ? __t('บันทึกครูสอนแทนแล้ว', 'Substitute trainer saved')
+            : __t('ยกเลิกครูสอนแทนแล้ว', 'Substitute trainer removed'));
     }
 
     public function cancel(Request $request, ClassSession $session)
@@ -148,7 +151,10 @@ class ClassSessionController extends Controller
         return redirect()->route('admin.sessions.index', [
             'branch' => $session->branch_id,
             'date' => $session->start_at->toDateString(),
-        ])->with('status', "ยกเลิกรอบเรียนแล้ว คืนเครดิตให้ลูกค้า {$affected} คน");
+        ])->with('status', __t(
+            "ยกเลิกรอบเรียนแล้ว คืนเครดิตให้ลูกค้า {$affected} คน",
+            "Session cancelled — {$affected} customers refunded"
+        ));
     }
 
     /** แอดมินจองแทนลูกค้า */
@@ -163,11 +169,13 @@ class ClassSessionController extends Controller
         try {
             $booking = $this->bookings->book($customer, $session, 'admin', auth()->id());
         } catch (BookingException $e) {
-            return back()->with('error', $e->localizedMessage('th'));
+            return back()->with('error', $e->localizedMessage());
         }
 
-        $label = $booking->status === 'waitlisted' ? 'เข้าคิวสำรอง' : 'จอง';
+        $waitlisted = $booking->status === 'waitlisted';
 
-        return back()->with('status', "{$label}ให้ {$customer->full_name} เรียบร้อยแล้ว");
+        return back()->with('status', $waitlisted
+            ? __t("เข้าคิวสำรองให้ {$customer->full_name} เรียบร้อยแล้ว", "{$customer->full_name} added to the waitlist")
+            : __t("จองให้ {$customer->full_name} เรียบร้อยแล้ว", "Booked for {$customer->full_name}"));
     }
 }

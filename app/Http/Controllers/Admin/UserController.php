@@ -38,7 +38,7 @@ class UserController extends Controller
         User::create($data);
 
         return redirect()->route('admin.users.index')
-            ->with('status', 'เพิ่มผู้ใช้งานเรียบร้อยแล้ว');
+            ->with('status', __t('เพิ่มผู้ใช้งานเรียบร้อยแล้ว', 'User added'));
     }
 
     public function edit(User $user)
@@ -69,27 +69,27 @@ class UserController extends Controller
             $otherOwners = User::where('role', 'owner')->where('id', '!=', $user->id)->count();
 
             if ($otherOwners === 0) {
-                return back()->with('error', 'ต้องมีเจ้าของระบบอย่างน้อย 1 คน');
+                return back()->with('error', __t('ต้องมีเจ้าของระบบอย่างน้อย 1 คน', 'There must be at least one owner'));
             }
         }
 
         $user->update($data);
 
-        return back()->with('status', 'บันทึกข้อมูลผู้ใช้งานแล้ว');
+        return back()->with('status', __t('บันทึกข้อมูลผู้ใช้งานแล้ว', 'User saved'));
     }
 
     public function destroy(User $user)
     {
         if ($user->id === auth()->id()) {
-            return back()->with('error', 'ลบบัญชีตัวเองไม่ได้');
+            return back()->with('error', __t('ลบบัญชีตัวเองไม่ได้', 'You cannot delete your own account'));
         }
 
         if ($user->isOwner() && User::where('role', 'owner')->count() <= 1) {
-            return back()->with('error', 'ต้องมีเจ้าของระบบอย่างน้อย 1 คน');
+            return back()->with('error', __t('ต้องมีเจ้าของระบบอย่างน้อย 1 คน', 'There must be at least one owner'));
         }
 
         $user->delete();
 
-        return redirect()->route('admin.users.index')->with('status', 'ลบผู้ใช้งานแล้ว');
+        return redirect()->route('admin.users.index')->with('status', __t('ลบผู้ใช้งานแล้ว', 'User deleted'));
     }
 }

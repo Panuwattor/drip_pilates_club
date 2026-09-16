@@ -39,7 +39,7 @@ class PackageController extends Controller
         $package->branches()->sync($data['all_branches'] ? [] : $branchIds);
 
         return redirect()->route('admin.packages.index')
-            ->with('status', 'เพิ่มแพ็กเกจเรียบร้อยแล้ว');
+            ->with('status', __t('เพิ่มแพ็กเกจเรียบร้อยแล้ว', 'Package added'));
     }
 
     public function edit(Package $package)
@@ -60,7 +60,7 @@ class PackageController extends Controller
         $package->classTypes()->sync($data['all_class_types'] ? [] : $classTypeIds);
         $package->branches()->sync($data['all_branches'] ? [] : $branchIds);
 
-        return back()->with('status', 'บันทึกแพ็กเกจแล้ว (แพ็กที่ลูกค้าซื้อไปแล้วไม่เปลี่ยนตาม)');
+        return back()->with('status', __t('บันทึกแพ็กเกจแล้ว (แพ็กที่ลูกค้าซื้อไปแล้วไม่เปลี่ยนตาม)', 'Package saved (packages already purchased are unaffected)'));
     }
 
     /** ดึง id ความสัมพันธ์ออกจาก $data เพราะไม่ใช่คอลัมน์ในตาราง */
@@ -76,12 +76,12 @@ class PackageController extends Controller
     public function destroy(Package $package)
     {
         if ($package->id && \App\Models\CustomerPackage::where('package_id', $package->id)->exists()) {
-            return back()->with('error', 'ลบไม่ได้ เพราะมีลูกค้าซื้อแพ็กนี้ไปแล้ว ให้ปิดใช้งานแทน');
+            return back()->with('error', __t('ลบไม่ได้ เพราะมีลูกค้าซื้อแพ็กนี้ไปแล้ว ให้ปิดใช้งานแทน', 'Cannot delete — customers have purchased this package. Deactivate it instead.'));
         }
 
         $package->delete();
 
-        return redirect()->route('admin.packages.index')->with('status', 'ลบแพ็กเกจแล้ว');
+        return redirect()->route('admin.packages.index')->with('status', __t('ลบแพ็กเกจแล้ว', 'Package deleted'));
     }
 
     private function validated(Request $request, ?Package $package = null): array

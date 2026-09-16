@@ -25,7 +25,7 @@ class ReportController extends Controller
             ->groupBy('branch_id')
             ->get()
             ->map(fn ($r) => [
-                'branch' => Branch::find($r->branch_id)?->name_th ?? 'ไม่ระบุสาขา',
+                'branch' => Branch::find($r->branch_id)?->name ?? __t('ไม่ระบุสาขา', 'No branch'),
                 'total' => (float) $r->total,
                 'orders' => (int) $r->orders,
             ]);

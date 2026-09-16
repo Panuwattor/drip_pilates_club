@@ -77,7 +77,7 @@ class OrderController extends Controller
                 ->exists();
 
             if ($already) {
-                return back()->with('error', 'ลูกค้าคนนี้เคยซื้อแพ็กทดลองไปแล้ว ซื้อซ้ำไม่ได้');
+                return back()->with('error', __t('ลูกค้าคนนี้เคยซื้อแพ็กทดลองไปแล้ว ซื้อซ้ำไม่ได้', 'This customer has already bought the trial package and cannot buy it again'));
             }
         }
 
@@ -133,7 +133,7 @@ class OrderController extends Controller
         });
 
         return redirect()->route('admin.orders.show', $order)
-            ->with('status', 'สร้างคำสั่งซื้อเรียบร้อยแล้ว');
+            ->with('status', __t('สร้างคำสั่งซื้อเรียบร้อยแล้ว', 'Order created'));
     }
 
     public function show(Order $order)
@@ -147,7 +147,7 @@ class OrderController extends Controller
     public function verifyPayment(Request $request, Payment $payment)
     {
         if ($payment->status === 'verified') {
-            return back()->with('error', 'รายการนี้ยืนยันไปแล้ว');
+            return back()->with('error', __t('รายการนี้ยืนยันไปแล้ว', 'This payment has already been verified'));
         }
 
         DB::transaction(function () use ($payment) {
@@ -161,7 +161,7 @@ class OrderController extends Controller
             app(PackageFulfillment::class)->fulfill($payment->order, auth()->id());
         });
 
-        return back()->with('status', 'ยืนยันการชำระเงินและออกแพ็กเกจให้ลูกค้าแล้ว');
+        return back()->with('status', __t('ยืนยันการชำระเงินและออกแพ็กเกจให้ลูกค้าแล้ว', 'Payment verified and package issued'));
     }
 
     public function rejectPayment(Request $request, Payment $payment)
@@ -177,7 +177,7 @@ class OrderController extends Controller
             'verified_at' => now(),
         ]);
 
-        return back()->with('status', 'ปฏิเสธรายการชำระเงินแล้ว');
+        return back()->with('status', __t('ปฏิเสธรายการชำระเงินแล้ว', 'Payment rejected'));
     }
 
     public function addPayment(Request $request, Order $order)
@@ -198,18 +198,18 @@ class OrderController extends Controller
             'paid_at' => now(),
         ]);
 
-        return back()->with('status', 'บันทึกรายการชำระเงินแล้ว รอยืนยัน');
+        return back()->with('status', __t('บันทึกรายการชำระเงินแล้ว รอยืนยัน', 'Payment recorded — awaiting verification'));
     }
 
     public function cancel(Order $order)
     {
         if ($order->status === 'paid') {
-            return back()->with('error', 'คำสั่งซื้อที่ชำระแล้วยกเลิกไม่ได้ ให้ทำรายการคืนเงินแทน');
+            return back()->with('error', __t('คำสั่งซื้อที่ชำระแล้วยกเลิกไม่ได้ ให้ทำรายการคืนเงินแทน', 'A paid order cannot be cancelled — issue a refund instead'));
         }
 
         $order->update(['status' => 'cancelled']);
 
-        return back()->with('status', 'ยกเลิกคำสั่งซื้อแล้ว');
+        return back()->with('status', __t('ยกเลิกคำสั่งซื้อแล้ว', 'Order cancelled'));
     }
 
     private function nextOrderCode(): string

@@ -21,7 +21,7 @@
     </div>
   </div>
 
-  @foreach(['th' => 'ไทย', 'en' => 'English'] as $lang => $langLabel)
+  @foreach(['th' => __t('ไทย', 'Thai'), 'en' => __t('อังกฤษ', 'English')] as $lang => $langLabel)
     <div class="lang-pane {{ $lang === 'th' ? 'active' : '' }}" data-lang="{{ $lang }}">
       @if($type === 'richtext')
         @php $fieldId = $uid . '_' . $lang; @endphp
@@ -50,7 +50,7 @@
   @endforeach
 
   @if(($errors->has($name . '_th') || $errors->has($name . '_en')))
-    <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle"></i> ต้องกรอกครบทั้ง 2 ภาษา</div>
+    <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle"></i> {{ __t('ต้องกรอกครบทั้ง 2 ภาษา', 'Both languages are required') }}</div>
   @endif
 </div>
 

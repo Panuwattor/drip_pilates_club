@@ -42,7 +42,7 @@ class CustomerController extends Controller
                     'id' => $c->id,
                     'name' => $c->full_name,
                     'phone' => $c->phone,
-                    'credits' => $c->hasUnlimited() ? 'เหมาจ่าย' : $c->totalCredits(),
+                    'credits' => $c->hasUnlimited() ? __t('เหมาจ่าย', 'Unlimited') : $c->totalCredits(),
                 ]),
             ]);
         }
@@ -77,7 +77,7 @@ class CustomerController extends Controller
         $customer = Customer::create($data);
 
         return redirect()->route('admin.customers.show', $customer)
-            ->with('status', 'เพิ่มลูกค้าเรียบร้อยแล้ว รหัสสมาชิก ' . $customer->code);
+            ->with('status', __t('เพิ่มลูกค้าเรียบร้อยแล้ว รหัสสมาชิก ', 'Customer added — member code ') . $customer->code);
     }
 
     public function show(Customer $customer)
@@ -139,7 +139,7 @@ class CustomerController extends Controller
 
         $customer->update($data);
 
-        return back()->with('status', 'บันทึกข้อมูลลูกค้าแล้ว');
+        return back()->with('status', __t('บันทึกข้อมูลลูกค้าแล้ว', 'Customer saved'));
     }
 
     /** แอดมินปรับเครดิตเอง ต้องระบุเหตุผลเสมอ */
@@ -155,13 +155,13 @@ class CustomerController extends Controller
             ->findOrFail($data['customer_package_id']);
 
         if ($package->isUnlimited()) {
-            return back()->with('error', 'แพ็กเหมาจ่ายไม่มีเครดิตให้ปรับ');
+            return back()->with('error', __t('แพ็กเหมาจ่ายไม่มีเครดิตให้ปรับ', 'Unlimited packages have no credits to adjust'));
         }
 
         $newRemaining = $package->credit_remaining + $data['amount'];
 
         if ($newRemaining < 0) {
-            return back()->with('error', 'หักเครดิตเกินจำนวนที่เหลืออยู่ไม่ได้');
+            return back()->with('error', __t('หักเครดิตเกินจำนวนที่เหลืออยู่ไม่ได้', 'Cannot deduct more credits than remain'));
         }
 
         DB::transaction(function () use ($package, $customer, $data, $newRemaining) {
@@ -183,9 +183,11 @@ class CustomerController extends Controller
             ]);
         });
 
-        $verb = $data['amount'] > 0 ? 'เพิ่ม' : 'หัก';
+        $amount = abs($data['amount']);
 
-        return back()->with('status', "{$verb}เครดิต " . abs($data['amount']) . ' เรียบร้อยแล้ว');
+        return back()->with('status', $data['amount'] > 0
+            ? __t("เพิ่มเครดิต {$amount} เรียบร้อยแล้ว", "Added {$amount} credits")
+            : __t("หักเครดิต {$amount} เรียบร้อยแล้ว", "Deducted {$amount} credits"));
     }
 
     /** ฟรีซ/ยกเลิกฟรีซแพ็ก */
@@ -205,7 +207,10 @@ class CustomerController extends Controller
                 'frozen_until' => null,
             ]);
 
-            return back()->with('status', "ยกเลิกฟรีซแล้ว ขยายวันหมดอายุออกไป {$days} วัน");
+            return back()->with('status', __t(
+                "ยกเลิกฟรีซแล้ว ขยายวันหมดอายุออกไป {$days} วัน",
+                "Unfrozen — expiry extended by {$days} days"
+            ));
         }
 
         $customerPackage->update([
@@ -213,7 +218,7 @@ class CustomerController extends Controller
             'frozen_from' => now()->toDateString(),
         ]);
 
-        return back()->with('status', 'ฟรีซแพ็กเกจแล้ว ลูกค้าจะจองด้วยแพ็กนี้ไม่ได้จนกว่าจะยกเลิกฟรีซ');
+        return back()->with('status', __t('ฟรีซแพ็กเกจแล้ว ลูกค้าจะจองด้วยแพ็กนี้ไม่ได้จนกว่าจะยกเลิกฟรีซ', 'Package frozen — the customer cannot book with it until it is unfrozen'));
     }
 
     private function nextCode(): string

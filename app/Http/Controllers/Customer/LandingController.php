@@ -34,6 +34,7 @@ class LandingController extends Controller
             'hasMorePackages' => $publicPackages->count() > $featured->count(),
             'trainers' => Trainer::active()->orderBy('sort_order')->take(8)->get(),
             'announcements' => Announcement::visible()
+                ->where('show_on_homepage', true)
                 ->whereNull('branch_id')
                 ->orderByDesc('starts_at')
                 ->orderBy('sort_order')
