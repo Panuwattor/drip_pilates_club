@@ -71,7 +71,7 @@ class CustomerFlowTest extends TestCase
 
     public function test_homepage_loads_for_guest(): void
     {
-        $this->get('/')->assertOk()->assertSee('Drip Pilates', false);
+        $this->get('/')->assertOk()->assertSee('DRIP Pilates', false);
     }
 
     public function test_homepage_loads_for_logged_in_customer(): void

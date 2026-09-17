@@ -16,8 +16,8 @@ class AnnouncementSeeder extends Seeder
             [
                 'title_th' => 'เปิดสาขาอารีย์อย่างเป็นทางการ',
                 'title_en' => 'Aree Branch Now Officially Open',
-                'body_th' => 'Drip Pilates Club สาขาอารีย์เปิดให้บริการแล้ววันนี้ พร้อมอุปกรณ์รีฟอร์มเมอร์ครบครันและครูผู้สอนมืออาชีพ',
-                'body_en' => 'Drip Pilates Club\'s Aree branch is now open, fully equipped with reformers and a professional instructor team.',
+                'body_th' => 'DRIP Pilates Club สาขาอารีย์เปิดให้บริการแล้ววันนี้ พร้อมอุปกรณ์รีฟอร์มเมอร์ครบครันและครูผู้สอนมืออาชีพ',
+                'body_en' => 'DRIP Pilates Club\'s Aree branch is now open, fully equipped with reformers and a professional instructor team.',
                 'image' => 'images/02.jpg',
                 'starts_at' => now()->subDays(14),
                 'sort_order' => 1,

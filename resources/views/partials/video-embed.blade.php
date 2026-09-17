@@ -22,7 +22,7 @@
          data-href="{{ $url }}">
   <div class="vcard__media">
     @if($poster)
-      <img class="vcard__poster" src="{{ $poster }}" alt="{{ $video->title ?: 'Drip Pilates Club' }}" loading="lazy">
+      <img class="vcard__poster" src="{{ $poster }}" alt="{{ $video->title ?: 'DRIP Pilates Club' }}" loading="lazy">
     @else
       @php
         // ไล่โทนพื้นหลังตาม id เพื่อไม่ให้การ์ด placeholder ซ้ำกันหมด
@@ -34,7 +34,7 @@
       @endphp
       <div class="vcard__poster vcard__poster--blank"
            style="background:linear-gradient(150deg,{{ $tone[0] }},{{ $tone[1] }});">
-        <img src="{{ asset('images/logo.png') }}" alt="Drip Pilates Club" class="vcard__logo">
+        <img src="{{ asset('images/logo.png') }}" alt="DRIP Pilates Club" class="vcard__logo">
       </div>
     @endif
 

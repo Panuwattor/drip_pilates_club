@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<title>Drip Pilates</title>
+<title>DRIP Pilates</title>
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -456,7 +456,7 @@
 
 <nav class="app-topbar">
   <div class="container-lg d-flex align-items-center justify-content-between">
-    <span class="brand-lockup"><img src="{{ asset('images/logo.jpg') }}" alt="Drip Pilates" class="brand-logo"><span class="brandmark">Drip Pilates</span></span>
+    <span class="brand-lockup"><img src="{{ asset('images/logo.jpg') }}" alt="DRIP Pilates" class="brand-logo"><span class="brandmark">DRIP Pilates</span></span>
     <div class="d-flex align-items-center gap-2">
       <div class="branch-switch">
         <button class="branch-btn" id="branchToggle" type="button" aria-haspopup="true" aria-expanded="false">
@@ -479,7 +479,7 @@
   <div id="installBanner" class="install-banner hidden" role="dialog" aria-live="polite">
     <div class="install-icon"><i class="bi bi-phone"></i></div>
     <div class="install-copy">
-      <strong id="installTitle" data-th="ติดตั้ง Drip Pilates" data-en="Install Drip Pilates">ติดตั้ง Drip Pilates</strong>
+      <strong id="installTitle" data-th="ติดตั้ง DRIP Pilates" data-en="Install DRIP Pilates">ติดตั้ง DRIP Pilates</strong>
       <div id="installMessage">เพิ่มลงหน้าจอโฮม เปิดใช้งานได้เร็วเหมือนแอป</div>
       <div id="installInstructions" class="install-instructions hidden"></div>
       <div class="install-actions">
@@ -1448,20 +1448,20 @@ function markInstallPromptSeen(){
 /* ข้อความของแบนเนอร์แยกตามแพลตฟอร์ม: message บอกว่าได้อะไร, steps บอกว่าต้องทำอะไร ไม่พูดซ้ำกัน */
 var INSTALL_COPY = {
   ios: {
-    messageTh: 'เพิ่ม Drip Pilates ไว้บนหน้าจอโฮม เปิดจองคลาสได้เร็วขึ้น',
-    messageEn: 'Add Drip Pilates to your Home Screen for faster booking',
+    messageTh: 'เพิ่ม DRIP Pilates ไว้บนหน้าจอโฮม เปิดจองคลาสได้เร็วขึ้น',
+    messageEn: 'Add DRIP Pilates to your Home Screen for faster booking',
     stepsTh: 'แตะปุ่มแชร์ด้านล่าง แล้วเลือก “เพิ่มไปยังหน้าจอโฮม”',
     stepsEn: 'Tap the Share button below, then choose “Add to Home Screen”'
   },
   android: {
-    messageTh: 'เพิ่ม Drip Pilates ไว้บนหน้าจอโฮม เปิดจองคลาสได้เร็วขึ้น',
-    messageEn: 'Add Drip Pilates to your Home Screen for faster booking',
+    messageTh: 'เพิ่ม DRIP Pilates ไว้บนหน้าจอโฮม เปิดจองคลาสได้เร็วขึ้น',
+    messageEn: 'Add DRIP Pilates to your Home Screen for faster booking',
     stepsTh: '',
     stepsEn: ''
   },
   'android-fallback': {
-    messageTh: 'เพิ่ม Drip Pilates ไว้บนหน้าจอโฮม เปิดจองคลาสได้เร็วขึ้น',
-    messageEn: 'Add Drip Pilates to your Home Screen for faster booking',
+    messageTh: 'เพิ่ม DRIP Pilates ไว้บนหน้าจอโฮม เปิดจองคลาสได้เร็วขึ้น',
+    messageEn: 'Add DRIP Pilates to your Home Screen for faster booking',
     stepsTh: 'แตะปุ่มเมนู ⋮ ของ Chrome แล้วเลือก “ติดตั้งแอป”',
     stepsEn: 'Tap Chrome’s ⋮ menu, then choose “Install app”'
   },

@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<title>@yield('title', 'Drip Pilates') · Drip Pilates</title>
+<title>@yield('title', 'DRIP Pilates') · DRIP Pilates</title>
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#7C6BF0">
+<meta name="theme-color" content="#b1977a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -19,44 +19,45 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  /* โทนสีตาม CI ของ DRIP Pilates — เบจ/แทน (#b1977a), ดำ (#231f20), ครีม (#ebe6db), ฟ้า (#7fa5d3) */
   :root{
-    --ground:#F1EEFB;
+    --ground:#F4F1EA;
     --panel:#FFFFFF;
-    --ink:#241F3A;
-    --ink-soft:#6E6A86;
-    --accent:#7C6BF0;
-    --accent-deep:#5B47D6;
-    --accent-soft:#E7E2FC;
-    --sage:#8C9DBE;
-    --sage-soft:#E4E9F2;
-    --line:#E9E5F5;
+    --ink:#231F20;
+    --ink-soft:#6E6559;
+    --accent:#B1977A;
+    --accent-deep:#8C7255;
+    --accent-soft:#EFE8DD;
+    --sage:#7FA5D3;
+    --sage-soft:#E1EAF4;
+    --line:#E8E1D5;
 
-    /* พาสเทลหลากสี — ใช้กับการ์ด hero / stat tile / หมวดต่างๆ */
-    --c-purple:#8B7BF2;      --c-purple-soft:#E9E4FD;   --c-purple-ink:#4A38C4;
-    --c-orange:#FF9F5A;      --c-orange-soft:#FFEBD9;   --c-orange-ink:#B85E1C;
-    --c-blue:#5AB4F0;        --c-blue-soft:#DCF0FE;     --c-blue-ink:#1C6FAD;
-    --c-green:#5CC98B;       --c-green-soft:#DBF4E6;    --c-green-ink:#1F7D4C;
-    --c-pink:#F27BB0;        --c-pink-soft:#FDE2EF;     --c-pink-ink:#B83A76;
-    --c-amber:#F3C34B;       --c-amber-soft:#FBEFCC;    --c-amber-ink:#8A6112;
+    /* พาสเทลหลากสี — ใช้กับการ์ด hero / stat tile / หมวดต่างๆ (โทนอุ่นเข้ากับ CI) */
+    --c-purple:#B1977A;      --c-purple-soft:#EFE8DD;   --c-purple-ink:#7A6144;
+    --c-orange:#D9925A;      --c-orange-soft:#F7E7D7;   --c-orange-ink:#A25A22;
+    --c-blue:#7FA5D3;        --c-blue-soft:#E1EAF4;     --c-blue-ink:#3F6699;
+    --c-green:#8CA88A;       --c-green-soft:#E4EDE2;    --c-green-ink:#4C6B4A;
+    --c-pink:#C99BA6;        --c-pink-soft:#F4E5E9;     --c-pink-ink:#93576A;
+    --c-amber:#CBA85E;       --c-amber-soft:#F3E9CF;    --c-amber-ink:#8A6A22;
   }
   [data-bs-theme="dark"]{
-    --ground:#15121F;
-    --panel:#211C31;
-    --ink:#EEEAF7;
-    --ink-soft:#A59FBE;
-    --accent:#9E8FF5;
-    --accent-deep:#B7ABF8;
-    --accent-soft:#2E2748;
-    --sage:#8FA3C4;
-    --sage-soft:#2A3243;
-    --line:#332C48;
+    --ground:#1A1714;
+    --panel:#262019;
+    --ink:#EFE8DD;
+    --ink-soft:#B3A895;
+    --accent:#C6AD8F;
+    --accent-deep:#D8C4AB;
+    --accent-soft:#39301F;
+    --sage:#9BBBE0;
+    --sage-soft:#25303F;
+    --line:#3A3327;
 
-    --c-purple:#9E8FF5;      --c-purple-soft:#2E2748;   --c-purple-ink:#C7BDFA;
-    --c-orange:#FF9F5A;      --c-orange-soft:#3A2A1B;   --c-orange-ink:#FFC59A;
-    --c-blue:#5AB4F0;        --c-blue-soft:#152F42;     --c-blue-ink:#9DD6F8;
-    --c-green:#5CC98B;       --c-green-soft:#16321F;    --c-green-ink:#9AE3B9;
-    --c-pink:#F27BB0;        --c-pink-soft:#3A1F2E;     --c-pink-ink:#F8B4D3;
-    --c-amber:#F3C34B;       --c-amber-soft:#332A16;    --c-amber-ink:#F5D98A;
+    --c-purple:#C6AD8F;      --c-purple-soft:#39301F;   --c-purple-ink:#DEC8A9;
+    --c-orange:#D9925A;      --c-orange-soft:#3A2A1B;   --c-orange-ink:#EAB587;
+    --c-blue:#9BBBE0;        --c-blue-soft:#1E2C3C;     --c-blue-ink:#B9D2EE;
+    --c-green:#9CB89A;       --c-green-soft:#20301E;    --c-green-ink:#BBD2B9;
+    --c-pink:#D3AAB4;        --c-pink-soft:#3A2A2F;     --c-pink-ink:#E6C3CC;
+    --c-amber:#D6BB7B;       --c-amber-soft:#332A16;    --c-amber-ink:#F5D98A;
   }
   body{
     background:var(--ground);
@@ -139,10 +140,10 @@
   }
 
   .credit-card{
-    background:linear-gradient(140deg,#7C6BF0,#9E8FF5 60%,#B58BF2);
-    border-radius:24px; padding:1.5rem; color:#FBF3F0;
+    background:linear-gradient(140deg,#8C7255,#B1977A 60%,#C6AD8F);
+    border-radius:24px; padding:1.5rem; color:#FBF7F0;
     display:flex; justify-content:space-between; align-items:flex-end; height:100%;
-    position:relative; overflow:hidden; box-shadow:0 12px 28px rgba(124,107,240,.28);
+    position:relative; overflow:hidden; box-shadow:0 12px 28px rgba(140,114,85,.28);
   }
   .credit-card::before{
     content:''; position:absolute; top:-40px; right:-30px;
@@ -168,7 +169,7 @@
     padding:1.1rem .5rem; text-align:center; font-size:.78rem; color:var(--ink-soft); font-weight:600;
     text-decoration:none; display:block; height:100%; transition:box-shadow .18s, transform .18s;
   }
-  .quick-item:hover{ transform:translateY(-3px); color:var(--ink-soft); box-shadow:0 10px 22px rgba(90,71,214,.12); }
+  .quick-item:hover{ transform:translateY(-3px); color:var(--ink-soft); box-shadow:0 10px 22px rgba(140,114,85,.14); }
   .quick-item .qi-icon{
     width:46px; height:46px; border-radius:16px; background:var(--accent-soft);
     color:var(--accent-deep); display:flex; align-items:center; justify-content:center;
@@ -262,7 +263,7 @@
     background:var(--panel); margin-bottom:.75rem; transition:box-shadow .18s, transform .18s;
   }
   a.class-card{ color:inherit; }
-  a.class-card:hover{ color:inherit; transform:translateY(-2px); box-shadow:0 10px 22px rgba(90,71,214,.12); }
+  a.class-card:hover{ color:inherit; transform:translateY(-2px); box-shadow:0 10px 22px rgba(140,114,85,.14); }
   .class-time-rail{
     width:76px; flex:none;
     background:linear-gradient(160deg,var(--c-purple-soft),var(--accent-soft)); color:var(--accent-deep);
@@ -300,9 +301,9 @@
   .stat-box .lbl{ font-size:.68rem; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em; margin-top:4px; }
 
   .profile-hero{
-    background:linear-gradient(140deg,#7C6BF0,#9E8FF5 55%,#F27BB0);
-    border-radius:26px; padding:1.5rem; color:#FBF3F0; position:relative; overflow:hidden;
-    box-shadow:0 14px 30px rgba(124,107,240,.26);
+    background:linear-gradient(140deg,#8C7255,#B1977A 55%,#7FA5D3);
+    border-radius:26px; padding:1.5rem; color:#FBF7F0; position:relative; overflow:hidden;
+    box-shadow:0 14px 30px rgba(140,114,85,.26);
   }
   .profile-hero::before{
     content:''; position:absolute; top:-50px; right:-30px;
@@ -446,7 +447,7 @@
     width:44px;
     height:44px;
     border-radius:14px;
-    background:#7C6BF0;
+    background:#B1977A;
     color:#fff;
     display:flex;
     align-items:center;
@@ -466,7 +467,7 @@
     margin-top:0.6rem;
   }
   .install-banner .btn-install{
-    background:#7C6BF0;
+    background:#B1977A;
     color:#fff;
     border:none;
     border-radius:999px;
@@ -504,7 +505,7 @@
   }
   .form-control:focus, .form-select:focus{
     background:var(--panel); color:var(--ink);
-    border-color:var(--accent); box-shadow:0 0 0 .2rem rgba(124,107,240,.18);
+    border-color:var(--accent); box-shadow:0 0 0 .2rem rgba(177,151,122,.22);
   }
   .btn-accent{
     background:var(--accent); border:1px solid var(--accent); color:#FBF3F0;
@@ -550,8 +551,8 @@
 <nav class="app-topbar">
   <div class="container-lg d-flex align-items-center justify-content-between">
     <a href="{{ route('home') }}" class="brand-lockup text-decoration-none">
-      <img src="{{ asset('images/logo.jpg') }}" alt="Drip Pilates" class="brand-logo">
-      <span class="brandmark">Drip Pilates</span>
+      <img src="{{ asset('images/logo.jpg') }}" alt="DRIP Pilates" class="brand-logo">
+      <span class="brandmark">DRIP Pilates</span>
     </a>
     <div class="d-flex align-items-center gap-2">
       @hasSection('branch-switcher')
@@ -573,7 +574,7 @@
   <div id="installBanner" class="install-banner hidden" role="dialog" aria-live="polite">
     <div class="install-icon"><i class="bi bi-phone"></i></div>
     <div class="install-copy">
-      <strong id="installTitle">{{ __t('ติดตั้ง Drip Pilates', 'Install Drip Pilates') }}</strong>
+      <strong id="installTitle">{{ __t('ติดตั้ง DRIP Pilates', 'Install DRIP Pilates') }}</strong>
       <div id="installMessage">เพิ่มลงหน้าจอโฮม เปิดใช้งานได้เร็วเหมือนแอป</div>
       <div id="installInstructions" class="install-instructions hidden"></div>
       <div class="install-actions">

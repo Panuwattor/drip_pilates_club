@@ -62,7 +62,7 @@ class AdminFormSubmissionTest extends TestCase
         $payload = [
             'code' => 'thonglor',
             'name_th' => 'ดริป พิลาทิส ทองหล่อ',
-            'name_en' => 'Drip Pilates Thonglor',
+            'name_en' => 'DRIP Pilates Thonglor',
             'short_name_th' => 'ทองหล่อ',
             'short_name_en' => 'Thonglor',
             'address_th' => '99/1 ซอยทองหล่อ 10 แขวงคลองตันเหนือ เขตวัฒนา กรุงเทพฯ 10110',
@@ -1688,7 +1688,7 @@ class AdminFormSubmissionTest extends TestCase
         $this->asAdmin()->put(route('admin.settings.update'), [
             'settings' => [
                 'studio_name_th' => 'ดริป พิลาทิส คลับ',
-                'studio_name_en' => 'Drip Pilates Club',
+                'studio_name_en' => 'DRIP Pilates Club',
                 'cancel_deadline_hours' => '12',
                 'booking_open_days_ahead' => '45',
                 'waitlist_max' => '5',

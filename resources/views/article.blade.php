@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ $announcement->title }} · Drip Pilates Club</title>
+<title>{{ $announcement->title }} · DRIP Pilates Club</title>
 <meta name="description" content="{{ \Illuminate\Support\Str::limit(strip_tags($announcement->body ?? $announcement->title), 160) }}">
 <link rel="canonical" href="{{ route('articles.show', $announcement) }}">
 <link rel="alternate" hreflang="th" href="{{ route('articles.show', $announcement) }}">
@@ -11,7 +11,7 @@
 <link rel="alternate" hreflang="x-default" href="{{ route('articles.show', $announcement) }}">
 
 <meta property="og:type" content="article">
-<meta property="og:site_name" content="Drip Pilates Club">
+<meta property="og:site_name" content="DRIP Pilates Club">
 <meta property="og:title" content="{{ $announcement->title }}">
 <meta property="og:description" content="{{ \Illuminate\Support\Str::limit(strip_tags($announcement->body ?? $announcement->title), 160) }}">
 <meta property="og:image" content="{{ asset($announcement->image ?: 'images/01.jpg') }}">
@@ -26,7 +26,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#7C93B8">
+<meta name="theme-color" content="#b1977a">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -45,8 +45,8 @@
         'description' => \Illuminate\Support\Str::limit(strip_tags($announcement->body ?? $announcement->title), 160),
         'image' => asset($announcement->image ?: 'images/01.jpg'),
         'datePublished' => optional($announcement->starts_at)->toAtomString(),
-        'author' => [$t => 'Organization', 'name' => 'Drip Pilates Club'],
-        'publisher' => [$t => 'Organization', 'name' => 'Drip Pilates Club'],
+        'author' => [$t => 'Organization', 'name' => 'DRIP Pilates Club'],
+        'publisher' => [$t => 'Organization', 'name' => 'DRIP Pilates Club'],
         'mainEntityOfPage' => route('articles.show', $announcement),
     ];
 @endphp
@@ -56,9 +56,9 @@
 
 <style>
   :root{
-    --ground:#EEF1F6; --panel:#FFFFFF; --ink:#2B3242; --ink-soft:#6B7690;
-    --accent:#7C93B8; --accent-deep:#5E7699; --accent-soft:#DCE3EF;
-    --sage:#8C9DBE; --sage-soft:#E4E9F2; --line:#DCE1EB;
+    --ground:#F4F1EA; --panel:#FFFFFF; --ink:#231F20; --ink-soft:#6E6559;
+    --accent:#B1977A; --accent-deep:#8C7255; --accent-soft:#EFE8DD;
+    --sage:#7FA5D3; --sage-soft:#E1EAF4; --line:#E8E1D5;
   }
   html{ overflow-x:hidden; }
   body{
@@ -99,7 +99,7 @@
   .article-header .ac-date{ font-size:.75rem; color:var(--accent-deep); font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-top:1.25rem; }
   .article-header h1{ font-size:clamp(1.6rem,3.4vw,2.4rem); font-weight:700; margin:.5rem auto 0; }
 
-  .article-hero{ border-radius:20px; overflow:hidden; box-shadow:0 16px 32px rgba(43,50,66,.1); }
+  .article-hero{ border-radius:20px; overflow:hidden; box-shadow:0 16px 32px rgba(35,31,32,.1); }
   .article-hero img{ width:100%; max-height:420px; object-fit:cover; display:block; }
 
   .article-body{ background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:2.25rem; }
@@ -145,14 +145,14 @@
     background:var(--panel); border:1px solid var(--line); border-radius:18px; overflow:hidden;
     height:100%; display:block; text-decoration:none; transition:transform .2s, box-shadow .2s;
   }
-  .related-card:hover{ transform:translateY(-4px); box-shadow:0 16px 32px rgba(43,50,66,.08); }
+  .related-card:hover{ transform:translateY(-4px); box-shadow:0 16px 32px rgba(35,31,32,.08); }
   .related-card .rc-thumb{ height:120px; background-size:cover; background-position:center; }
   .related-card .rc-body{ padding:1.25rem; }
   .related-card .ac-date{ font-size:.7rem; color:var(--accent-deep); font-weight:700; text-transform:uppercase; letter-spacing:.06em; }
   .related-card h3{ font-size:.98rem; margin:.4rem 0 0; color:var(--ink); }
 
-  .site-footer{ background:#1E2432; color:#B9C2D6; padding:2.5rem 0 1.5rem; margin-top:3rem; }
-  .site-footer .fbottom{ text-align:center; font-size:.78rem; color:#8B96AC; }
+  .site-footer{ background:#231F20; color:#C4BBAD; padding:2.5rem 0 1.5rem; margin-top:3rem; }
+  .site-footer .fbottom{ text-align:center; font-size:.78rem; color:#9A9082; }
 </style>
 </head>
 <body>
@@ -160,8 +160,8 @@
 <nav class="site-nav">
   <div class="container-lg d-flex align-items-center justify-content-between">
     <a href="{{ route('landing') }}" class="brand">
-      <img src="{{ asset('images/logo.jpg') }}" alt="Drip Pilates Club">
-      <span>Drip Pilates Club</span>
+      <img src="{{ asset('images/logo.jpg') }}" alt="DRIP Pilates Club">
+      <span>DRIP Pilates Club</span>
     </a>
     <div class="d-flex align-items-center gap-2">
       <a href="{{ route('locale.set', app()->getLocale() === 'th' ? 'en' : 'th') }}" class="lang-switch d-inline-flex align-items-center gap-1">
@@ -225,7 +225,7 @@
 
 <footer class="site-footer">
   <div class="container-lg">
-    <div class="fbottom">&copy; {{ date('Y') }} Drip Pilates Club. {{ __t('สงวนลิขสิทธิ์', 'All rights reserved.') }}</div>
+    <div class="fbottom">&copy; {{ date('Y') }} DRIP Pilates Club. {{ __t('สงวนลิขสิทธิ์', 'All rights reserved.') }}</div>
   </div>
 </footer>
 

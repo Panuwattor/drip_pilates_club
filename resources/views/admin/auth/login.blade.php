@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ __t('เข้าสู่ระบบจัดการ', 'Admin sign in') }} · Drip Pilates</title>
+<title>{{ __t('เข้าสู่ระบบจัดการ', 'Admin sign in') }} · DRIP Pilates</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.bunny.net">
@@ -119,8 +119,8 @@
   @csrf
 
   <div class="login-brand">
-    <img src="{{ asset('images/logo.jpg') }}" alt="Drip Pilates">
-    <span class="bm">Drip Pilates</span>
+    <img src="{{ asset('images/logo.jpg') }}" alt="DRIP Pilates">
+    <span class="bm">DRIP Pilates</span>
     <span class="sub">{{ __t('ระบบจัดการหลังบ้าน', 'Admin panel') }}</span>
   </div>
 

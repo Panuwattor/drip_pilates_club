@@ -3,17 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>@yield('title') · Drip Pilates</title>
+<title>@yield('title') · DRIP Pilates</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <style>
+  /* โทนสีตาม CI ของ DRIP Pilates — เบจ/แทน (#b1977a), ดำ (#231f20), ครีม (#ebe6db) */
   :root{
-    --ground:#F1EEFB; --panel:#FFFFFF; --ink:#241F3A; --ink-soft:#6E6A86;
-    --accent:#7C6BF0; --accent-deep:#5B47D6; --accent-soft:#E7E2FC; --line:#E9E5F5;
+    --ground:#F4F1EA; --panel:#FFFFFF; --ink:#231F20; --ink-soft:#6E6559;
+    --accent:#B1977A; --accent-deep:#8C7255; --accent-soft:#EFE8DD; --line:#E8E1D5;
   }
   [data-bs-theme="dark"]{
-    --ground:#15121F; --panel:#211C31; --ink:#EEEAF7; --ink-soft:#A59FBE;
-    --accent:#9E8FF5; --accent-deep:#B7ABF8; --accent-soft:#2E2748; --line:#332C48;
+    --ground:#1A1714; --panel:#262019; --ink:#EFE8DD; --ink-soft:#B3A895;
+    --accent:#C6AD8F; --accent-deep:#D8C4AB; --accent-soft:#39301F; --line:#3A3327;
   }
   body{
     background:var(--ground); color:var(--ink); min-height:100vh;
@@ -36,7 +37,7 @@
   }
   .form-control:focus, .form-select:focus{
     background:var(--panel); color:var(--ink);
-    border-color:var(--accent); box-shadow:0 0 0 .2rem rgba(124,107,240,.18);
+    border-color:var(--accent); box-shadow:0 0 0 .2rem rgba(177,151,122,.22);
   }
   .btn-accent{
     background:var(--accent); border:1px solid var(--accent); color:#FBF3F0;
@@ -86,8 +87,8 @@
   </a>
 
   <div class="auth-brand">
-    <img src="{{ asset('images/logo.jpg') }}" alt="Drip Pilates">
-    <span class="bm">Drip Pilates</span>
+    <img src="{{ asset('images/logo.jpg') }}" alt="DRIP Pilates">
+    <span class="bm">DRIP Pilates</span>
   </div>
 
   @yield('content')

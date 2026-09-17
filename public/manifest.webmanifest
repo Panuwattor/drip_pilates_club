@@ -1,7 +1,7 @@
 {
-  "name": "Drip Pilates Club",
-  "short_name": "Drip Pilates",
-  "description": "แอป Drip Pilates สำหรับจองคลาสและติดตามกิจกรรมพิลาทิส",
+  "name": "DRIP Pilates Club",
+  "short_name": "DRIP Pilates",
+  "description": "แอป DRIP Pilates สำหรับจองคลาสและติดตามกิจกรรมพิลาทิส",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

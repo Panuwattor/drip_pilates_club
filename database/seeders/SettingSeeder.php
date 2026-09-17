@@ -35,8 +35,8 @@ class SettingSeeder extends Seeder
             ['freeze_max_days_per_package', '30', 'int', 'package', 'ฟรีซแพ็กได้สูงสุดกี่วัน', 'Max freeze days per package'],
 
             // ทั่วไป
-            ['studio_name_th', 'Drip Pilates', 'string', 'general', 'ชื่อสตูดิโอ', 'Studio name'],
-            ['studio_name_en', 'Drip Pilates', 'string', 'general', 'ชื่อสตูดิโอ (EN)', 'Studio name (EN)'],
+            ['studio_name_th', 'DRIP Pilates', 'string', 'general', 'ชื่อสตูดิโอ', 'Studio name'],
+            ['studio_name_en', 'DRIP Pilates', 'string', 'general', 'ชื่อสตูดิโอ (EN)', 'Studio name (EN)'],
             ['default_locale', 'th', 'string', 'general', 'ภาษาเริ่มต้น', 'Default language'],
             ['currency', 'THB', 'string', 'general', 'สกุลเงิน', 'Currency'],
 

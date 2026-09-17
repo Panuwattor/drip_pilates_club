@@ -1,12 +1,28 @@
 @extends('customer.layout')
 @section('title', __t('หน้าแรก', 'Home'))
 
+@if($branches->count() > 1)
+@section('branch-switcher')
+  <div class="branch-switch">
+    <button class="branch-btn" id="branchToggle" type="button" aria-haspopup="true" aria-expanded="false">
+      <span class="bb-pin"><i class="bi bi-geo-alt-fill"></i></span>
+      <span class="bb-name" id="branchBtnName">{{ $branches->firstWhere('id', $currentBranchId)?->name }}</span>
+      <span class="bb-caret"><i class="bi bi-chevron-down"></i></span>
+    </button>
+    <div class="branch-pop" id="branchPop" role="menu">
+      <div class="bp-title">{{ __t('เลือกสาขา', 'Select Branch') }}</div>
+      <div id="branchOptions"></div>
+    </div>
+  </div>
+@endsection
+@endif
+
 @section('extra-style')
   .announce-card{
     display:flex; align-items:flex-start; gap:.85rem;
-    background:linear-gradient(135deg,var(--c-purple),#B58BF2);
+    background:linear-gradient(135deg,var(--accent-deep),var(--accent));
     color:#fff; border-radius:22px; padding:1.1rem 1.25rem;
-    box-shadow:0 10px 24px rgba(124,107,240,.24);
+    box-shadow:0 10px 24px rgba(140,114,85,.24);
   }
   .announce-card .announce-icon{
     width:40px; height:40px; border-radius:14px; flex:0 0 auto;
@@ -111,7 +127,7 @@
   <div class="col"><a href="{{ route('customer.purchase.index') }}" class="quick-item"><div class="qi-icon"><i class="bi bi-ticket-perforated"></i></div><span>{{ __t('ซื้อแพ็กเกจ', 'Buy Package') }}</span></a></div>
   <div class="col">
     @php $branch = $branches->firstWhere('id', $currentBranchId); @endphp
-    <a href="{{ $branch?->google_map_url ?: '#' }}" @if($branch?->google_map_url) target="_blank" @endif class="quick-item"><div class="qi-icon"><i class="bi bi-geo-alt"></i></div><span>{{ __t('แผนที่สาขา', 'Find Us') }}</span></a>
+    <a href="{{ $branch?->google_map_url ?: '#' }}" @if($branch?->google_map_url) target="_blank" @endif class="quick-item" id="findUsLink"><div class="qi-icon"><i class="bi bi-geo-alt"></i></div><span>{{ __t('แผนที่สาขา', 'Find Us') }}</span></a>
   </div>
 </div>
 
@@ -127,3 +143,115 @@
   @endforeach
 </div>
 @endsection
+
+@if($branches->count() > 1)
+@section('extra-script')
+/* ---------- สลับสาขา (ใช้ key เดียวกับหน้าตารางคลาส) ---------- */
+var BRANCHES = @json($branchesForJs);
+var BRANCH_STORAGE_KEY = 'dripBranch';
+var currentBranch = @json((string) $currentBranchId);
+
+function getBranch(id){
+  for (var i = 0; i < BRANCHES.length; i++){
+    if (BRANCHES[i].id === id) return BRANCHES[i];
+  }
+  return BRANCHES[0];
+}
+function branchText(branch, field){
+  return branch[field + (currentLang === 'th' ? 'Th' : 'En')];
+}
+
+var branchToggle = document.getElementById('branchToggle');
+var branchPop = document.getElementById('branchPop');
+var branchOptions = document.getElementById('branchOptions');
+var branchBtnName = document.getElementById('branchBtnName');
+var findUsLink = document.getElementById('findUsLink');
+
+function renderBranchOptions(){
+  branchOptions.innerHTML = '';
+  BRANCHES.forEach(function(b){
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'branch-option' + (b.id === currentBranch ? ' selected' : '');
+    btn.dataset.branch = b.id;
+
+    var pin = document.createElement('span');
+    pin.className = 'bo-pin';
+    pin.innerHTML = '<i class="bi bi-geo-alt-fill"></i>';
+
+    var copy = document.createElement('span');
+    var name = document.createElement('span');
+    name.className = 'bo-name';
+    name.textContent = branchText(b, 'name');
+    var addr = document.createElement('span');
+    addr.className = 'bo-addr';
+    addr.textContent = branchText(b, 'addr');
+    copy.appendChild(name);
+    copy.appendChild(addr);
+
+    var check = document.createElement('span');
+    check.className = 'bo-check';
+    check.innerHTML = '<i class="bi bi-check-lg"></i>';
+
+    btn.appendChild(pin);
+    btn.appendChild(copy);
+    btn.appendChild(check);
+    btn.addEventListener('click', function(){
+      selectBranch(this.dataset.branch);
+      closeBranchPop();
+    });
+    branchOptions.appendChild(btn);
+  });
+}
+
+function updateFindUs(){
+  var b = getBranch(currentBranch);
+  if (b && b.mapUrl){
+    findUsLink.setAttribute('href', b.mapUrl);
+    findUsLink.setAttribute('target', '_blank');
+  } else {
+    findUsLink.setAttribute('href', '#');
+    findUsLink.removeAttribute('target');
+  }
+}
+
+function renderBranchUI(){
+  var b = getBranch(currentBranch);
+  branchBtnName.textContent = branchText(b, 'name');
+  renderBranchOptions();
+  updateFindUs();
+}
+
+function selectBranch(id){
+  if (!id) return;
+  currentBranch = id;
+  try { localStorage.setItem(BRANCH_STORAGE_KEY, id); } catch (e) { /* storage unavailable */ }
+  renderBranchUI();
+}
+
+function openBranchPop(){
+  renderBranchOptions();
+  branchPop.classList.add('open');
+  branchToggle.setAttribute('aria-expanded', 'true');
+}
+function closeBranchPop(){
+  branchPop.classList.remove('open');
+  branchToggle.setAttribute('aria-expanded', 'false');
+}
+
+branchToggle.addEventListener('click', function(e){
+  e.stopPropagation();
+  if (branchPop.classList.contains('open')) { closeBranchPop(); } else { openBranchPop(); }
+});
+branchPop.addEventListener('click', function(e){ e.stopPropagation(); });
+document.addEventListener('click', closeBranchPop);
+
+/* ดึงสาขาที่เคยเลือกไว้จากหน้าอื่น (เช่น หน้าตารางคลาส) มาใช้ต่อ */
+try {
+  var saved = localStorage.getItem(BRANCH_STORAGE_KEY);
+  if (saved && getBranch(saved) && getBranch(saved).id === saved) { currentBranch = saved; }
+} catch (e) { /* storage unavailable */ }
+
+renderBranchUI();
+@endsection
+@endif

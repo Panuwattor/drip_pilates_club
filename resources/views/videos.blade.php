@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ __t('วิดีโอทั้งหมด', 'All Videos') }} · Drip Pilates Club</title>
-<meta name="description" content="{{ __t('รวมคลิปคลาสและเทคนิคพิลาทิสจาก Drip Pilates Club', 'All Pilates class clips and techniques from Drip Pilates Club.') }}">
+<title>{{ __t('วิดีโอทั้งหมด', 'All Videos') }} · DRIP Pilates Club</title>
+<meta name="description" content="{{ __t('รวมคลิปคลาสและเทคนิคพิลาทิสจาก DRIP Pilates Club', 'All Pilates class clips and techniques from DRIP Pilates Club.') }}">
 <link rel="canonical" href="{{ route('videos.index') }}">
 <link rel="alternate" hreflang="th" href="{{ route('videos.index') }}">
 <link rel="alternate" hreflang="en" href="{{ route('videos.index') }}">
 <link rel="alternate" hreflang="x-default" href="{{ route('videos.index') }}">
 
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Drip Pilates Club">
-<meta property="og:title" content="{{ __t('วิดีโอทั้งหมด', 'All Videos') }} · Drip Pilates Club">
-<meta property="og:description" content="{{ __t('รวมคลิปคลาสและเทคนิคพิลาทิสจาก Drip Pilates Club', 'All Pilates class clips and techniques from Drip Pilates Club.') }}">
+<meta property="og:site_name" content="DRIP Pilates Club">
+<meta property="og:title" content="{{ __t('วิดีโอทั้งหมด', 'All Videos') }} · DRIP Pilates Club">
+<meta property="og:description" content="{{ __t('รวมคลิปคลาสและเทคนิคพิลาทิสจาก DRIP Pilates Club', 'All Pilates class clips and techniques from DRIP Pilates Club.') }}">
 <meta property="og:image" content="{{ asset('images/01.jpg') }}">
 <meta property="og:url" content="{{ route('videos.index') }}">
 <meta name="twitter:card" content="summary_large_image">
@@ -23,7 +23,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#7C93B8">
+<meta name="theme-color" content="#b1977a">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -45,8 +45,8 @@
             'position' => $i + 1,
             'item' => array_filter([
                 $t => 'VideoObject',
-                'name' => $v->title ?: 'Drip Pilates Club',
-                'description' => $v->caption ?: __t('คลิปจาก Drip Pilates Club', 'A clip from Drip Pilates Club'),
+                'name' => $v->title ?: 'DRIP Pilates Club',
+                'description' => $v->caption ?: __t('คลิปจาก DRIP Pilates Club', 'A clip from DRIP Pilates Club'),
                 'thumbnailUrl' => $v->thumbnail ? asset($v->thumbnail) : asset('images/01.jpg'),
                 'uploadDate' => $v->created_at?->toIso8601String(),
                 'contentUrl' => $v->url,
@@ -62,9 +62,9 @@
 
 <style>
   :root{
-    --ground:#EEF1F6; --panel:#FFFFFF; --ink:#2B3242; --ink-soft:#6B7690;
-    --accent:#7C93B8; --accent-deep:#5E7699; --accent-soft:#DCE3EF;
-    --line:#DCE1EB;
+    --ground:#F4F1EA; --panel:#FFFFFF; --ink:#231F20; --ink-soft:#6E6559;
+    --accent:#B1977A; --accent-deep:#8C7255; --accent-soft:#EFE8DD;
+    --line:#E8E1D5;
   }
   html{ overflow-x:hidden; }
   body{
@@ -106,8 +106,8 @@
 
   .empty-note{ text-align:center; color:var(--ink-soft); padding:4rem 0; }
 
-  .site-footer{ background:#1E2432; color:#B9C2D6; padding:2.5rem 0 1.5rem; margin-top:3rem; }
-  .site-footer .fbottom{ text-align:center; font-size:.78rem; color:#8B96AC; }
+  .site-footer{ background:#231F20; color:#C4BBAD; padding:2.5rem 0 1.5rem; margin-top:3rem; }
+  .site-footer .fbottom{ text-align:center; font-size:.78rem; color:#9A9082; }
 </style>
 </head>
 <body>
@@ -115,8 +115,8 @@
 <nav class="site-nav">
   <div class="container-lg d-flex align-items-center justify-content-between">
     <a href="{{ route('landing') }}" class="brand">
-      <img src="{{ asset('images/logo.jpg') }}" alt="Drip Pilates Club">
-      <span>Drip Pilates Club</span>
+      <img src="{{ asset('images/logo.jpg') }}" alt="DRIP Pilates Club">
+      <span>DRIP Pilates Club</span>
     </a>
     <div class="d-flex align-items-center gap-2">
       <a href="{{ route('locale.set', app()->getLocale() === 'th' ? 'en' : 'th') }}" class="lang-switch d-inline-flex align-items-center gap-1">
@@ -149,7 +149,7 @@
 
 <footer class="site-footer">
   <div class="container-lg">
-    <div class="fbottom">&copy; {{ date('Y') }} Drip Pilates Club. {{ __t('สงวนลิขสิทธิ์', 'All rights reserved.') }}</div>
+    <div class="fbottom">&copy; {{ date('Y') }} DRIP Pilates Club. {{ __t('สงวนลิขสิทธิ์', 'All rights reserved.') }}</div>
   </div>
 </footer>
 

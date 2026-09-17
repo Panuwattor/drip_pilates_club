@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Drip Pilates Club · {{ __t('สตูดิโอพิลาทิสสำหรับทุกคน', 'Pilates Studio For Everyone') }}</title>
-<meta name="description" content="{{ __t('Drip Pilates Club สตูดิโอพิลาทิสบรรยากาศอบอุ่น จองคลาสง่าย ครูผู้สอนมืออาชีพ หลายสาขา', 'Drip Pilates Club — a warm, welcoming Pilates studio. Easy class booking, professional instructors, multiple branches.') }}">
+<title>DRIP Pilates Club · {{ __t('สตูดิโอพิลาทิสสำหรับทุกคน', 'Pilates Studio For Everyone') }}</title>
+<meta name="description" content="{{ __t('DRIP Pilates Club สตูดิโอพิลาทิสบรรยากาศอบอุ่น จองคลาสง่าย ครูผู้สอนมืออาชีพ หลายสาขา', 'DRIP Pilates Club — a warm, welcoming Pilates studio. Easy class booking, professional instructors, multiple branches.') }}">
 <link rel="canonical" href="{{ url('/') }}">
 <link rel="alternate" hreflang="th" href="{{ url('/') }}">
 <link rel="alternate" hreflang="en" href="{{ url('/') }}">
 <link rel="alternate" hreflang="x-default" href="{{ url('/') }}">
 
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Drip Pilates Club">
-<meta property="og:title" content="Drip Pilates Club · {{ __t('สตูดิโอพิลาทิสสำหรับทุกคน', 'Pilates Studio For Everyone') }}">
+<meta property="og:site_name" content="DRIP Pilates Club">
+<meta property="og:title" content="DRIP Pilates Club · {{ __t('สตูดิโอพิลาทิสสำหรับทุกคน', 'Pilates Studio For Everyone') }}">
 <meta property="og:description" content="{{ __t('จองคลาสพิลาทิสง่ายๆ กับครูมืออาชีพ หลายสาขาทั่วกรุงเทพฯ', 'Book Pilates classes easily with professional instructors across Bangkok.') }}">
 <meta property="og:image" content="{{ asset('images/homepage/486542663_17877082824282795_2736433454500093176_n.jpg') }}">
 <meta property="og:url" content="{{ url('/') }}">
@@ -23,7 +23,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#7C93B8">
+<meta name="theme-color" content="#b1977a">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -41,7 +41,7 @@
     $ldOrganization = array_filter([
         $c => 'https://schema.org',
         $t => 'ExerciseGym',
-        'name' => 'Drip Pilates Club',
+        'name' => 'DRIP Pilates Club',
         'image' => asset('images/homepage/486542663_17877082824282795_2736433454500093176_n.jpg'),
         'url' => url('/'),
         'telephone' => optional($branches->first())->phone,
@@ -63,8 +63,8 @@
                 'position' => $i + 1,
                 'item' => array_filter([
                     $t => 'VideoObject',
-                    'name' => $v->title ?: 'Drip Pilates Club',
-                    'description' => $v->caption ?: __t('คลิปจาก Drip Pilates Club', 'A clip from Drip Pilates Club'),
+                    'name' => $v->title ?: 'DRIP Pilates Club',
+                    'description' => $v->caption ?: __t('คลิปจาก DRIP Pilates Club', 'A clip from DRIP Pilates Club'),
                     'thumbnailUrl' => $v->thumbnail ? asset($v->thumbnail) : asset('images/01.jpg'),
                     'uploadDate' => $v->created_at?->toIso8601String(),
                     'contentUrl' => $v->url,
@@ -87,9 +87,9 @@
 
 <style>
   :root{
-    --ground:#EEF1F6; --panel:#FFFFFF; --ink:#2B3242; --ink-soft:#6B7690;
-    --accent:#7C93B8; --accent-deep:#5E7699; --accent-soft:#DCE3EF;
-    --sage:#8C9DBE; --sage-soft:#E4E9F2; --line:#DCE1EB;
+    --ground:#F4F1EA; --panel:#FFFFFF; --ink:#231F20; --ink-soft:#6E6559;
+    --accent:#B1977A; --accent-deep:#8C7255; --accent-soft:#EFE8DD;
+    --sage:#7FA5D3; --sage-soft:#E1EAF4; --line:#E8E1D5;
   }
   *{ scroll-behavior:smooth; }
   html{ overflow-x:hidden; }
@@ -150,7 +150,7 @@
   .hero-slide.active{ opacity:1; }
   .hero-overlay{
     position:absolute; inset:0;
-    background:linear-gradient(180deg, rgba(30,36,50,.55) 0%, rgba(30,36,50,.35) 45%, rgba(30,36,50,.75) 100%);
+    background:linear-gradient(180deg, rgba(35,31,32,.55) 0%, rgba(35,31,32,.35) 45%, rgba(35,31,32,.75) 100%);
   }
   .hero-content{
     position:relative; z-index:2; height:100%; display:flex; flex-direction:column;
@@ -206,7 +206,7 @@
   .video-nav{
     position:absolute; top:calc(50% - 1.25rem); transform:translateY(-50%); z-index:4;
     width:44px; height:44px; border-radius:50%; border:1px solid var(--line);
-    background:#fff; color:var(--ink); box-shadow:0 6px 18px rgba(43,50,66,.16);
+    background:#fff; color:var(--ink); box-shadow:0 6px 18px rgba(35,31,32,.16);
     display:flex; align-items:center; justify-content:center; font-size:1.2rem; cursor:pointer;
     transition:background .2s, transform .2s;
   }
@@ -232,8 +232,8 @@
   .floating-contact__items{ display:flex; flex-direction:column; align-items:flex-end; gap:.55rem; opacity:0; visibility:hidden; transform:translateY(10px); transition:opacity .2s, transform .2s, visibility .2s; }
   .floating-contact.is-open .floating-contact__items{ opacity:1; visibility:visible; transform:none; }
   .floating-contact__item{ display:flex; align-items:center; gap:.55rem; text-decoration:none; color:var(--ink); font-size:.78rem; font-weight:700; }
-  .floating-contact__label{ background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:.4rem .7rem; box-shadow:0 6px 18px rgba(43,50,66,.14); white-space:nowrap; }
-  .floating-contact__icon,.floating-contact__toggle{ width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 22px rgba(43,50,66,.2); }
+  .floating-contact__label{ background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:.4rem .7rem; box-shadow:0 6px 18px rgba(35,31,32,.14); white-space:nowrap; }
+  .floating-contact__icon,.floating-contact__toggle{ width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 22px rgba(35,31,32,.2); }
   .floating-contact__icon{ background:var(--panel); border:1px solid var(--line); color:var(--accent-deep); font-size:1.15rem; }
   .floating-contact__item:hover .floating-contact__icon{ background:var(--accent); color:#fff; }
   .floating-contact__toggle{ border:0; background:var(--accent); color:#fff; cursor:pointer; font-size:1.25rem; transition:transform .2s, background .2s; }
@@ -241,11 +241,11 @@
   .floating-contact.is-open .floating-contact__toggle{ transform:rotate(45deg); }
   @media (max-width:575.98px){ .floating-contact{ right:.9rem; bottom:1rem; } .floating-contact__icon,.floating-contact__toggle{ width:46px; height:46px; } }
 
-  .about-media{ border-radius:24px; overflow:hidden; box-shadow:0 24px 48px rgba(43,50,66,.14); }
+  .about-media{ border-radius:24px; overflow:hidden; box-shadow:0 24px 48px rgba(35,31,32,.14); }
   .about-media{ aspect-ratio:4/3; }
   .about-media img{ width:100%; height:100%; object-fit:cover; display:block; }
   .studio-gallery{ display:grid; grid-template-columns:1.2fr .8fr .8fr; gap:1rem; margin-top:3.5rem; }
-  .studio-gallery__item{ min-height:240px; border-radius:20px; overflow:hidden; position:relative; box-shadow:0 16px 32px rgba(43,50,66,.1); }
+  .studio-gallery__item{ min-height:240px; border-radius:20px; overflow:hidden; position:relative; box-shadow:0 16px 32px rgba(35,31,32,.1); }
   .studio-gallery__item:first-child{ min-height:360px; }
   .studio-gallery__item img{ width:100%; height:100%; object-fit:cover; display:block; transition:transform .5s ease; }
   .studio-gallery__item:hover img{ transform:scale(1.04); }
@@ -267,7 +267,7 @@
     background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:1.5rem;
     height:100%; transition:transform .2s, box-shadow .2s;
   }
-  .branch-card:hover{ transform:translateY(-4px); box-shadow:0 16px 32px rgba(43,50,66,.08); }
+  .branch-card:hover{ transform:translateY(-4px); box-shadow:0 16px 32px rgba(35,31,32,.08); }
   .branch-card .bc-ic{
     width:48px; height:48px; border-radius:14px; background:var(--accent-soft); color:var(--accent-deep);
     display:flex; align-items:center; justify-content:center; font-size:1.2rem; margin-bottom:1rem;
@@ -295,7 +295,7 @@
     background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:1.75rem;
     height:100%; position:relative; transition:transform .2s, box-shadow .2s;
   }
-  .pkg-card:hover{ transform:translateY(-4px); box-shadow:0 16px 32px rgba(43,50,66,.08); }
+  .pkg-card:hover{ transform:translateY(-4px); box-shadow:0 16px 32px rgba(35,31,32,.08); }
   .pkg-card.featured{ border-color:var(--accent); box-shadow:0 16px 32px rgba(124,147,184,.18); }
   .pkg-badge{
     position:absolute; top:-12px; left:1.75rem; background:var(--accent); color:#fff;
@@ -317,7 +317,7 @@
   .trainer-avatar{
     width:120px; height:120px; border-radius:50%; margin:0 auto 1rem; overflow:hidden;
     background:var(--sage-soft); display:flex; align-items:center; justify-content:center;
-    color:var(--sage); font-size:2.5rem; border:3px solid var(--panel); box-shadow:0 8px 20px rgba(43,50,66,.1);
+    color:var(--sage); font-size:2.5rem; border:3px solid var(--panel); box-shadow:0 8px 20px rgba(35,31,32,.1);
   }
   .trainer-avatar img{ width:100%; height:100%; object-fit:cover; }
   .trainer-card h3{ font-size:1rem; margin:0 0 .2rem; }
@@ -329,7 +329,7 @@
     background:var(--panel); border:1px solid var(--line); border-radius:18px; overflow:hidden;
     height:100%; transition:transform .2s, box-shadow .2s;
   }
-  .article-card:hover{ transform:translateY(-4px); box-shadow:0 16px 32px rgba(43,50,66,.08); }
+  .article-card:hover{ transform:translateY(-4px); box-shadow:0 16px 32px rgba(35,31,32,.08); }
   .article-card .ac-body{ padding:1.4rem; }
   .article-card .ac-thumb{ height:170px; background-size:cover; background-position:center; }
   .article-card .ac-date{ font-size:.72rem; color:var(--accent-deep); font-weight:700; text-transform:uppercase; letter-spacing:.06em; }
@@ -352,11 +352,11 @@
   .cta-band h2{ color:#fff; }
   .cta-band p{ opacity:.9; max-width:520px; margin:0 auto 1.75rem; }
 
-  .site-footer{ background:#1E2432; color:#B9C2D6; padding:3rem 0 1.5rem; margin-top:2rem; }
+  .site-footer{ background:#231F20; color:#C4BBAD; padding:3rem 0 1.5rem; margin-top:2rem; }
   .site-footer h4{ color:#fff; font-size:.95rem; margin-bottom:1rem; }
-  .site-footer a{ color:#B9C2D6; text-decoration:none; font-size:.85rem; display:block; margin-bottom:.6rem; }
+  .site-footer a{ color:#C4BBAD; text-decoration:none; font-size:.85rem; display:block; margin-bottom:.6rem; }
   .site-footer a:hover{ color:#fff; }
-  .site-footer .fbottom{ border-top:1px solid rgba(255,255,255,.1); margin-top:2rem; padding-top:1.5rem; text-align:center; font-size:.78rem; color:#8B96AC; }
+  .site-footer .fbottom{ border-top:1px solid rgba(255,255,255,.1); margin-top:2rem; padding-top:1.5rem; text-align:center; font-size:.78rem; color:#9A9082; }
 
   [data-i18n]{ }
 </style>
@@ -366,8 +366,8 @@
 <nav class="site-nav">
   <div class="container-lg d-flex align-items-center justify-content-between">
     <a href="{{ route('landing') }}" class="brand text-decoration-none">
-      <img src="{{ asset('images/logo.jpg') }}" alt="Drip Pilates Club">
-      <span>Drip Pilates Club</span>
+      <img src="{{ asset('images/logo.jpg') }}" alt="DRIP Pilates Club">
+      <span>DRIP Pilates Club</span>
     </a>
     <div class="nav-links" id="navLinks">
       <a href="#about">{{ __t('เกี่ยวกับเรา', 'About') }}</a>
@@ -402,7 +402,7 @@
   @endforeach
   <div class="hero-overlay"></div>
   <div class="hero-content">
-    <div class="eyebrow">Drip Pilates Club</div>
+    <div class="eyebrow">DRIP Pilates Club</div>
     <h1>{{ __t('เคลื่อนไหวอย่างมีสติ ฟื้นฟูร่างกายและจิตใจ', 'Move With Intention. Restore Body and Mind.') }}</h1>
     <p>{{ __t('สตูดิโอพิลาทิสบรรยากาศอบอุ่น พร้อมครูผู้สอนมืออาชีพ จองคลาสง่ายในไม่กี่คลิก', 'A warm, welcoming Pilates studio with professional instructors. Book your class in just a few clicks.') }}</p>
     <div class="hero-ctas">
@@ -419,12 +419,12 @@
   <div class="container-lg">
     <div class="row align-items-center g-5">
       <div class="col-lg-6">
-        <div class="about-media"><img src="{{ asset('images/homepage/474062977_17868791967282795_8844777026850742486_n.jpg') }}" alt="Drip Pilates Club reception and studio entrance" loading="lazy"></div>
+        <div class="about-media"><img src="{{ asset('images/homepage/474062977_17868791967282795_8844777026850742486_n.jpg') }}" alt="DRIP Pilates Club reception and studio entrance" loading="lazy"></div>
       </div>
       <div class="col-lg-6">
         <div class="section-eyebrow" style="text-align:left;">{{ __t('เกี่ยวกับเรา', 'About Us') }}</div>
         <h2 style="text-align:left;">{{ __t('พื้นที่ปลอดภัยสำหรับทุกระดับ', 'A Safe Space For Every Level') }}</h2>
-        <p class="text-secondary">{{ __t('ไม่ว่าคุณจะเพิ่งเริ่มต้นหรือฝึกมานาน Drip Pilates Club ออกแบบคลาสให้เหมาะกับร่างกายของคุณ ด้วยอุปกรณ์คุณภาพและครูผู้สอนที่ผ่านการรับรอง', 'Whether you\'re just starting out or an experienced practitioner, Drip Pilates Club tailors every class to your body — with quality equipment and certified instructors.') }}</p>
+        <p class="text-secondary">{{ __t('ไม่ว่าคุณจะเพิ่งเริ่มต้นหรือฝึกมานาน DRIP Pilates Club ออกแบบคลาสให้เหมาะกับร่างกายของคุณ ด้วยอุปกรณ์คุณภาพและครูผู้สอนที่ผ่านการรับรอง', 'Whether you\'re just starting out or an experienced practitioner, DRIP Pilates Club tailors every class to your body — with quality equipment and certified instructors.') }}</p>
         <ul class="about-points">
           <li>
             <span class="ap-ic"><i class="bi bi-award"></i></span>
@@ -456,7 +456,7 @@
 <!-- STUDIO GALLERY -->
 <section class="studio-gallery-section" style="padding-top:0;">
   <div class="container-lg">
-    <div class="section-eyebrow">{{ __t('บรรยากาศของเรา', 'Inside Drip') }}</div>
+    <div class="section-eyebrow">{{ __t('บรรยากาศของเรา', 'Inside DRIP') }}</div>
     <h2 class="section-title">{{ __t('พื้นที่ที่ชวนให้คุณหายใจได้เต็มที่', 'A Space To Breathe And Move') }}</h2>
     <p class="section-sub">{{ __t('ทุกมุมของสตูดิโอออกแบบให้สงบ อบอุ่น และพร้อมสำหรับการเคลื่อนไหวของคุณ', 'Every corner is designed to feel calm, warm, and ready for your movement.') }}</p>
     <div class="studio-gallery">
@@ -465,7 +465,7 @@
         <figcaption class="studio-gallery__label">{{ __t('ห้องฝึกพร้อมวิวเมือง', 'A studio with a view') }}</figcaption>
       </figure>
       <figure class="studio-gallery__item">
-        <img src="{{ asset('images/homepage/484320550_17875868064282795_1837824252396539116_n.jpg') }}" alt="Drip Pilates Club reception" loading="lazy">
+        <img src="{{ asset('images/homepage/484320550_17875868064282795_1837824252396539116_n.jpg') }}" alt="DRIP Pilates Club reception" loading="lazy">
         <figcaption class="studio-gallery__label">{{ __t('ต้อนรับคุณด้วยความอบอุ่น', 'A warm welcome') }}</figcaption>
       </figure>
       <figure class="studio-gallery__item">
@@ -625,7 +625,7 @@
   <div class="container-lg">
     <div class="section-eyebrow">{{ __t('ข่าวสาร', 'News') }}</div>
     <h2 class="section-title">{{ __t('บทความและข่าวสาร', 'Articles & News') }}</h2>
-    <p class="section-sub">{{ __t('อัปเดตล่าสุดจาก Drip Pilates Club', 'The latest updates from Drip Pilates Club') }}</p>
+    <p class="section-sub">{{ __t('อัปเดตล่าสุดจาก DRIP Pilates Club', 'The latest updates from DRIP Pilates Club') }}</p>
     <div class="row g-4">
       @foreach($announcements as $ann)
         <div class="col-md-6 col-lg-4">
@@ -701,8 +701,8 @@
   <div class="container-lg">
     <div class="row g-4">
       <div class="col-md-4">
-        <h4>Drip Pilates Club</h4>
-        <p class="small" style="color:#8B96AC;">{{ __t('สตูดิโอพิลาทิสบรรยากาศอบอุ่น สำหรับทุกคน', 'A warm Pilates studio for everyone.') }}</p>
+        <h4>DRIP Pilates Club</h4>
+        <p class="small" style="color:#9A9082;">{{ __t('สตูดิโอพิลาทิสบรรยากาศอบอุ่น สำหรับทุกคน', 'A warm Pilates studio for everyone.') }}</p>
       </div>
       <div class="col-md-4">
         <h4>{{ __t('ลิงก์ด่วน', 'Quick Links') }}</h4>
@@ -718,7 +718,7 @@
       </div>
     </div>
 
-    <div class="fbottom">&copy; {{ date('Y') }} Drip Pilates Club. {{ __t('สงวนลิขสิทธิ์', 'All rights reserved.') }}</div>
+    <div class="fbottom">&copy; {{ date('Y') }} DRIP Pilates Club. {{ __t('สงวนลิขสิทธิ์', 'All rights reserved.') }}</div>
   </div>
 </footer>
 

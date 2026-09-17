@@ -40,8 +40,20 @@ class HomeController extends Controller
                 ->values();
         }
 
+        $branchesForJs = $branches->map(fn ($b) => [
+            'id' => (string) $b->id,
+            'nameTh' => $b->name_th,
+            'nameEn' => $b->name_en,
+            'shortTh' => $b->short_name_th ?: $b->name_th,
+            'shortEn' => $b->short_name_en ?: $b->name_en,
+            'addrTh' => trim(($b->address_th ?: '') . ($b->phone ? ' · โทร ' . $b->phone : '')),
+            'addrEn' => trim(($b->address_en ?: '') . ($b->phone ? ' · Tel ' . $b->phone : '')),
+            'mapUrl' => $b->google_map_url ?: '',
+        ])->values();
+
         return view('customer.home', [
             'branches' => $branches,
+            'branchesForJs' => $branchesForJs,
             'currentBranchId' => $branchId,
             'customer' => $customer,
             'upcoming' => $upcoming,
