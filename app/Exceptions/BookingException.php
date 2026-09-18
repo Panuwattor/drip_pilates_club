@@ -28,6 +28,10 @@ class BookingException extends Exception
             'th' => 'แพ็กเกจของคุณใช้กับคลาสประเภทนี้ไม่ได้ กรุณาเลือกคลาสอื่นหรือซื้อแพ็กเกจที่ตรงกับคลาสนี้',
             'en' => 'Your package cannot be used for this class type. Please choose another class or purchase a matching package.',
         ],
+        'package_not_valid_for_branch' => [
+            'th' => 'แพ็กเกจของคุณใช้ได้เฉพาะบางสาขา ใช้กับคลาสของสาขานี้ไม่ได้',
+            'en' => 'Your package is only valid at certain branches and cannot be used for this branch.',
+        ],
         'quota_exceeded' => [
             'th' => 'คุณจองครบโควตาของแพ็กเกจแล้ว กรุณาลองใหม่ในวันถัดไป',
             'en' => 'You have reached your package booking limit. Please try again another day.',

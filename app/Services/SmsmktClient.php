@@ -43,40 +43,37 @@ class SmsmktClient
 
     /**
      * ขอให้ SMSMKT สร้าง OTP แล้วส่ง SMS ให้ลูกค้า
-     * คืน ['ok' => bool, 'token' => ?string, 'ref_code' => ?string, 'error' => ?string]
+     * คืน ['ok' => bool, 'token' => ?string, 'error' => ?string]
+     *
+     * ไม่ยุ่งกับ ref_code เลย — ไม่ส่งไป และ SMSMKT ก็ไม่ได้คืนมา
+     * มีแค่ token ตัวเดียวที่ใช้อ้างอิงตอน validate
      */
-    public function sendOtp(string $phone, ?string $refCode = null): array
+    public function sendOtp(string $phone): array
     {
-        $payload = array_filter([
+        $response = $this->post(self::OTP_SEND_URL, [
             'project_key' => config('services.smsmkt.project_key'),
             'phone' => $phone,
-            'ref_code' => $refCode,
         ]);
 
-        $response = $this->post(self::OTP_SEND_URL, $payload);
-
         if (! $response['ok']) {
-            return $response + ['token' => null, 'ref_code' => null];
+            return $response + ['token' => null];
         }
-
-        $result = $response['body']['result'] ?? [];
 
         return [
             'ok' => true,
-            'token' => $result['token'] ?? null,
-            'ref_code' => isset($result['ref_code']) ? (string) $result['ref_code'] : null,
+            'token' => $response['body']['result']['token'] ?? null,
             'error' => null,
         ];
     }
 
     /** ให้ SMSMKT ตรวจว่ารหัสที่ลูกค้ากรอกถูกต้องไหม */
-    public function validateOtp(string $token, string $otpCode, ?string $refCode = null): array
+    public function validateOtp(string $token, string $otpCode): array
     {
-        $response = $this->post(self::OTP_VALIDATE_URL, array_filter([
+        // ส่งแค่ token กับ otp_code เท่านั้น — ใส่ ref_code เพิ่มจะโดนปฏิเสธ
+        $response = $this->post(self::OTP_VALIDATE_URL, [
             'token' => $token,
             'otp_code' => $otpCode,
-            'ref_code' => $refCode,
-        ]));
+        ]);
 
         if (! $response['ok']) {
             return ['ok' => false, 'valid' => false, 'error' => $response['error']];

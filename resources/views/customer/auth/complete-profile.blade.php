@@ -32,14 +32,6 @@
     @endif
   </p>
 
-  @if(!empty($pending['ref_code']))
-    <div class="text-center mb-3 small" style="color:var(--ink-soft);">
-      {{ __t('รหัสอ้างอิง', 'Reference code') }}
-      <strong style="color:var(--ink);letter-spacing:.1em;">{{ $pending['ref_code'] }}</strong>
-      — {{ __t('ต้องตรงกับที่ระบุใน SMS', 'must match the code shown in the SMS') }}
-    </div>
-  @endif
-
   <form method="POST" action="{{ route('customer.line.otp.verify') }}">
     @csrf
 

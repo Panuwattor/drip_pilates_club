@@ -93,6 +93,49 @@ class BookingServiceTest extends TestCase
         ]);
     }
 
+    public function test_package_from_another_branch_cannot_book(): void
+    {
+        // แพ็กสีลมเอามาจองคลาสอารีย์ไม่ได้ ถึงเครดิตจะเหลือและยังไม่หมดอายุ
+        // เคสนี้เกิดจริงได้เพราะหน้าซื้อเคยโชว์แพ็กปนกันทั้งสองสาขา
+        $customer = $this->customer();
+        $this->givePackage($customer, 'silom-reformer-10');
+
+        $areeSession = $this->futureSession();
+        $this->assertSame('aree', $areeSession->branch->code);
+
+        $this->expectException(BookingException::class);
+
+        try {
+            $this->service->book($customer, $areeSession);
+        } catch (BookingException $e) {
+            $this->assertSame('package_not_valid_for_branch', $e->reason);
+
+            throw $e;
+        }
+    }
+
+    public function test_package_can_book_its_own_branch(): void
+    {
+        // กันเคสที่เช็คสาขาแล้วเข้มไปจนจองสาขาตัวเองไม่ได้
+        $customer = $this->customer();
+        $package = $this->givePackage($customer, 'silom-reformer-10');
+
+        $silomSession = ClassSession::where('start_at', '>', now()->addDays(2))
+            ->whereHas('branch', fn ($q) => $q->where('code', 'silom'))
+            ->whereHas('classType', fn ($q) => $q->where('code', 'silom-reformer-group'))
+            ->orderBy('start_at')
+            ->first();
+
+        if (! $silomSession) {
+            $this->markTestSkipped('ยังไม่มีตารางคลาสสาขาสีลม รอลูกค้าส่งข้อมูล');
+        }
+
+        $booking = $this->service->book($customer, $silomSession);
+
+        $this->assertSame('confirmed', $booking->status);
+        $this->assertSame(9, $package->fresh()->credit_remaining);
+    }
+
     public function test_cannot_book_same_session_twice(): void
     {
         $customer = $this->customer();

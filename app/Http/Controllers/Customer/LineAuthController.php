@@ -220,7 +220,6 @@ class LineAuthController extends Controller
             $request->session()->put(self::PENDING_KEY, [
                 'phone' => $phone,
                 'target_id' => $existing->id,
-                'ref_code' => $result['ref_code'],
                 'first_name' => $data['first_name'],
                 'last_name' => $data['last_name'] ?? null,
                 'home_branch_id' => $data['home_branch_id'] ?? null,
@@ -302,13 +301,6 @@ class LineAuthController extends Controller
 
         if ($result['error']) {
             return redirect()->route('customer.profile.complete')->with('error', $result['error']);
-        }
-
-        // ref_code เปลี่ยนทุกครั้งที่ขอใหม่ ต้องอัปเดตให้ตรงกับ SMS ใบล่าสุด
-        if ($result['ref_code']) {
-            $request->session()->put(self::PENDING_KEY, [
-                'ref_code' => $result['ref_code'],
-            ] + $pending);
         }
 
         return redirect()->route('customer.profile.complete')
@@ -407,11 +399,6 @@ class LineAuthController extends Controller
 
         $masked = substr($phone, 0, 3) . 'xxx' . substr($phone, -3);
         $message = "ส่งรหัสยืนยันไปที่ {$masked} แล้ว";
-
-        // ให้ลูกค้าเทียบกับรหัสอ้างอิงใน SMS ว่าเป็นใบเดียวกัน
-        if ($result['ref_code']) {
-            $message .= " (รหัสอ้างอิง {$result['ref_code']})";
-        }
 
         // ตอน dev ที่ยังไม่มี SMS จริง โชว์รหัสให้เลยจะได้ทดสอบได้
         if ($result['debug_code']) {

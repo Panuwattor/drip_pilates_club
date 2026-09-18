@@ -9,6 +9,22 @@
 
 @include('customer.purchase._flash')
 
+{{-- แพ็กขายแยกสาขา ต้องให้ลูกค้าเห็นชัดว่ากำลังดูของสาขาไหน ไม่งั้นซื้อผิดสาขา --}}
+@if($branches->count() > 1)
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    @foreach($branches as $branch)
+      <a href="{{ route('customer.purchase.index', ['branch' => $branch->id]) }}"
+         class="btn btn-sm {{ $branch->id === $currentBranchId ? 'btn-accent' : 'btn-outline-secondary' }}">
+        {{ $branch->short_name ?: $branch->name }}
+      </a>
+    @endforeach
+  </div>
+  <p class="small text-secondary mb-3">
+    <i class="bi bi-info-circle"></i>
+    {{ __t('แพ็กเกจด้านล่างใช้ได้ที่สาขาที่เลือกเท่านั้น', 'The packages below can only be used at the selected branch.') }}
+  </p>
+@endif
+
 @if($pendingOrders->isNotEmpty())
   <div class="section-title">{{ __t('รอชำระเงิน', 'Awaiting payment') }}</div>
   <div class="row g-3 mb-4">
@@ -51,9 +67,19 @@
             @endif
           </div>
 
-          <div class="small text-secondary mt-1 mb-3">
+          <div class="small text-secondary mt-1 mb-2">
             {{ $p->credit_amount === null ? __t('ไม่จำกัดจำนวนครั้ง', 'Unlimited classes') : __t($p->credit_amount . ' ครั้ง', $p->credit_amount . ' classes') }}
             · {{ __t('ใช้ได้ ' . $p->valid_days . ' วัน', 'valid ' . $p->valid_days . ' days') }}
+          </div>
+
+          {{-- บอกสาขาที่ใช้ได้ตรงการ์ด ลูกค้าจะได้ไม่ต้องเลื่อนกลับไปดูปุ่มสลับสาขา --}}
+          <div class="small mb-3" style="color:var(--accent-deep);">
+            <i class="bi bi-geo-alt"></i>
+            @if($p->all_branches)
+              {{ __t('ใช้ได้ทุกสาขา', 'Valid at all branches') }}
+            @else
+              {{ __t('ใช้ได้เฉพาะ', 'Valid only at') }} {{ $p->branches->map(fn ($b) => $b->short_name ?: $b->name)->implode(', ') }}
+            @endif
           </div>
 
           <div class="mt-auto">

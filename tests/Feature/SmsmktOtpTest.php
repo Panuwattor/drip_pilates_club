@@ -39,13 +39,12 @@ class SmsmktOtpTest extends TestCase
         Http::fake([self::SEND_URL => Http::response([
             'code' => '000',
             'detail' => 'OK',
-            'result' => ['token' => 'TOKEN-ABC', 'ref_code' => 1234],
+            'result' => ['token' => 'TOKEN-ABC'],
         ])]);
 
         $result = $this->otp()->send('0812345678');
 
         $this->assertTrue($result['sent']);
-        $this->assertSame('1234', $result['ref_code']);
         $this->assertNull($result['debug_code'], 'โหมดจริงต้องไม่โชว์รหัสบนหน้าจอ');
 
         $record = PhoneVerificationCode::where('phone', '0812345678')->firstOrFail();
@@ -58,7 +57,7 @@ class SmsmktOtpTest extends TestCase
     public function test_send_forwards_credentials_as_headers(): void
     {
         Http::fake([self::SEND_URL => Http::response([
-            'code' => '000', 'result' => ['token' => 'T', 'ref_code' => 1],
+            'code' => '000', 'result' => ['token' => 'T'],
         ])]);
 
         $this->otp()->send('0812345678');
@@ -102,7 +101,7 @@ class SmsmktOtpTest extends TestCase
     public function test_verify_delegates_to_smsmkt_and_accepts_valid_code(): void
     {
         Http::fake([
-            self::SEND_URL => Http::response(['code' => '000', 'result' => ['token' => 'TOKEN-OK', 'ref_code' => 55]]),
+            self::SEND_URL => Http::response(['code' => '000', 'result' => ['token' => 'TOKEN-OK']]),
             self::VALIDATE_URL => Http::response(['code' => '000', 'result' => ['status' => true]]),
         ]);
 
@@ -119,10 +118,45 @@ class SmsmktOtpTest extends TestCase
         );
     }
 
+    /**
+     * เคยพลาดตรงนี้ — สุ่ม ref_code ส่งไปเอง แล้ว validate ไม่ผ่านทุกครั้ง
+     * SMSMKT ไม่ได้ใช้ ref_code กับ flow นี้ มีแค่ token ตัวเดียว
+     */
+    public function test_never_sends_ref_code_to_smsmkt(): void
+    {
+        Http::fake([
+            self::SEND_URL => Http::response(['code' => '000', 'result' => ['token' => 'T']]),
+            self::VALIDATE_URL => Http::response(['code' => '000', 'result' => ['status' => true]]),
+        ]);
+
+        $this->otp()->send('0812345678');
+        $this->assertTrue($this->otp()->verify('0812345678', '123456'));
+
+        Http::assertSent(fn ($r) => $r->url() === self::SEND_URL
+            && ! array_key_exists('ref_code', $r->data()));
+
+        Http::assertSent(fn ($r) => $r->url() === self::VALIDATE_URL
+            && ! array_key_exists('ref_code', $r->data()));
+    }
+
+    /** ตอบกลับไม่มี ref_code ก็ต้องทำงานได้ปกติ — เราไม่ได้พึ่งค่านี้ */
+    public function test_works_when_response_has_no_ref_code(): void
+    {
+        Http::fake([
+            self::SEND_URL => Http::response(['code' => '000', 'result' => ['token' => 'TOKEN-OK']]),
+            self::VALIDATE_URL => Http::response(['code' => '000', 'result' => ['status' => true]]),
+        ]);
+
+        $result = $this->otp()->send('0812345678');
+
+        $this->assertTrue($result['sent']);
+        $this->assertTrue($this->otp()->verify('0812345678', '123456'));
+    }
+
     public function test_verify_rejects_when_smsmkt_says_status_false(): void
     {
         Http::fake([
-            self::SEND_URL => Http::response(['code' => '000', 'result' => ['token' => 'T', 'ref_code' => 1]]),
+            self::SEND_URL => Http::response(['code' => '000', 'result' => ['token' => 'T']]),
             self::VALIDATE_URL => Http::response(['code' => '000', 'result' => ['status' => false]]),
         ]);
 
@@ -134,7 +168,7 @@ class SmsmktOtpTest extends TestCase
     public function test_verify_rejects_expired_token_from_provider(): void
     {
         Http::fake([
-            self::SEND_URL => Http::response(['code' => '000', 'result' => ['token' => 'T', 'ref_code' => 1]]),
+            self::SEND_URL => Http::response(['code' => '000', 'result' => ['token' => 'T']]),
             self::VALIDATE_URL => Http::response(['code' => '5000', 'detail' => 'token expire']),
         ]);
 
@@ -146,7 +180,7 @@ class SmsmktOtpTest extends TestCase
     public function test_attempt_limit_applies_in_smsmkt_mode_too(): void
     {
         Http::fake([
-            self::SEND_URL => Http::response(['code' => '000', 'result' => ['token' => 'T', 'ref_code' => 1]]),
+            self::SEND_URL => Http::response(['code' => '000', 'result' => ['token' => 'T']]),
             self::VALIDATE_URL => Http::response(['code' => '000', 'result' => ['status' => false]]),
         ]);
 
@@ -177,7 +211,7 @@ class SmsmktOtpTest extends TestCase
     public function test_cooldown_blocks_immediate_resend_without_calling_provider(): void
     {
         Http::fake([self::SEND_URL => Http::response([
-            'code' => '000', 'result' => ['token' => 'T', 'ref_code' => 1],
+            'code' => '000', 'result' => ['token' => 'T'],
         ])]);
 
         $this->otp()->send('0812345678');

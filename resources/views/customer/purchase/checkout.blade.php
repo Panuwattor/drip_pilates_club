@@ -34,6 +34,17 @@
             <span>{{ $package->classTypes->pluck('name')->join(', ') }}</span>
           </div>
         @endif
+        {{-- หน้าสุดท้ายก่อนจ่ายเงิน ต้องบอกให้ชัดว่าซื้อไปแล้วใช้ได้สาขาไหน --}}
+        <div class="menu-row">
+          <div class="mi"><i class="bi bi-geo-alt"></i></div>
+          <span>
+            @if($package->all_branches)
+              {{ __t('ใช้ได้ทุกสาขา', 'Valid at all branches') }}
+            @else
+              <strong>{{ __t('ใช้ได้เฉพาะ', 'Valid only at') }} {{ $package->branches->map(fn ($b) => $b->short_name ?: $b->name)->implode(', ') }}</strong>
+            @endif
+          </span>
+        </div>
       </div>
     </div>
   </div>

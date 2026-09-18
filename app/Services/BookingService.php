@@ -579,7 +579,7 @@ class BookingService
     /** หาแพ็กที่ใช้จองรอบนี้ได้ เรียงจากใกล้หมดอายุก่อน */
     public function resolvePackage(Customer $customer, ClassSession $session): CustomerPackage
     {
-        $packages = CustomerPackage::with('package.classTypes')
+        $packages = CustomerPackage::with('package.classTypes', 'package.branches')
             ->where('customer_id', $customer->id)
             ->where('status', 'active')
             ->whereDate('starts_at', '<=', now())
@@ -592,8 +592,18 @@ class BookingService
             throw new BookingException('no_active_package');
         }
 
+        // แพ็กที่ขายเฉพาะบางสาขา ห้ามเอามาจองคลาสสาขาอื่น ตัดออกก่อนเลย
+        // เช็คสาขาก่อนประเภทคลาส จะได้แจ้งสาเหตุที่ตรงกว่าเวลาลูกค้าซื้อผิดสาขา
+        $inBranch = $packages->filter(
+            fn ($p) => $p->allowsBranch($session->branch_id)
+        );
+
+        if ($inBranch->isEmpty()) {
+            throw new BookingException('package_not_valid_for_branch');
+        }
+
         // แพ็กที่ใช้กับคลาสประเภทนี้ไม่ได้ ตัดออกก่อนเลย
-        $eligible = $packages->filter(
+        $eligible = $inBranch->filter(
             fn ($p) => $p->allowsClassType($session->class_type_id)
         );
 

@@ -76,6 +76,22 @@ class CustomerPackage extends Model
         return $package->classTypes->contains('id', $classTypeId);
     }
 
+    /**
+     * แพ็กสีลมห้ามเอาไปจองคลาสอารีย์ เพราะขายแยกสาขากัน
+     * อ่านเงื่อนไขจาก package ต้นทางแบบเดียวกับ allowsClassType()
+     * แพ็กที่ all_branches = true ใช้ได้ทุกสาขาตามเดิม
+     */
+    public function allowsBranch(int $branchId): bool
+    {
+        $package = $this->package;
+
+        if (! $package || $package->all_branches) {
+            return true;
+        }
+
+        return $package->branches->contains('id', $branchId);
+    }
+
     public function daysUntilExpiry(): int
     {
         return (int) now()->startOfDay()->diffInDays($this->expires_at, false);

@@ -32,7 +32,8 @@ class LandingController extends Controller
             'branches' => Branch::active()->orderBy('sort_order')->get(),
             'packages' => $featured,
             'hasMorePackages' => $publicPackages->count() > $featured->count(),
-            'trainers' => Trainer::active()->orderBy('sort_order')->take(8)->get(),
+            // ทีมครูมี 9 คนตามโปสเตอร์ OUR INSTRUCTOR โชว์ให้ครบ ไม่ตัดคนสุดท้ายทิ้ง
+            'trainers' => Trainer::active()->orderBy('sort_order')->take(9)->get(),
             'announcements' => Announcement::visible()
                 ->where('show_on_homepage', true)
                 ->whereNull('branch_id')
@@ -64,8 +65,15 @@ class LandingController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        // จัดกลุ่มตามประเภทคลาสหลักของแพ็ก (แพ็กที่ไม่ผูกคลาสไปอยู่กลุ่ม "อื่นๆ")
-        $groups = $packages->groupBy(fn ($p) => $p->classTypes->first()?->name ?? __t('อื่นๆ', 'Others'));
+        // แพ็กทดลองแยกเป็นหัวข้อของตัวเองไว้บนสุด ลูกค้าใหม่จะได้ไม่ต้องไล่หาทีละประเภทคลาส
+        // ที่เหลือจัดกลุ่มตามประเภทคลาสหลักของแพ็ก (แพ็กที่ไม่ผูกคลาสไปอยู่กลุ่ม "อื่นๆ")
+        $trialGroup = __t('แพ็กทดลองครั้งแรก', 'First Trials');
+
+        $groups = $packages
+            ->groupBy(fn ($p) => $p->type === 'trial'
+                ? $trialGroup
+                : ($p->classTypes->first()?->name ?? __t('อื่นๆ', 'Others')))
+            ->sortBy(fn ($items, $name) => $name === $trialGroup ? -1 : $items->min('sort_order'));
 
         return view('packages', [
             'groups' => $groups,

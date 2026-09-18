@@ -588,7 +588,8 @@
             @if($trainer->avatar)<img src="{{ asset($trainer->avatar) }}" alt="{{ $trainer->name }}">@else<i class="bi bi-person"></i>@endif
           </div>
           <h3>{{ $trainer->nickname ?: $trainer->name }}</h3>
-          @if($trainer->specialties)<p>{{ $trainer->specialties }}</p>@endif
+          {{-- ลูกค้ายังไม่ได้ให้ความถนัดรายคน ใช้ใบรับรองแทนแบบเดียวกับโปสเตอร์ OUR INSTRUCTOR --}}
+          @if($trainer->specialties ?: $trainer->certifications)<p>{{ $trainer->specialties ?: $trainer->certifications }}</p>@endif
         </div>
       @endforeach
     </div>

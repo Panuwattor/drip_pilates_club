@@ -29,7 +29,7 @@ class PhoneVerificationService
 
     /**
      * ออก OTP ใหม่ ถ้าเพิ่งส่งไปไม่ถึง 1 นาทีจะไม่ส่งซ้ำ
-     * คืน ['sent' => bool, 'wait_seconds' => int, 'debug_code' => ?string, 'ref_code' => ?string, 'error' => ?string]
+     * คืน ['sent' => bool, 'wait_seconds' => int, 'debug_code' => ?string, 'error' => ?string]
      */
     public function send(string $phone, string $purpose = 'link_line', ?string $lineUserId = null): array
     {
@@ -53,10 +53,7 @@ class PhoneVerificationService
     /** SMSMKT สร้างรหัสเอง เราเก็บ token ไว้ใช้ตอน validate */
     private function sendViaSmsmkt(string $phone, string $purpose, ?string $lineUserId): array
     {
-        // ref_code โชว์ให้ลูกค้าเทียบกับใน SMS ว่าเป็นรหัสใบเดียวกัน
-        $refCode = strtoupper(Str::random(4));
-
-        $response = $this->smsmkt->sendOtp($phone, $refCode);
+        $response = $this->smsmkt->sendOtp($phone);
 
         if (! $response['ok']) {
             return $this->result(false, error: $response['error']);
@@ -68,12 +65,11 @@ class PhoneVerificationService
             'purpose' => $purpose,
             'provider' => 'smsmkt',
             'provider_token' => $response['token'],
-            'ref_code' => $response['ref_code'] ?: $refCode,
             'line_user_id' => $lineUserId,
             'expires_at' => now()->addMinutes(self::CODE_TTL_MINUTES),
         ]);
 
-        return $this->result(true, refCode: $response['ref_code'] ?: $refCode);
+        return $this->result(true);
     }
 
     /** โหมด dev — สร้างรหัสเอง เขียนลง log ไม่เสียเครดิต */
@@ -151,7 +147,7 @@ class PhoneVerificationService
             return false;
         }
 
-        $response = $this->smsmkt->validateOtp($record->provider_token, $code, $record->ref_code);
+        $response = $this->smsmkt->validateOtp($record->provider_token, $code);
 
         return $response['ok'] && $response['valid'];
     }
@@ -209,14 +205,12 @@ class PhoneVerificationService
         bool $sent,
         int $waitSeconds = 0,
         ?string $debugCode = null,
-        ?string $refCode = null,
         ?string $error = null,
     ): array {
         return [
             'sent' => $sent,
             'wait_seconds' => $waitSeconds,
             'debug_code' => $debugCode,
-            'ref_code' => $refCode,
             'error' => $error,
         ];
     }

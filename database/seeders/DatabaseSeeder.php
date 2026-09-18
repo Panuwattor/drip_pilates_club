@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
             TrainerSeeder::class,
             ClassTypeSeeder::class,
             PackageSeeder::class,
+            SilomPackageSeeder::class,
             AnnouncementSeeder::class,
             VideoSeeder::class,
             AdminSeeder::class,

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use App\Models\CustomerPackage;
 use App\Models\Order;
 use App\Models\Package;
@@ -19,12 +20,22 @@ use Illuminate\Support\Facades\DB;
 class PurchaseController extends Controller
 {
     /** รายการแพ็กที่ซื้อได้ */
-    public function index()
+    public function index(Request $request)
     {
         $customer = auth('customer')->user();
 
+        // แพ็กขายแยกสาขา (อารีย์กับสีลมคนละราคาคนละคลาส) ถ้าโชว์ปนกันลูกค้าซื้อผิดสาขาแน่
+        // ยึดสาขาที่เลือกใน URL ก่อน ไม่งั้นใช้สาขาประจำของลูกค้า แบบเดียวกับหน้าตารางคลาส
+        $branches = Branch::active()->orderBy('sort_order')->get();
+        $branchId = (int) $request->input('branch', 0);
+
+        if (! $branches->contains('id', $branchId)) {
+            $branchId = $customer->home_branch_id ?: ($branches->first()->id ?? 0);
+        }
+
         $packages = Package::active()->public()
-            ->with('classTypes')
+            ->forBranch($branchId)
+            ->with('classTypes', 'branches')
             ->orderBy('sort_order')
             ->get();
 
@@ -34,8 +45,17 @@ class PurchaseController extends Controller
             ->pluck('package_id')
             ->unique();
 
+        // แพ็กทดลองแยกหัวข้อไว้บนสุดแบบเดียวกับหน้า /packages สาธารณะ
+        $trialGroup = __t('แพ็กทดลองครั้งแรก', 'First Trials');
+
         return view('customer.purchase.index', [
-            'groups' => $packages->groupBy(fn ($p) => $p->classTypes->first()?->name ?? __t('อื่นๆ', 'Others')),
+            'groups' => $packages
+                ->groupBy(fn ($p) => $p->type === 'trial'
+                    ? $trialGroup
+                    : ($p->classTypes->first()?->name ?? __t('อื่นๆ', 'Others')))
+                ->sortBy(fn ($items, $name) => $name === $trialGroup ? -1 : $items->min('sort_order')),
+            'branches' => $branches,
+            'currentBranchId' => $branchId,
             'purchasedOnceIds' => $purchasedOnceIds,
             'pendingOrders' => Order::where('customer_id', $customer->id)
                 ->where('status', 'pending')
@@ -55,7 +75,7 @@ class PurchaseController extends Controller
         }
 
         return view('customer.purchase.checkout', [
-            'package' => $package->load('classTypes'),
+            'package' => $package->load('classTypes', 'branches'),
             'customer' => $customer,
         ]);
     }
@@ -201,6 +221,12 @@ class PurchaseController extends Controller
             if ($already) {
                 return __t('แพ็กทดลองซื้อได้คนละครั้งเดียว', 'Trial package can only be purchased once');
             }
+        }
+
+        // แพ็กที่ไม่ได้ขายทุกสาขาต้องผูกกับสาขาที่ยังเปิดอยู่จริง
+        // กันเคสลูกค้ากดลิงก์ตรงมาซื้อแพ็กสาขาที่ปิดไปแล้ว แล้วจองอะไรไม่ได้เลย
+        if (! $package->all_branches && $package->branches()->where('is_active', true)->doesntExist()) {
+            return __t('แพ็กเกจนี้ไม่เปิดขายแล้ว', 'This package is no longer available');
         }
 
         return null;
