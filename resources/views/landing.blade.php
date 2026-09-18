@@ -239,7 +239,16 @@
   .floating-contact__toggle{ border:0; background:var(--accent); color:#fff; cursor:pointer; font-size:1.25rem; transition:transform .2s, background .2s; }
   .floating-contact__toggle:hover{ background:var(--accent-deep); }
   .floating-contact.is-open .floating-contact__toggle{ transform:rotate(45deg); }
-  @media (max-width:575.98px){ .floating-contact{ right:.9rem; bottom:1rem; } .floating-contact__icon,.floating-contact__toggle{ width:46px; height:46px; } }
+  .floating-contact__phone{ position:relative; display:flex; flex-direction:column; align-items:flex-end; }
+  .floating-contact__phone-toggle{ background:none; border:0; padding:0; cursor:pointer; font:inherit; color:var(--ink); }
+  .floating-contact__phone-list{ display:flex; flex-direction:column; align-items:flex-end; gap:.4rem; max-height:0; overflow:hidden; opacity:0; visibility:hidden; transform:translateY(6px); transition:max-height .25s ease, opacity .2s, transform .2s, visibility .2s; margin-bottom:0; }
+  .floating-contact__phone.is-open .floating-contact__phone-list{ max-height:400px; opacity:1; visibility:visible; transform:none; margin-bottom:.55rem; }
+  .floating-contact__phone.is-open .floating-contact__phone-toggle .floating-contact__icon{ background:var(--accent); color:#fff; }
+  .floating-contact__phone-option{ display:flex; flex-direction:column; align-items:flex-end; gap:.1rem; text-decoration:none; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:.5rem .8rem; box-shadow:0 6px 18px rgba(35,31,32,.14); min-width:180px; transition:border-color .2s, background .2s; }
+  .floating-contact__phone-option:hover{ border-color:var(--accent); }
+  .floating-contact__phone-branch{ font-size:.72rem; font-weight:700; color:var(--ink); }
+  .floating-contact__phone-number{ font-size:.82rem; font-weight:800; color:var(--accent-deep); white-space:nowrap; }
+  @media (max-width:575.98px){ .floating-contact{ right:.9rem; bottom:1rem; } .floating-contact__icon,.floating-contact__toggle{ width:46px; height:46px; } .floating-contact__phone-option{ min-width:160px; } }
 
   .about-media{ border-radius:24px; overflow:hidden; box-shadow:0 24px 48px rgba(35,31,32,.14); }
   .about-media{ aspect-ratio:4/3; }
@@ -724,10 +733,39 @@
 
 <div class="floating-contact" id="floatingContact">
   <div class="floating-contact__items" aria-hidden="true">
-    <a class="floating-contact__item" href="tel:0818886666">
-      <span class="floating-contact__label">081 888 6666</span>
-      <span class="floating-contact__icon"><i class="bi bi-telephone-fill"></i></span>
-    </a>
+    @php
+      // รวบรวมเบอร์โทรของแต่ละสาขา (แสดงชื่อสาขา + เบอร์) ถ้าไม่มีเลยใช้เบอร์กลาง
+      $phoneList = $branches
+          ->filter(fn ($b) => !empty($b->phone))
+          ->map(fn ($b) => ['name' => $b->name, 'phone' => $b->phone])
+          ->values();
+      if ($phoneList->isEmpty()) {
+          $phoneList = collect([['name' => 'DRIP Pilates Club', 'phone' => '0818886666']]);
+      }
+    @endphp
+
+    @if($phoneList->count() === 1)
+      @php $onlyPhone = $phoneList->first(); @endphp
+      <a class="floating-contact__item" href="tel:{{ preg_replace('/[^0-9+]/', '', $onlyPhone['phone']) }}">
+        <span class="floating-contact__label">{{ $onlyPhone['phone'] }}</span>
+        <span class="floating-contact__icon"><i class="bi bi-telephone-fill"></i></span>
+      </a>
+    @else
+      <div class="floating-contact__phone" id="floatingPhone">
+        <div class="floating-contact__phone-list" id="floatingPhoneList" role="menu" aria-hidden="true">
+          @foreach($phoneList as $p)
+            <a class="floating-contact__phone-option" role="menuitem" href="tel:{{ preg_replace('/[^0-9+]/', '', $p['phone']) }}">
+              <span class="floating-contact__phone-branch">{{ $p['name'] }}</span>
+              <span class="floating-contact__phone-number"><i class="bi bi-telephone-fill"></i> {{ $p['phone'] }}</span>
+            </a>
+          @endforeach
+        </div>
+        <button class="floating-contact__item floating-contact__phone-toggle" type="button" id="floatingPhoneToggle" aria-expanded="false" aria-controls="floatingPhoneList">
+          <span class="floating-contact__label">{{ __t('โทรหาเรา', 'Call Us') }}</span>
+          <span class="floating-contact__icon"><i class="bi bi-telephone-fill"></i></span>
+        </button>
+      </div>
+    @endif
     @if(!empty($contacts))
       @php $floatingSocial = [
         'line' => ['bi-line', 'LINE'],
@@ -794,6 +832,27 @@ floatingContactToggle.addEventListener('click', function(){
   floatingContactToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
   floatingContact.querySelector('.floating-contact__items').setAttribute('aria-hidden', isOpen ? 'false' : 'true');
 });
+
+// เมนูย่อยเลือกเบอร์โทรของแต่ละสาขา (แสดงเมื่อมีมากกว่า 1 เบอร์)
+var floatingPhone = document.getElementById('floatingPhone');
+if (floatingPhone) {
+  var floatingPhoneToggle = document.getElementById('floatingPhoneToggle');
+  var floatingPhoneList = document.getElementById('floatingPhoneList');
+  floatingPhoneToggle.addEventListener('click', function(e){
+    e.stopPropagation();
+    var isOpen = floatingPhone.classList.toggle('is-open');
+    floatingPhoneToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    floatingPhoneList.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+  });
+  // ปิดเมนูย่อยเมื่อแผงติดต่อถูกยุบ
+  floatingContactToggle.addEventListener('click', function(){
+    if (!floatingContact.classList.contains('is-open')) {
+      floatingPhone.classList.remove('is-open');
+      floatingPhoneToggle.setAttribute('aria-expanded', 'false');
+      floatingPhoneList.setAttribute('aria-hidden', 'true');
+    }
+  });
+}
 
 var mapModal = document.getElementById('mapModal');
 var mapModalTitle = document.getElementById('mapModalTitle');
