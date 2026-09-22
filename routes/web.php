@@ -191,6 +191,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('/manual', [Admin\ManualController::class, 'index'])->name('manual.index');
 
+        // เปลี่ยนรหัสผ่านตัวเอง — ทุกสิทธิ์เข้าได้ ไม่ต้องรอเจ้าของตั้งให้
+        Route::controller(Admin\ProfileController::class)->group(function () {
+            Route::get('/profile/password', 'edit')->name('profile.password');
+            Route::put('/profile/password', 'updatePassword')
+                ->middleware('throttle:10,1')->name('profile.password.update');
+        });
+
         // เฉพาะเจ้าของระบบ
         Route::middleware('owner')->group(function () {
             Route::resource('users', Admin\UserController::class)->except(['show']);

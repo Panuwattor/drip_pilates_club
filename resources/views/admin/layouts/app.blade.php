@@ -500,6 +500,11 @@
           </span></li>
           <li><hr class="dropdown-divider"></li>
           <li>
+            <a class="dropdown-item" href="{{ route('admin.profile.password') }}">
+              <i class="bi bi-key"></i> {{ __t('เปลี่ยนรหัสผ่าน', 'Change password') }}
+            </a>
+          </li>
+          <li>
             <form method="POST" action="{{ route('admin.logout') }}">
               @csrf
               <button class="dropdown-item" type="submit"><i class="bi bi-box-arrow-right"></i> {{ __t('ออกจากระบบ', 'Sign out') }}</button>
