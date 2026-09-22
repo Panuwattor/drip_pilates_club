@@ -32,8 +32,9 @@ class LandingController extends Controller
             'branches' => Branch::active()->orderBy('sort_order')->get(),
             'packages' => $featured,
             'hasMorePackages' => $publicPackages->count() > $featured->count(),
-            // ทีมครูมี 9 คนตามโปสเตอร์ OUR INSTRUCTOR โชว์ให้ครบ ไม่ตัดคนสุดท้ายทิ้ง
-            'trainers' => Trainer::active()->orderBy('sort_order')->take(9)->get(),
+            // โชว์ครูให้ครบทุกคนที่เปิดใช้งาน ไม่ตัดคนท้ายทิ้ง
+            // เคยฮาร์ดโค้ด take(9) ตามโปสเตอร์ OUR INSTRUCTOR แล้วพอเพิ่มครูคนที่ 10 คนสุดท้ายหาย
+            'trainers' => Trainer::active()->orderBy('sort_order')->get(),
             'announcements' => Announcement::visible()
                 ->where('show_on_homepage', true)
                 ->whereNull('branch_id')

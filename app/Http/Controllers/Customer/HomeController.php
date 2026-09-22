@@ -62,7 +62,8 @@ class HomeController extends Controller
                 : collect(),
             'totalCredits' => $customer?->totalCredits() ?? 0,
             'hasUnlimited' => $customer?->hasUnlimited() ?? false,
-            'trainers' => Trainer::active()->orderBy('sort_order')->take(8)->get(),
+            // กริดครูไม่มีปุ่ม "ดูทั้งหมด" คนที่เกินลิมิตจึงหายไปเฉยๆ — โชว์ครบทุกคนที่เปิดใช้งาน
+            'trainers' => Trainer::active()->orderBy('sort_order')->get(),
             'announcements' => Announcement::visible()
                 ->where('show_on_customer', true)
                 ->where(fn ($q) => $q->whereNull('branch_id')->orWhere('branch_id', $branchId))
