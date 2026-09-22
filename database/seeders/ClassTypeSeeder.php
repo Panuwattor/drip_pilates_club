@@ -97,21 +97,9 @@ class ClassTypeSeeder extends Seeder
             // ลูกค้าขอให้แยกขาดจากอารีย์ ถึงราคาจะเท่ากันตอนนี้ก็ตาม
             // จะได้ปรับราคา/ตารางของแต่ละสาขาได้อิสระ ไม่กระทบกัน
             // โค้ดขึ้นต้น silom- ทุกตัว ของอารีย์คงโค้ดเดิมไว้ไม่ให้ข้อมูลเก่าพัง
-            [
-                'code' => 'silom-private-pilates',
-                'name_th' => 'ไพรเวท พิลาทิส (สีลม)',
-                'name_en' => 'Private Pilates (Silom)',
-                'description_th' => 'คลาสส่วนตัวตัวต่อตัวกับเทรนเนอร์ ออกแบบโปรแกรมเฉพาะบุคคล',
-                'description_en' => 'One-on-one session with your trainer, programmed entirely around you.',
-                'suitable_for_th' => 'ทุกระดับ เหมาะกับผู้ที่ต้องการดูแลใกล้ชิด หรือมีอาการบาดเจ็บ',
-                'suitable_for_en' => 'All levels — ideal for close guidance or injury recovery',
-                'level' => 'all',
-                'equipment_type' => 'reformer',
-                'duration_min' => 50,
-                'default_capacity' => 1,
-                'credit_cost' => 1,
-                'color' => '#8A6112',
-            ],
+            // ไม่มี Private ของสีลมแยก — ลูกค้ายืนยันว่าไพรเวทใช้ข้ามสาขาได้
+            // จึงใช้ class type 'private-pilates' ตัวเดียวร่วมกันทั้ง 2 สาขา
+            // (ตารางคลาสไพรเวทของสีลมก็ลงด้วย class type ตัวนี้ได้เลย)
             [
                 // เมนูสีลมเขียนแค่ "Reformer Group Class" ไม่ระบุจำนวนคนเหมือนอารีย์ที่เขียน Trio
                 // ตกลงกับลูกค้าแล้วว่าใช้ 3 คนเท่าอารีย์ไปก่อน (ราคาตรงกันทุกบรรทัด)

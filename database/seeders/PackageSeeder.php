@@ -55,6 +55,10 @@ class PackageSeeder extends Seeder
             $isSingle = $credits === 1;
             $fullPrice = $credits * $singleRate[$typeCode];
 
+            // ลูกค้ายืนยัน (ก.ย. 2026): ใช้ข้ามสาขาได้เฉพาะคลาสไพรเวท
+            // Duo/Trio ยังผูกอารีย์เท่านั้น เพราะสีลมไม่มี Duo และ Trio ขายแยกราคาของตัวเอง
+            $crossBranch = $typeCode === 'private-pilates';
+
             $package = Package::updateOrCreate(['code' => $code], [
                 'name_th' => $nameTh,
                 'name_en' => $nameEn,
@@ -73,7 +77,7 @@ class PackageSeeder extends Seeder
                 'valid_months' => $months,
                 'valid_days' => $months * 30,
                 'all_class_types' => false,
-                'all_branches' => false,
+                'all_branches' => $crossBranch,
                 'once_per_customer' => false,
                 'is_public' => true,
                 'is_active' => true,
@@ -81,7 +85,9 @@ class PackageSeeder extends Seeder
             ]);
 
             $package->classTypes()->sync([$types[$typeCode]]);
-            $package->branches()->sync([$aree->id]);
+
+            // all_branches = true แล้วไม่ต้องผูกสาขา (scopeForBranch อ่านจากธงนี้อยู่แล้ว)
+            $package->branches()->sync($crossBranch ? [] : [$aree->id]);
         }
 
         $this->seedTrials($aree, $types);
@@ -133,6 +139,10 @@ class PackageSeeder extends Seeder
         ];
 
         foreach ($trials as [$code, $nameTh, $nameEn, $price, $typeCode, $singleRate, $sort]) {
+            // ทดลองไพรเวทใช้ข้ามสาขาได้เหมือนแพ็กไพรเวทปกติ
+            // และต้องเป็นแพ็กใบเดียวกันทั้ง 2 สาขา ไม่งั้น once_per_customer จะกันได้แค่สาขาละใบ
+            $crossBranch = $typeCode === 'private-pilates';
+
             $package = Package::updateOrCreate(['code' => $code], [
                 'name_th' => $nameTh,
                 'name_en' => $nameEn,
@@ -146,7 +156,7 @@ class PackageSeeder extends Seeder
                 'valid_months' => null,
                 'valid_days' => 14,
                 'all_class_types' => false,
-                'all_branches' => false,
+                'all_branches' => $crossBranch,
                 'once_per_customer' => true,
                 'is_public' => true,
                 'is_active' => true,
@@ -154,7 +164,7 @@ class PackageSeeder extends Seeder
             ]);
 
             $package->classTypes()->sync([$types[$typeCode]]);
-            $package->branches()->sync([$aree->id]);
+            $package->branches()->sync($crossBranch ? [] : [$aree->id]);
         }
     }
 

@@ -114,6 +114,34 @@ class BookingServiceTest extends TestCase
         }
     }
 
+    public function test_private_package_works_across_branches(): void
+    {
+        // ลูกค้ายืนยัน: ใช้ข้ามสาขาได้เฉพาะคลาสไพรเวท
+        // แพ็กไพรเวทต้องผ่านทั้งด่านสาขาและด่านประเภทคลาสของอีกสาขา
+        $customer = $this->customer();
+        $cp = $this->givePackage($customer, 'private-10');
+
+        $silom = \App\Models\Branch::where('code', 'silom')->firstOrFail();
+        $privateType = \App\Models\ClassType::where('code', 'private-pilates')->firstOrFail();
+
+        $this->assertTrue($cp->allowsBranch($silom->id), 'แพ็กไพรเวทต้องใช้ที่สีลมได้');
+        $this->assertTrue($cp->allowsClassType($privateType->id), 'แพ็กไพรเวทต้องใช้กับคลาสไพรเวทได้');
+    }
+
+    public function test_non_private_package_stays_locked_to_its_branch(): void
+    {
+        // ดูโอกับรีฟอร์มเมอร์ยังผูกสาขาเดิม ห้ามหลุดข้ามสาขาตามไพรเวทไปด้วย
+        $customer = $this->customer();
+        $aree = \App\Models\Branch::where('code', 'aree')->firstOrFail();
+        $silom = \App\Models\Branch::where('code', 'silom')->firstOrFail();
+
+        $duo = $this->givePackage($customer, 'duo-10');
+        $this->assertFalse($duo->allowsBranch($silom->id), 'แพ็กดูโอต้องใช้ที่สีลมไม่ได้');
+
+        $reformer = $this->givePackage($customer, 'silom-reformer-10');
+        $this->assertFalse($reformer->allowsBranch($aree->id), 'แพ็กรีฟอร์มเมอร์สีลมต้องใช้ที่อารีย์ไม่ได้');
+    }
+
     public function test_package_can_book_its_own_branch(): void
     {
         // กันเคสที่เช็คสาขาแล้วเข้มไปจนจองสาขาตัวเองไม่ได้

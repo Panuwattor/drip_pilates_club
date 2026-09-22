@@ -16,13 +16,15 @@ class SilomPackageSeeder extends Seeder
      * แพ็กและประเภทคลาสของสีลมใช้โค้ดขึ้นต้น silom- ทั้งหมด
      * แก้ราคาสาขาไหนจึงไม่กระทบอีกสาขา
      *
-     * ⚠️ ยังไม่ยืนยันกับลูกค้าปลายทาง: "ซื้อสาขาไหน ใช้ได้เฉพาะสาขานั้น"
-     * ตอนนี้ตั้ง all_branches = false ทุกตัว = ซื้อสีลมใช้ได้แค่สีลม
+     * ลูกค้ายืนยันแล้ว (ก.ย. 2026): "ใช้ข้ามสาขาได้เฉพาะคลาสไพรเวทนะคะ"
+     * ดังนั้น:
+     *  - Private       -> ใช้ได้ทั้ง 2 สาขา ดูแลใน PackageSeeder ที่เดียว (ไม่มี silom-private-* แล้ว)
+     *                     เพราะราคาสองสาขาเท่ากันเป๊ะ ถ้าแยกไว้จะมีแพ็กชื่อเหมือนกันราคาเท่ากันซ้ำซ้อน
+     *  - Reformer/Mat  -> ผูกสาขาสีลมเท่านั้น (ไฟล์นี้)
+     *  - Duo           -> มีแต่อารีย์ตามเดิม
      *
-     * ถ้าลูกค้าตอบกลับว่าอยากให้ใช้ข้ามสาขาได้ ไม่ต้องแก้โค้ด:
-     *   แอดมินเข้า /admin/packages แก้แพ็ก ติ๊ก "ขายได้ทุกสาขา" แล้วบันทึก
-     *   (ทดสอบแล้วว่าติ๊กช่องเดียวจบ ทั้งหน้าซื้อและการจองเปิดข้ามสาขาทันที)
-     * หรือถ้าอยากให้เป็นค่าตั้งต้น เปลี่ยน all_branches ด้านล่างเป็น true แล้วรัน seeder ใหม่
+     * ถ้าวันหน้าราคา Private ของสองสาขาต่างกัน ต้องแยกแพ็กกลับ:
+     *   สร้าง class type + แพ็ก silom-private-* ใหม่ แล้วตั้ง all_branches = false
      *
      * ต่างจากอารีย์:
      *  - ไม่มี Duo Pilates
@@ -38,19 +40,14 @@ class SilomPackageSeeder extends Seeder
 
         // ราคาต่อคลาสแบบซื้อเดี่ยว ไว้คำนวณราคาขีดฆ่าของแพ็ก
         $singleRate = [
-            'silom-private-pilates' => 2890,
             'silom-reformer-group' => 1190,
             'silom-mat-group' => 990,
         ];
 
+        // Private ไม่อยู่ในนี้ — ใช้แพ็กชุดเดียวกับอารีย์ที่ตั้ง all_branches = true ไว้ใน PackageSeeder
+
         // [code, ชื่อไทย, ชื่ออังกฤษ, จำนวนครั้ง, ราคารวม, ราคาต่อคลาส, กี่เดือน, คลาสที่ใช้ได้, ลำดับ]
         $packages = [
-            // ── PRIVATE PILATES ──────────────────────────────────
-            ['silom-private-1',  'ไพรเวท พิลาทิส 1 ครั้ง',  'Private Pilates — Single Class', 1,  2890,  2890, 1, 'silom-private-pilates', 1],
-            ['silom-private-10', 'ไพรเวท พิลาทิส 10 ครั้ง', 'Private Pilates — 10 Classes',   10, 24900, 2490, 3, 'silom-private-pilates', 2],
-            ['silom-private-20', 'ไพรเวท พิลาทิส 20 ครั้ง', 'Private Pilates — 20 Classes',   20, 45800, 2290, 6, 'silom-private-pilates', 3],
-            ['silom-private-30', 'ไพรเวท พิลาทิส 30 ครั้ง', 'Private Pilates — 30 Classes',   30, 61500, 2050, 8, 'silom-private-pilates', 4],
-
             // ── REFORMER GROUP CLASS ─────────────────────────────
             ['silom-reformer-1',  'รีฟอร์มเมอร์ กรุ๊ปคลาส 1 ครั้ง',  'Reformer Group — Single Class', 1,  1190,  1190, 1, 'silom-reformer-group', 10],
             ['silom-reformer-5',  'รีฟอร์มเมอร์ กรุ๊ปคลาส 5 ครั้ง',  'Reformer Group — 5 Classes',    5,  4950,  990,  1, 'silom-reformer-group', 11],
@@ -100,16 +97,43 @@ class SilomPackageSeeder extends Seeder
         }
 
         $this->seedTrials($silom, $types);
+        $this->retireSilomPrivate();
+    }
+
+    /**
+     * เก็บกวาดแพ็ก Private ของสีลมที่เคย seed ไว้ตอนยังแยกสาขากัน
+     * ตอนนี้ยุบไปใช้แพ็กชุดเดียวกับอารีย์แล้ว (ลูกค้ายืนยันว่าไพรเวทข้ามสาขาได้)
+     *
+     * ปิดการใช้งานแทนการลบ ตามหลักของโปรเจ็คนี้ — ถ้าเผลอมีคนซื้อไปแล้ว
+     * ข้อมูลการซื้อและเครดิตจะยังอยู่ครบ ไม่พังทั้งระบบ
+     */
+    private function retireSilomPrivate(): void
+    {
+        $retired = Package::whereIn('code', [
+            'silom-private-1',
+            'silom-private-10',
+            'silom-private-20',
+            'silom-private-30',
+            'silom-trial-private',
+        ])->update([
+            'is_active' => false,
+            'is_public' => false,
+        ]);
+
+        if ($retired > 0) {
+            $this->command?->info("  ปิดแพ็ก Private สีลมเดิม {$retired} รายการ (ยุบไปใช้แพ็กร่วมกับอารีย์)");
+        }
     }
 
     /**
      * โปรทดลองลูกค้าใหม่ 3 ครั้ง ใช้ได้ 2 สัปดาห์ ซื้อได้ครั้งเดียวต่อคน
-     * สีลมมี 3 ตัว (ไม่มีดูโอแบบอารีย์ แต่มีแมทเพิ่ม)
+     *
+     * เหลือ 2 ตัว — ทดลอง Private ใช้ของอารีย์ร่วมกัน (trial-private) เพราะข้ามสาขาได้
+     * ถ้าแยกไว้ ลูกค้าจะซื้อทดลอง Private ได้ 2 ใบ (สาขาละใบ) ทั้งที่ควรได้คนละครั้งเดียว
      */
     private function seedTrials(Branch $silom, $types): void
     {
         $trials = [
-            ['silom-trial-private',  'ทดลอง ไพรเวท พิลาทิส 3 ครั้ง',      'First Trial — Private Pilates (3 sessions)',   5500, 'silom-private-pilates', 2890, 30],
             ['silom-trial-reformer', 'ทดลอง รีฟอร์มเมอร์ กรุ๊ปคลาส 3 ครั้ง', 'First Trial — Reformer Group (3 sessions)',    1950, 'silom-reformer-group',  1190, 31],
             ['silom-trial-mat',      'ทดลอง แมท พิลาทิส กรุ๊ปคลาส 3 ครั้ง',  'First Trial — Mat Pilates Group (3 sessions)', 1550, 'silom-mat-group',        990, 32],
         ];

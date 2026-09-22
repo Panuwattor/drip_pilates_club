@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Storage;
 class TrainerSeeder extends Seeder
 {
     /**
-     * เทรนเนอร์จริง 9 คน จากรูป OUR INSTRUCTOR ที่ลูกค้าส่งมา
+     * เทรนเนอร์จริง 10 คน จากรูป OUR INSTRUCTOR ที่ลูกค้าส่งมา
      * ลูกค้าให้ข้อมูลมาแค่ ชื่อเล่น + สถาบันที่จบ + ระดับ (Certified / Trained) เท่านั้น
      * ยังไม่มีชื่อจริง ประวัติ หรือความถนัดรายคน — ช่องพวกนั้นจึงเว้น null ไว้
      * ห้ามแต่งข้อมูลเอง รอลูกค้าส่งเพิ่มแล้วค่อยเติมผ่านหน้าแอดมิน
@@ -18,7 +18,7 @@ class TrainerSeeder extends Seeder
      * TR-01..TR-04 เป็น record เดิมที่มีตารางสอนผูกอยู่ (สั่งเขียนทับด้วยชื่อใหม่)
      * ตารางและ session เดิมจึงยังอยู่ครบ แค่เปลี่ยนชื่อคนสอน
      *
-     * รูป: public/images/01-09.jpg เรียงตามรูปโปสเตอร์ ซ้าย→ขวา บน→ล่าง
+     * รูป: public/images/01-10.jpg เรียงตามรูปโปสเตอร์ ซ้าย→ขวา บน→ล่าง
      * อัปขึ้น R2 ให้อัตโนมัติ (ดูเมธอด uploadAvatar)
      */
     public function run(): void
@@ -36,6 +36,7 @@ class TrainerSeeder extends Seeder
             ['TR-07', 'แบมบี้', 'Bambi',  'STOTT PILATES',  'Trained',   '07.jpg'],
             ['TR-08', 'ปรีช',   'Preech', 'STOTT PILATES',  'Trained',   '08.jpg'],
             ['TR-09', 'แคร์',   'Care',   'STOTT PILATES',  'Trained',   '09.jpg'],
+            ['TR-10', 'คีค',    'KIIK',   'PMI',            'Certified', '10.jpg'],
         ];
 
         foreach ($trainers as $i => [$code, $nickTh, $nickEn, $school, $level, $image]) {
