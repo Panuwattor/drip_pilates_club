@@ -382,7 +382,7 @@
       <a href="#about">{{ __t('เกี่ยวกับเรา', 'About') }}</a>
       <a href="#branches">{{ __t('สาขา', 'Branches') }}</a>
       <a href="#packages">{{ __t('แพ็กเกจ', 'Packages') }}</a>
-      <a href="#trainers">{{ __t('ครูผู้สอน', 'Trainers') }}</a>
+      <a href="#trainers">{{ __t('ครูผู้สอน', 'Instructors') }}</a>
       @if($videos->isNotEmpty())<a href="#videos">{{ __t('วิดีโอ', 'Videos') }}</a>@endif
       <a href="#articles">{{ __t('บทความ', 'Articles') }}</a>
       <a href="#faq">{{ __t('คำถามที่พบบ่อย', 'FAQ') }}</a>
@@ -579,7 +579,7 @@
 <section id="trainers" style="background:var(--panel);">
   <div class="container-lg">
     <div class="section-eyebrow">{{ __t('ทีมงาน', 'Our Team') }}</div>
-    <h2 class="section-title">{{ __t('ครูผู้สอน', 'Meet Our Trainers') }}</h2>
+    <h2 class="section-title">{{ __t('ครูผู้สอน', 'Meet Our Instructors') }}</h2>
     <p class="section-sub">{{ __t('ทีมครูมืออาชีพพร้อมดูแลคุณทุกคลาส', 'A professional team ready to guide every class') }}</p>
     <div class="trainer-grid">
       @foreach($trainers as $trainer)
