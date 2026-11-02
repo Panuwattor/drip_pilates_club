@@ -24,6 +24,41 @@ class LineLoginService
             && filled(config('services.line.client_secret'));
     }
 
+    /** เปิด LIFF ไว้หรือยัง — ถ้าเปิด ลูกค้าที่อยู่ในแอป LINE จะเข้าระบบได้ทันทีไม่ต้องผ่านหน้าล็อกอิน */
+    public function liffId(): ?string
+    {
+        return $this->isConfigured() ? (config('services.line.liff_id') ?: null) : null;
+    }
+
+    /** ลิงก์ LIFF สำหรับแปะในแชท/ริชเมนู LINE — $to คือหน้าที่จะพาไปหลังเข้าระบบ */
+    public function liffUrl(?string $to = null): ?string
+    {
+        $id = $this->liffId();
+
+        if (! $id) {
+            return null;
+        }
+
+        return 'https://liff.line.me/' . $id . ($to ? '?' . http_build_query(['to' => $to]) : '');
+    }
+
+    /**
+     * รับ id_token จาก liff.getIDToken() แล้วให้ LINE ตรวจ
+     * ใช้แทน OAuth redirect เพราะใน iOS การสลับแอปไปมาทำคุกกี้หาย
+     */
+    public function profileFromIdToken(string $idToken): array
+    {
+        $this->assertConfigured();
+
+        $profile = $this->verifyIdToken($idToken);
+
+        if (empty($profile['line_user_id'])) {
+            throw new RuntimeException('LINE ไม่ส่งรหัสผู้ใช้กลับมา');
+        }
+
+        return $profile;
+    }
+
     /** URL ที่ให้ผู้ใช้เด้งไปหน้า LINE เพื่ออนุญาต */
     public function authorizeUrl(string $state, string $nonce): string
     {
@@ -89,15 +124,16 @@ class LineLoginService
     }
 
     /** ให้ LINE ตรวจลายเซ็น id_token แทนเรา จะได้ไม่ต้องทำ JWT เอง */
-    private function verifyIdToken(string $idToken, string $expectedNonce): array
+    private function verifyIdToken(string $idToken, ?string $expectedNonce = null): array
     {
+        // LIFF ไม่ได้ให้เรากำหนด nonce เอง จึงส่งเฉพาะตอนมาจาก OAuth redirect
         $response = Http::asForm()
             ->timeout(15)
-            ->post(self::VERIFY_URL, [
+            ->post(self::VERIFY_URL, array_filter([
                 'id_token' => $idToken,
                 'client_id' => config('services.line.client_id'),
                 'nonce' => $expectedNonce,
-            ]);
+            ]));
 
         if ($response->failed()) {
             throw new RuntimeException('ตรวจสอบ id_token ไม่ผ่าน: ' . $response->body());

@@ -41,6 +41,8 @@ return [
         'client_id' => env('LINE_CLIENT_ID'),
         'client_secret' => env('LINE_CLIENT_SECRET'),
         'redirect' => env('LINE_REDIRECT_URI', env('APP_URL') . '/auth/line/callback'),
+        // LIFF app ในแชนแนลเดียวกัน — Endpoint URL ต้องเป็น {APP_URL}/auth/line/liff
+        'liff_id' => env('LINE_LIFF_ID'),
     ],
 
     // ผู้ให้บริการ SMS สำหรับ OTP — log = เขียนลง log ไม่ส่งจริง ใช้ตอน dev

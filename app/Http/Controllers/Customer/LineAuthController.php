@@ -97,6 +97,76 @@ class LineAuthController extends Controller
             : $this->loginOrRegister($request, $profile);
     }
 
+    /**
+     * หน้าเปิดผ่าน LIFF (https://liff.line.me/{id}) จากในแอป LINE
+     * ได้ตัวตนจาก LINE ทันทีไม่ต้องเด้งออกไปหน้าล็อกอิน ทั้ง iOS และ Android
+     */
+    public function liff(Request $request)
+    {
+        if (! $this->line->liffId()) {
+            return redirect()->route('customer.line.redirect');
+        }
+
+        return view('customer.auth.liff', [
+            'liffId' => $this->line->liffId(),
+            'to' => $this->safePath($request->query('to')) ? $request->query('to') : null,
+        ]);
+    }
+
+    /** รับ id_token จากหน้า LIFF แล้วเข้าระบบ ตอบเป็น JSON ให้หน้า LIFF พาไปต่อ */
+    public function liffLogin(Request $request)
+    {
+        $data = $request->validate([
+            'id_token' => ['required', 'string', 'max:4096'],
+            'to' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        try {
+            $profile = $this->line->profileFromIdToken($data['id_token']);
+        } catch (Throwable $e) {
+            Log::error('LINE LIFF login failed', ['message' => $e->getMessage()]);
+
+            return response()->json([
+                'message' => 'เชื่อมต่อกับ LINE ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง',
+            ], 422);
+        }
+
+        $to = $this->safePath($data['to'] ?? null);
+        $current = Auth::guard('customer')->user();
+
+        // ล็อกอินอยู่แล้วด้วย LINE นี้ หรือบัญชีที่ยังไม่ผูก LINE และ LINE นี้ยังว่าง -> ผูก/อัปเดต
+        $canLink = $current && (
+            $current->line_user_id === $profile['line_user_id']
+            || (! $current->hasLineLinked() && ! Customer::where('line_user_id', $profile['line_user_id'])->exists())
+        );
+
+        if ($canLink) {
+            $this->attachLine($current, $profile);
+
+            return response()->json(['redirect' => $current->needsProfileCompletion()
+                ? route('customer.profile.complete')
+                : ($to ?? route('home'))]);
+        }
+
+        if ($to) {
+            $request->session()->put('url.intended', $to);
+        }
+
+        $response = $this->loginOrRegister($request, $profile);
+
+        return response()->json(['redirect' => $response->getTargetUrl()]);
+    }
+
+    /** กันไม่ให้ ?to= พาออกไปเว็บอื่น รับเฉพาะ path ภายใน */
+    private function safePath(?string $path): ?string
+    {
+        if (! $path || ! str_starts_with($path, '/') || str_starts_with($path, '//') || str_contains($path, '\\')) {
+            return null;
+        }
+
+        return url($path);
+    }
+
     /** กรณีที่ 2 — ล็อกอินอยู่แล้ว กดผูก LINE จากหน้าโปรไฟล์ */
     private function linkToCurrentAccount(Request $request, array $profile)
     {

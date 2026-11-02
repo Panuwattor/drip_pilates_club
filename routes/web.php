@@ -53,6 +53,8 @@ Route::controller(Customer\AuthController::class)->group(function () {
 Route::controller(Customer\LineAuthController::class)->group(function () {
     Route::get('/auth/line', 'redirect')->name('customer.line.redirect');
     Route::get('/auth/line/callback', 'callback')->name('customer.line.callback');
+    Route::get('/auth/line/liff', 'liff')->name('customer.line.liff');
+    Route::post('/auth/line/liff', 'liffLogin')->middleware('throttle:20,1')->name('customer.line.liff.login');
 });
 
 // หน้ากรอกข้อมูลหลังสมัครด้วย LINE — ห้ามใส่ profile.complete ไม่งั้นวนลูป

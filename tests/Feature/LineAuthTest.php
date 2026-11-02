@@ -402,4 +402,93 @@ class LineAuthTest extends TestCase
         Mockery::close();
         parent::tearDown();
     }
+
+    /** ปลอม LIFF ให้ id_token คืนโปรไฟล์ที่กำหนด */
+    private function fakeLiff(array $profile): void
+    {
+        $mock = Mockery::mock(LineLoginService::class);
+        $mock->shouldReceive('isConfigured')->andReturn(true);
+        $mock->shouldReceive('liffId')->andReturn('1234-abcd');
+        $mock->shouldReceive('profileFromIdToken')->with('fake-id-token')->andReturn($profile);
+
+        $this->app->instance(LineLoginService::class, $mock);
+    }
+
+    public function test_liff_page_renders_with_liff_id(): void
+    {
+        $this->fakeLiff([]);
+
+        $this->get(route('customer.line.liff', ['to' => '/packages']))
+            ->assertOk()
+            ->assertSee('1234-abcd');
+    }
+
+    public function test_liff_page_falls_back_to_oauth_when_not_configured(): void
+    {
+        $this->get(route('customer.line.liff'))->assertRedirect(route('customer.line.redirect'));
+    }
+
+    public function test_liff_login_signs_in_returning_user_and_honours_to(): void
+    {
+        $customer = Customer::create([
+            'code' => 'DP-00950',
+            'first_name' => 'LIFF',
+            'phone' => '0899999050',
+            'line_user_id' => 'U-liff-001',
+            'status' => 'active',
+            'profile_completed_at' => now(),
+        ]);
+
+        $this->fakeLiff(['line_user_id' => 'U-liff-001', 'display_name' => 'LIFF']);
+
+        $this->postJson(route('customer.line.liff.login'), ['id_token' => 'fake-id-token', 'to' => '/packages'])
+            ->assertOk()
+            ->assertJson(['redirect' => url('/packages')]);
+
+        $this->assertAuthenticatedAs($customer, 'customer');
+    }
+
+    public function test_liff_login_registers_new_user_and_ignores_external_to(): void
+    {
+        $this->fakeLiff(['line_user_id' => 'U-liff-new', 'display_name' => 'ใหม่']);
+
+        $this->postJson(route('customer.line.liff.login'), ['id_token' => 'fake-id-token', 'to' => '//evil.com'])
+            ->assertOk()
+            ->assertJson(['redirect' => route('customer.profile.complete')]);
+
+        $this->assertNotNull(Customer::where('line_user_id', 'U-liff-new')->first());
+    }
+
+    public function test_liff_login_links_line_to_logged_in_account_without_line(): void
+    {
+        $customer = Customer::create([
+            'code' => 'DP-00951',
+            'first_name' => 'ยังไม่ผูก',
+            'phone' => '0899999051',
+            'status' => 'active',
+            'profile_completed_at' => now(),
+        ]);
+
+        $this->fakeLiff(['line_user_id' => 'U-liff-link', 'display_name' => 'ผูก']);
+
+        $this->actingAs($customer, 'customer')
+            ->postJson(route('customer.line.liff.login'), ['id_token' => 'fake-id-token'])
+            ->assertOk();
+
+        $this->assertSame('U-liff-link', $customer->fresh()->line_user_id);
+        $this->assertSame(1, Customer::where('line_user_id', 'U-liff-link')->count());
+    }
+
+    public function test_line_button_uses_liff_inside_line_app(): void
+    {
+        config()->set('services.line.liff_id', '1234-abcd');
+
+        $this->withHeader('User-Agent', 'Mozilla/5.0 (iPhone) Mobile/15E148 Safari Line/14.10.0')
+            ->get(route('customer.login'))
+            ->assertSee('https://liff.line.me/1234-abcd', false);
+
+        $this->withHeader('User-Agent', 'Mozilla/5.0 (iPhone) Safari/604.1')
+            ->get(route('customer.login'))
+            ->assertDontSee('liff.line.me', false);
+    }
 }
