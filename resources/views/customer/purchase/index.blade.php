@@ -60,9 +60,19 @@
           <h4 style="font-size:1rem;font-weight:700;margin:0 0 .2rem;">{{ $p->name }}</h4>
           @if($p->description)<p class="small text-secondary mb-2">{{ $p->description }}</p>@endif
 
+          @php $promo = $p->active_promo ?? null; @endphp
+          @if($promo)
+            <span class="badge rounded-pill mb-1" style="background:var(--accent-soft,#F4E3C7);color:var(--accent-deep);">
+              {{ $promo->discount_type === 'percent'
+                  ? __t('ลด ' . rtrim(rtrim(number_format($promo->discount_value, 2), '0'), '.') . '%', rtrim(rtrim(number_format($promo->discount_value, 2), '0'), '.') . '% off')
+                  : __t('ลด ' . number_format($promo->discount_value) . '฿', number_format($promo->discount_value) . '฿ off') }}
+            </span>
+          @endif
           <div style="font-family:'Noto Sans Thai','Segoe UI',-apple-system,BlinkMacSystemFont,'Inter',sans-serif;font-size:1.5rem;color:var(--accent-deep);">
-            {{ number_format($p->price) }} <span style="font-size:.8rem;">฿</span>
-            @if($p->compare_at_price)
+            {{ number_format($promo ? $p->promo_price : $p->price) }} <span style="font-size:.8rem;">฿</span>
+            @if($promo)
+              <span class="small text-secondary text-decoration-line-through">{{ number_format($p->price) }}</span>
+            @elseif($p->compare_at_price)
               <span class="small text-secondary text-decoration-line-through">{{ number_format($p->compare_at_price) }}</span>
             @endif
           </div>

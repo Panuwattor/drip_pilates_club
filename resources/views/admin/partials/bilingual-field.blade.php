@@ -54,6 +54,47 @@
   @endif
 </div>
 
+@once
+  @push('scripts')
+  <script>
+  // ช่อง required ที่อยู่ในแท็บภาษาที่ซ่อนอยู่ (display:none) จะทำให้ browser บล็อก submit
+  // แบบเงียบๆ เพราะโฟกัสช่องที่มองไม่เห็นไม่ได้ ตอน submit จึงต้องสลับแท็บไปโชว์ช่องที่ว่าง
+  // แล้วเตือนผู้ใช้ให้ชัด แทนที่จะเหมือน "ปุ่มกดไม่ได้"
+  document.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (!form.querySelector('[data-lang-group]')) return;
+
+    var firstEmpty = null;
+
+    form.querySelectorAll('[data-lang-group]').forEach(function (group) {
+      group.querySelectorAll('.lang-pane').forEach(function (pane) {
+        var field = pane.querySelector('[required]');
+        if (!field) return;
+
+        var empty = (field.value || '').trim() === '';
+        // เปิด pane ที่มีช่องว่างให้โฟกัสได้ ไม่งั้น browser เตือนช่องที่ซ่อนอยู่ไม่ได้
+        if (empty && pane.dataset.lang) {
+          group.querySelectorAll('.lang-tab').forEach(function (t) {
+            t.classList.toggle('active', t.dataset.lang === pane.dataset.lang);
+          });
+          group.querySelectorAll('.lang-pane').forEach(function (p) {
+            p.classList.toggle('active', p === pane);
+          });
+          if (!firstEmpty) firstEmpty = field;
+        }
+      });
+    });
+
+    if (firstEmpty) {
+      e.preventDefault();
+      alert(@json(__t('กรุณากรอกข้อมูลให้ครบทั้งภาษาไทยและภาษาอังกฤษ', 'Please fill in both the Thai and English fields.')));
+      firstEmpty.focus();
+    }
+  }, true);
+  </script>
+  @endpush
+@endonce
+
 @if($type === 'richtext')
   @once
     @push('styles')

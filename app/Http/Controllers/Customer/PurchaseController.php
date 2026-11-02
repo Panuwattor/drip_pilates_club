@@ -8,6 +8,7 @@ use App\Models\CustomerPackage;
 use App\Models\Order;
 use App\Models\Package;
 use App\Models\Setting;
+use App\Services\PromotionResolver;
 use App\Support\MediaStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +21,7 @@ use Illuminate\Support\Facades\DB;
 class PurchaseController extends Controller
 {
     /** รายการแพ็กที่ซื้อได้ */
-    public function index(Request $request)
+    public function index(Request $request, PromotionResolver $promotions)
     {
         $customer = auth('customer')->user();
 
@@ -38,6 +39,14 @@ class PurchaseController extends Controller
             ->with('classTypes', 'branches')
             ->orderBy('sort_order')
             ->get();
+
+        // โหลดโปรที่ active ครั้งเดียว แล้วแปะโปร/ราคาลดลงแต่ละแพ็กในหน่วยความจำ กันยิง query ต่อแพ็ก
+        $activePromos = $promotions->activePromotions();
+        $packages->each(function (Package $package) use ($promotions, $activePromos) {
+            $promo = $promotions->bestFor($package, $activePromos);
+            $package->setAttribute('active_promo', $promo);
+            $package->setAttribute('promo_price', $promotions->priceAfterDiscount($package, $promo));
+        });
 
         // แพ็กทดลองที่เคยซื้อไปแล้ว ซื้อซ้ำไม่ได้ ต้องบอกลูกค้าตั้งแต่หน้ารายการ
         $purchasedOnceIds = CustomerPackage::where('customer_id', $customer->id)
@@ -66,7 +75,7 @@ class PurchaseController extends Controller
     }
 
     /** หน้ายืนยันก่อนสร้างคำสั่งซื้อ */
-    public function checkout(Package $package)
+    public function checkout(Package $package, PromotionResolver $promotions)
     {
         $customer = auth('customer')->user();
 
@@ -74,14 +83,18 @@ class PurchaseController extends Controller
             return redirect()->route('customer.purchase.index')->with('error', $error);
         }
 
+        $promo = $package->activePromotion();
+
         return view('customer.purchase.checkout', [
             'package' => $package->load('classTypes', 'branches'),
             'customer' => $customer,
+            'promo' => $promo,
+            'unitPrice' => $promotions->priceAfterDiscount($package, $promo),
         ]);
     }
 
     /** สร้างคำสั่งซื้อสถานะ pending แล้วพาไปหน้าชำระเงิน */
-    public function store(Request $request, Package $package)
+    public function store(Request $request, Package $package, PromotionResolver $promotions)
     {
         $data = $request->validate([
             'quantity' => ['required', 'integer', 'min:1', 'max:10'],
@@ -99,20 +112,29 @@ class PurchaseController extends Controller
             $qty = 1;
         }
 
-        $subtotal = (float) $package->price * $qty;
+        // คิดส่วนลดโปรที่ฝั่ง server ตอนนี้เสมอ ห้ามเชื่อราคาที่ส่งมาจาก browser
+        $price = (float) $package->price;
+        $promo = $package->activePromotion();
+        $unitPrice = $promotions->priceAfterDiscount($package, $promo);
 
-        $order = DB::transaction(function () use ($customer, $package, $qty, $subtotal) {
+        $subtotal = $price * $qty;                       // ราคาเต็ม
+        $discount = round(($price - $unitPrice) * $qty, 2);
+        $total = max(0, $subtotal - $discount);
+
+        $order = DB::transaction(function () use ($customer, $package, $qty, $subtotal, $discount, $total, $promo) {
             $order = Order::create([
                 'code' => $this->nextOrderCode(),
                 'customer_id' => $customer->id,
                 'branch_id' => $customer->home_branch_id,
                 'subtotal' => $subtotal,
-                'discount' => 0,
-                'total' => $subtotal,
+                'discount' => $discount,
+                'discount_note' => $discount > 0 && $promo ? $promo->name_th : null,
+                'total' => $total,
                 'status' => 'pending',
                 'note' => 'ลูกค้าสั่งซื้อผ่านแอป',
             ]);
 
+            // snapshot ราคาเต็มไว้ที่ item ส่วนลดเก็บที่ระดับ order ตามโครงตาราง
             $order->items()->create([
                 'package_id' => $package->id,
                 'name_th_snapshot' => $package->name_th,

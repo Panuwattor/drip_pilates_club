@@ -6,16 +6,25 @@ use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\ClassType;
 use App\Models\Package;
+use App\Services\PromotionResolver;
 use Illuminate\Http\Request;
 
 class PackageController extends Controller
 {
-    public function index()
+    public function index(PromotionResolver $promotions)
     {
         $packages = Package::withCount(['classTypes', 'branches'])
             ->with('branches:id,short_name_th,name_th')
             ->orderBy('sort_order')
             ->get();
+
+        // แปะโปรที่กำลังใช้งานลงแต่ละแพ็ก ให้แอดมินเห็นว่าแพ็กไหนกำลังขายลดราคาจริง
+        $activePromos = $promotions->activePromotions();
+        $packages->each(function (Package $package) use ($promotions, $activePromos) {
+            $promo = $promotions->bestFor($package, $activePromos);
+            $package->setAttribute('active_promo', $promo);
+            $package->setAttribute('promo_price', $promotions->priceAfterDiscount($package, $promo));
+        });
 
         return view('admin.packages.index', compact('packages'));
     }

@@ -67,4 +67,16 @@ class Package extends Model
     {
         return $this->all_branches || $this->branches->contains('id', $branchId);
     }
+
+    /**
+     * โปรที่ใช้ได้กับแพ็กนี้ตอนนี้ ตัวที่ลดเยอะสุด (null = ไม่มีโปร)
+     * ใช้ตอนคิดราคาแพ็กเดี่ยว เช่น หน้า checkout — หน้าที่โชว์หลายแพ็กพร้อมกัน
+     * ให้ใช้ PromotionResolver โหลดโปรครั้งเดียวแทน เพื่อเลี่ยง N+1
+     */
+    public function activePromotion(): ?Promotion
+    {
+        $resolver = app(\App\Services\PromotionResolver::class);
+
+        return $resolver->bestFor($this, $resolver->activePromotions());
+    }
 }

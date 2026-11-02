@@ -180,6 +180,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::resource('class-types', Admin\ClassTypeController::class)->except(['show']);
         Route::resource('packages', Admin\PackageController::class)->except(['show']);
+        Route::resource('promotions', Admin\PromotionController::class)->except(['show']);
         Route::resource('announcements', Admin\AnnouncementController::class)->except(['show']);
         Route::resource('videos', Admin\VideoController::class)->except(['show']);
 

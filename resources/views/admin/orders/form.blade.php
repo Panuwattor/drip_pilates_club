@@ -38,10 +38,13 @@
           <select class="form-select" name="package_id" id="packageSelect" required>
             <option value="">— {{ __t('เลือกแพ็กเกจ', 'Select a package') }} —</option>
             @foreach($packages as $p)
-              <option value="{{ $p->id }}" data-price="{{ $p->price }}">
+              <option value="{{ $p->id }}" data-price="{{ $p->price }}"
+                      data-promo-discount="{{ $promoDiscounts[$p->id] ?? 0 }}"
+                      data-promo-note="{{ $promoNotes[$p->id] ?? '' }}">
                 {{ $p->name }} —
                 {{ $p->credit_amount === null ? __t('ไม่จำกัด', 'Unlimited') : $p->credit_amount . ' ' . __t('ครั้ง', 'credits') }},
                 {{ $p->valid_days }} {{ __t('วัน', 'days') }} — {{ number_format($p->price) }} {{ __t('บาท', 'THB') }}
+                @if(($promoDiscounts[$p->id] ?? 0) > 0) · {{ __t('มีโปรลด', 'promo −') }}{{ number_format($promoDiscounts[$p->id]) }}฿ @endif
               </option>
             @endforeach
           </select>
@@ -140,6 +143,7 @@
 var packageSelect = document.getElementById('packageSelect');
 var qtyInput = document.getElementById('qtyInput');
 var discountInput = document.getElementById('discountInput');
+var discountNoteInput = document.querySelector('input[name="discount_note"]');
 
 function recalc(){
   var opt = packageSelect.selectedOptions[0];
@@ -154,10 +158,24 @@ function recalc(){
   document.getElementById('totalCell').textContent = total.toFixed(2);
 }
 
-[packageSelect, qtyInput, discountInput].forEach(function(el){
-  el.addEventListener('input', recalc);
-  el.addEventListener('change', recalc);
-});
+// เลือกแพ็ก/เปลี่ยนจำนวน แล้วเติมส่วนลดโปรให้อัตโนมัติตามจำนวนชิ้น (แอดมินแก้ทับได้)
+function applyPromo(){
+  var opt = packageSelect.selectedOptions[0];
+  if (!opt) return;
+  var perUnit = parseFloat(opt.dataset.promoDiscount) || 0;
+  var qty = parseInt(qtyInput.value, 10) || 0;
+  discountInput.value = (perUnit * qty).toFixed(2);
+  if (discountNoteInput && perUnit > 0 && !discountNoteInput.value) {
+    discountNoteInput.value = opt.dataset.promoNote || '';
+  }
+  recalc();
+}
+
+packageSelect.addEventListener('change', applyPromo);
+qtyInput.addEventListener('input', applyPromo);
+qtyInput.addEventListener('change', applyPromo);
+discountInput.addEventListener('input', recalc);
+discountInput.addEventListener('change', recalc);
 recalc();
 
 document.getElementById('mark_paid').addEventListener('change', function(){

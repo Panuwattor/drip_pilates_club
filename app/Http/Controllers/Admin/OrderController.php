@@ -10,6 +10,7 @@ use App\Models\Order;
 use App\Models\Package;
 use App\Models\Payment;
 use App\Services\PackageFulfillment;
+use App\Services\PromotionResolver;
 use App\Support\MediaStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -41,14 +42,29 @@ class OrderController extends Controller
         ]);
     }
 
-    public function create(Request $request)
+    public function create(Request $request, PromotionResolver $promotions)
     {
+        $packages = Package::active()->orderBy('sort_order')->get();
+
+        // เสนอส่วนลดโปรที่ active ให้แอดมินอัตโนมัติตอนเลือกแพ็ก (แก้ทับเองได้)
+        $activePromos = $promotions->activePromotions();
+        $promoDiscounts = [];
+        $promoNotes = [];
+        foreach ($packages as $package) {
+            if ($promo = $promotions->bestFor($package, $activePromos)) {
+                $promoDiscounts[$package->id] = $promo->discountFor((float) $package->price);
+                $promoNotes[$package->id] = $promo->name_th;
+            }
+        }
+
         return view('admin.orders.form', [
             'customer' => $request->input('customer')
                 ? Customer::find($request->input('customer'))
                 : null,
-            'packages' => Package::active()->orderBy('sort_order')->get(),
+            'packages' => $packages,
             'branches' => Branch::active()->orderBy('sort_order')->get(),
+            'promoDiscounts' => $promoDiscounts,
+            'promoNotes' => $promoNotes,
         ]);
     }
 

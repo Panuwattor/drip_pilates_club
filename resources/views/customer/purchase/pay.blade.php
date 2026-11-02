@@ -43,6 +43,22 @@
           <div style="white-space:nowrap;">{{ number_format($item->subtotal) }} ฿</div>
         </div>
       @endforeach
+
+      {{-- มีส่วนลด (จากโปรโมชั่นหรือแอดมินลดให้) ต้องโชว์บรรทัดส่วนลด ไม่งั้นยอดสุทธิดูเหมือนคิดผิด --}}
+      @if($order->discount > 0)
+        <div class="d-flex justify-content-between align-items-center py-2 border-top" style="border-color:var(--line)!important;">
+          <span class="text-secondary">{{ __t('ราคารวม', 'Subtotal') }}</span>
+          <span style="white-space:nowrap;">{{ number_format($order->subtotal) }} ฿</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center py-2">
+          <span style="color:var(--accent-deep);">
+            <i class="bi bi-tag"></i>
+            {{ $order->discount_note ? __t('ส่วนลด', 'Discount') . ' · ' . $order->discount_note : __t('ส่วนลด', 'Discount') }}
+          </span>
+          <span style="white-space:nowrap;color:var(--accent-deep);">-{{ number_format($order->discount) }} ฿</span>
+        </div>
+      @endif
+
       <div class="d-flex justify-content-between align-items-center pt-2 border-top" style="border-color:var(--line)!important;">
         <strong>{{ __t('ยอดที่ต้องโอน', 'Amount to transfer') }}</strong>
         <strong style="font-size:1.35rem;color:var(--accent-deep);">{{ number_format($order->total) }} ฿</strong>

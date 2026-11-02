@@ -61,21 +61,35 @@
       @else
         <label class="form-label" for="quantity">{{ __t('จำนวน', 'Quantity') }}</label>
         <select class="form-select mb-3" id="quantity" name="quantity"
-                data-price="{{ (float) $package->price }}">
+                data-price="{{ $unitPrice }}">
           @for($i = 1; $i <= 10; $i++)
             <option value="{{ $i }}">{{ $i }}</option>
           @endfor
         </select>
       @endif
 
+      @if($promo)
+        <div class="d-flex justify-content-between align-items-center py-2 border-top" style="border-color:var(--line)!important;">
+          <span class="small text-secondary text-decoration-line-through">{{ __t('ราคาปกติ', 'Regular price') }}</span>
+          <span class="small text-secondary text-decoration-line-through">{{ number_format($package->price) }} ฿</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center py-2">
+          <span class="small" style="color:var(--accent-deep);">
+            <i class="bi bi-tag"></i> {{ $promo->name }}
+          </span>
+          <span class="small" style="color:var(--accent-deep);">
+            -{{ number_format($package->price - $unitPrice) }} ฿
+          </span>
+        </div>
+      @endif
       <div class="d-flex justify-content-between align-items-center py-2 border-top" style="border-color:var(--line)!important;">
         <span class="small text-secondary">{{ __t('ราคาต่อหน่วย', 'Unit price') }}</span>
-        <span>{{ number_format($package->price) }} ฿</span>
+        <span>{{ number_format($unitPrice) }} ฿</span>
       </div>
       <div class="d-flex justify-content-between align-items-center py-2 border-top" style="border-color:var(--line)!important;">
         <strong>{{ __t('ยอดรวม', 'Total') }}</strong>
         <strong id="totalAmount" style="font-size:1.25rem;color:var(--accent-deep);">
-          {{ number_format($package->price) }} ฿
+          {{ number_format($unitPrice) }} ฿
         </strong>
       </div>
 

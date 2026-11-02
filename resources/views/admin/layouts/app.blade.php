@@ -435,6 +435,9 @@
     <a href="{{ route('admin.packages.index') }}" class="{{ request()->routeIs('admin.packages.*') ? 'active' : '' }}">
       <i class="bi bi-ticket-perforated"></i> {{ __t('แพ็กเกจ', 'Packages') }}
     </a>
+    <a href="{{ route('admin.promotions.index') }}" class="{{ request()->routeIs('admin.promotions.*') ? 'active' : '' }}">
+      <i class="bi bi-percent"></i> {{ __t('โปรโมชั่น', 'Promotions') }}
+    </a>
 
     <div class="grp">{{ __t('ข้อมูลหลัก', 'Master Data') }}</div>
     <a href="{{ route('admin.branches.index') }}" class="{{ request()->routeIs('admin.branches.*') ? 'active' : '' }}">

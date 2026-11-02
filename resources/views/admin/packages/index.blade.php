@@ -41,9 +41,21 @@
               {{ $p->credit_amount === null ? '∞' : $p->credit_amount }}
             </td>
             <td class="text-end" style="font-variant-numeric:tabular-nums;">
-              {{ number_format($p->price) }}
-              @if($p->compare_at_price)
-                <div class="small text-secondary text-decoration-line-through">{{ number_format($p->compare_at_price) }}</div>
+              @php $promo = $p->active_promo ?? null; @endphp
+              @if($promo)
+                <div style="color:var(--accent-deep);font-weight:600;">{{ number_format($p->promo_price) }}</div>
+                <div class="small text-secondary text-decoration-line-through">{{ number_format($p->price) }}</div>
+                <span class="badge-soft badge-accent" title="{{ $promo->name }}">
+                  <i class="bi bi-tag"></i>
+                  {{ $promo->discount_type === 'percent'
+                      ? '-' . rtrim(rtrim(number_format($promo->discount_value, 2), '0'), '.') . '%'
+                      : '-' . number_format($promo->discount_value) . '฿' }}
+                </span>
+              @else
+                {{ number_format($p->price) }}
+                @if($p->compare_at_price)
+                  <div class="small text-secondary text-decoration-line-through">{{ number_format($p->compare_at_price) }}</div>
+                @endif
               @endif
             </td>
             <td class="text-center">{{ $p->valid_days }} {{ __t('วัน', 'days') }}</td>
