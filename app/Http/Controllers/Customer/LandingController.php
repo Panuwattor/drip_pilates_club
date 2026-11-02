@@ -9,11 +9,12 @@ use App\Models\Package;
 use App\Models\Setting;
 use App\Models\Trainer;
 use App\Models\Video;
+use App\Services\PromotionResolver;
 
 class LandingController extends Controller
 {
     /** หน้าแรกสาธารณะ — แนะนำสตูดิโอ ก่อนเข้าสู่ระบบไปหน้าแอป */
-    public function index()
+    public function index(PromotionResolver $promotions)
     {
         // แพ็กเกจ public ทั้งหมด ไว้เช็คว่ามีมากกว่าที่โชว์ไหม
         $publicPackages = Package::active()->public()->with('classTypes')->orderBy('sort_order')->get();
@@ -27,6 +28,14 @@ class LandingController extends Controller
             ->sortBy('sort_order')
             ->take(3)
             ->values();
+
+        // แปะโปรที่กำลังใช้งานลงแพ็กเด่น ให้หน้าแรกโชว์ราคาลดเหมือนหน้าอื่น
+        $activePromos = $promotions->activePromotions();
+        $featured->each(function (Package $package) use ($promotions, $activePromos) {
+            $promo = $promotions->bestFor($package, $activePromos);
+            $package->setAttribute('active_promo', $promo);
+            $package->setAttribute('promo_price', $promotions->priceAfterDiscount($package, $promo));
+        });
 
         return view('landing', [
             'branches' => Branch::active()->orderBy('sort_order')->get(),
@@ -59,12 +68,20 @@ class LandingController extends Controller
     }
 
     /** หน้ารวมแพ็กเกจทั้งหมด — จัดกลุ่มตามประเภทคลาส เปิดดูได้แม้ไม่ล็อกอิน */
-    public function packages()
+    public function packages(PromotionResolver $promotions)
     {
         $packages = Package::active()->public()
             ->with('classTypes')
             ->orderBy('sort_order')
             ->get();
+
+        // แปะโปรที่กำลังใช้งานลงแต่ละแพ็ก ให้หน้าสาธารณะโชว์ราคาลดเหมือนหน้าซื้อของลูกค้า
+        $activePromos = $promotions->activePromotions();
+        $packages->each(function (Package $package) use ($promotions, $activePromos) {
+            $promo = $promotions->bestFor($package, $activePromos);
+            $package->setAttribute('active_promo', $promo);
+            $package->setAttribute('promo_price', $promotions->priceAfterDiscount($package, $promo));
+        });
 
         // แพ็กทดลองแยกเป็นหัวข้อของตัวเองไว้บนสุด ลูกค้าใหม่จะได้ไม่ต้องไล่หาทีละประเภทคลาส
         // ที่เหลือจัดกลุ่มตามประเภทคลาสหลักของแพ็ก (แพ็กที่ไม่ผูกคลาสไปอยู่กลุ่ม "อื่นๆ")

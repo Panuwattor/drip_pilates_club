@@ -573,15 +573,28 @@
 })();
 
 // แท็บสลับภาษาในฟอร์ม
+function activateLangPane(group, lang){
+  group.querySelectorAll('.lang-tab').forEach(function(t){ t.classList.toggle('active', t.dataset.lang === lang); });
+  group.querySelectorAll('.lang-pane').forEach(function(p){ p.classList.toggle('active', p.dataset.lang === lang); });
+}
 document.addEventListener('click', function(e){
   var tab = e.target.closest('.lang-tab');
   if(!tab) return;
   var group = tab.closest('[data-lang-group]');
   if(!group) return;
-  var lang = tab.dataset.lang;
-  group.querySelectorAll('.lang-tab').forEach(function(t){ t.classList.toggle('active', t === tab); });
-  group.querySelectorAll('.lang-pane').forEach(function(p){ p.classList.toggle('active', p.dataset.lang === lang); });
+  activateLangPane(group, tab.dataset.lang);
 });
+
+// ฟิลด์ 2 ภาษาที่ required แต่ว่าง อาจซ่อนอยู่ในแท็บที่ไม่ active
+// เบราว์เซอร์จะโชว์ป๊อปอัป "required" ไม่ได้ถ้าฟิลด์ display:none จึงสลับไปเปิดแท็บของภาษานั้นก่อน
+document.addEventListener('invalid', function(e){
+  var field = e.target;
+  var pane = field.closest('.lang-pane');
+  if(!pane || pane.classList.contains('active')) return;
+  var group = pane.closest('[data-lang-group]');
+  if(!group) return;
+  activateLangPane(group, pane.dataset.lang);
+}, true);
 
 // กล่องยืนยันมาตรฐานของหลังบ้าน
 window.adminConfirm = function(opts){

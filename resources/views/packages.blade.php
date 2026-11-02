@@ -50,7 +50,7 @@
                 'description' => $p->description ?: $p->name,
                 'offers' => [
                     $t => 'Offer',
-                    'price' => (string) $p->price,
+                    'price' => (string) ($p->active_promo ? $p->promo_price : $p->price),
                     'priceCurrency' => 'THB',
                     'availability' => 'https://schema.org/InStock',
                 ],
@@ -117,6 +117,11 @@
   .pkg-card .pkg-price{ font-size:2rem; font-weight:700; color:var(--accent-deep); margin:.5rem 0 0; }
   .pkg-card .pkg-price small{ font-size:.85rem; font-weight:500; color:var(--ink-soft); }
   .pkg-card .pkg-compare{ color:var(--ink-soft); text-decoration:line-through; font-size:.85rem; }
+  .pkg-card .pkg-promo-badge{
+    display:inline-flex; align-items:center; gap:.3rem; margin-top:.5rem;
+    background:var(--accent); color:#fff; font-size:.72rem; font-weight:700;
+    padding:.2rem .6rem; border-radius:999px;
+  }
   .pkg-card .pkg-meta{ color:var(--ink-soft); font-size:.85rem; margin:.75rem 0 1.25rem; }
   .pkg-card .btn-accent{
     display:block; text-align:center; background:var(--accent); border:1px solid var(--accent); color:#fff;
@@ -168,9 +173,22 @@
               <div class="pkg-card">
                 <h3>{{ $pkg->name }}</h3>
                 @if($pkg->description)<p class="small text-secondary mb-0">{{ $pkg->description }}</p>@endif
+                @php $promo = $pkg->active_promo ?? null; @endphp
+                @if($promo)
+                  <div class="pkg-promo-badge">
+                    <i class="bi bi-tag-fill"></i>
+                    {{ $promo->discount_type === 'percent'
+                        ? __t('ลด ' . rtrim(rtrim(number_format($promo->discount_value, 2), '0'), '.') . '%', rtrim(rtrim(number_format($promo->discount_value, 2), '0'), '.') . '% OFF')
+                        : __t('ลด ' . number_format($promo->discount_value) . '฿', '฿' . number_format($promo->discount_value) . ' OFF') }}
+                  </div>
+                @endif
                 <div class="pkg-price">
-                  ฿{{ number_format($pkg->price) }}
-                  @if($pkg->compare_at_price)<span class="pkg-compare ms-2">฿{{ number_format($pkg->compare_at_price) }}</span>@endif
+                  ฿{{ number_format($promo ? $pkg->promo_price : $pkg->price) }}
+                  @if($promo)
+                    <span class="pkg-compare ms-2">฿{{ number_format($pkg->price) }}</span>
+                  @elseif($pkg->compare_at_price)
+                    <span class="pkg-compare ms-2">฿{{ number_format($pkg->compare_at_price) }}</span>
+                  @endif
                 </div>
                 <div class="pkg-meta">
                   {{ $pkg->credit_amount === null ? __t('ไม่จำกัดจำนวนครั้ง', 'Unlimited classes') : __t($pkg->credit_amount . ' ครั้ง', $pkg->credit_amount . ' classes') }}
