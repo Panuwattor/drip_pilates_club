@@ -131,8 +131,8 @@ class PackageController extends Controller
         }
 
         return $data + [
-            'all_class_types' => $request->boolean('all_class_types', true),
-            'all_branches' => $request->boolean('all_branches', true),
+            'all_class_types' => $request->boolean('all_class_types'),
+            'all_branches' => $request->boolean('all_branches'),
             'once_per_customer' => $request->boolean('once_per_customer'),
             'is_public' => $request->boolean('is_public'),
             'is_active' => $request->boolean('is_active'),
