@@ -42,6 +42,7 @@ class SilomBarreSeeder extends Seeder
                 'duration_min' => 50,
                 'default_capacity' => 8,
                 'credit_cost' => 1,
+                'cancel_cutoff_time' => '22:00',
                 'color' => '#C7A2B8',
                 'is_active' => true,
                 'sort_order' => 8,

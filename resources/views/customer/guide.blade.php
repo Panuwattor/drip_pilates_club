@@ -454,10 +454,21 @@
              'Tap Cancel on the class card in the Bookings tab. Before you confirm, the app tells you whether you will get your credit back.') }}
     </p>
 
+    @if($groupCutoff)
     <div class="g-note good">
       <i class="bi bi-arrow-counterclockwise"></i>
       <span>
-        {{ __t('ยกเลิกก่อนคลาสเริ่มเกิน', 'Cancel more than') }}
+        {{ __t('กรุ๊ปคลาส (ทรีโอ รีฟอร์มเมอร์กรุ๊ป บาร์ แมท) ยกเลิกก่อน', 'Group classes (Trio, Reformer group, Barre, Mat): cancel before') }}
+        <strong>{{ $groupCutoff }} {{ __t('น. ของวันก่อนคลาส', 'the day before class') }}</strong>
+        {{ __t('ได้เครดิตคืนเต็มจำนวน', 'and you get your credit back in full.') }}
+      </span>
+    </div>
+    @endif
+
+    <div class="g-note good">
+      <i class="bi bi-arrow-counterclockwise"></i>
+      <span>
+        {{ $groupCutoff ? __t('ไพรเวทและคลาสอื่นๆ ยกเลิกก่อนคลาสเริ่มเกิน', 'Private and other classes: cancel more than') : __t('ยกเลิกก่อนคลาสเริ่มเกิน', 'Cancel more than') }}
         <strong>{{ $cancelHours }} {{ __t('ชั่วโมง', 'hours') }}</strong>
         {{ __t('ได้เครดิตคืนเต็มจำนวน', 'before the class and you get your credit back in full.') }}
       </span>
@@ -565,7 +576,14 @@
     <table class="g-table">
       <tr>
         <td><strong>{{ __t('ยกเลิกฟรี', 'Free cancellation') }}</strong></td>
-        <td>{{ __t('ก่อนคลาสเริ่มเกิน', 'More than') }} <strong>{{ $cancelHours }}</strong> {{ __t('ชั่วโมง', 'hours before class') }}</td>
+        <td>
+          @if($groupCutoff)
+            {{ __t('กรุ๊ปคลาส: ก่อน', 'Group classes: before') }} <strong>{{ $groupCutoff }}</strong> {{ __t('น. ของวันก่อนคลาส', 'the day before') }}<br>
+            {{ __t('ไพรเวท: ก่อนคลาสเริ่มเกิน', 'Private: more than') }} <strong>{{ $cancelHours }}</strong> {{ __t('ชั่วโมง', 'hours before class') }}
+          @else
+            {{ __t('ก่อนคลาสเริ่มเกิน', 'More than') }} <strong>{{ $cancelHours }}</strong> {{ __t('ชั่วโมง', 'hours before class') }}
+          @endif
+        </td>
       </tr>
       <tr>
         <td><strong>{{ __t('ปิดรับจอง', 'Booking closes') }}</strong></td>
@@ -629,10 +647,17 @@
   <details class="g-faq">
     <summary>{{ __t('ยกเลิกแล้วได้เครดิตคืนไหม', 'Will I get my credit back if I cancel?') }}</summary>
     <div class="fa-body">
-      {{ __t('ได้คืนเต็มจำนวนถ้ายกเลิกก่อนคลาสเริ่มเกิน', 'Yes, in full, if you cancel more than') }}
-      <strong>{{ $cancelHours }} {{ __t('ชั่วโมง', 'hours') }}</strong>
-      {{ __t('ถ้าช้ากว่านั้นจะไม่ได้คืน ก่อนกดยืนยันยกเลิก ระบบจะบอกให้ทราบก่อนเสมอว่าครั้งนี้ได้คืนหรือไม่',
-             'before the class. Later than that and it is not refunded. The app always tells you which applies before you confirm.') }}
+      @if($groupCutoff)
+        {{ __t('กรุ๊ปคลาสได้คืนเต็มจำนวนถ้ายกเลิกก่อน', 'Group classes: yes, in full, if you cancel before') }}
+        <strong>{{ $groupCutoff }} {{ __t('น. ของวันก่อนคลาส', 'the day before class') }}</strong>
+        {{ __t('ไพรเวทต้องยกเลิกก่อนคลาสเริ่มเกิน', '· Private classes: more than') }}
+        <strong>{{ $cancelHours }} {{ __t('ชั่วโมง', 'hours') }}</strong>{{ __t('', ' before the class') }}
+      @else
+        {{ __t('ได้คืนเต็มจำนวนถ้ายกเลิกก่อนคลาสเริ่มเกิน', 'Yes, in full, if you cancel more than') }}
+        <strong>{{ $cancelHours }} {{ __t('ชั่วโมง', 'hours') }}</strong>{{ __t('', ' before the class') }}
+      @endif
+      {{ __t('ถ้าช้ากว่านั้นจะไม่ได้คืน ก่อนกดยืนยันยกเลิก ระบบจะเด้งป๊อปอัปเตือนให้ทราบก่อนเสมอ',
+             '. Later than that and it is not refunded — the app always shows a warning pop-up before you confirm.') }}
     </div>
   </details>
 

@@ -820,5 +820,8 @@ if(IS_LOGGED_IN){
 
 @yield('extra-script')
 </script>
+@auth('customer')
+  @include('customer.partials.cancel-dialog')
+@endauth
 </body>
 </html>

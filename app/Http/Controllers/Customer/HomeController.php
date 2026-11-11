@@ -133,19 +133,23 @@ class HomeController extends Controller
     {
         $this->authorizeBooking($booking);
 
-        $preview = $this->bookings->cancellationPreview($booking);
-
-        return response()->json([
-            'will_lose_credit' => $preview['will_lose_credit'],
-            'credit_at_stake' => $preview['credit_at_stake'],
-            'deadline_hours' => $preview['deadline_hours'],
-            'deadline' => $preview['deadline']->format('d/m/Y H:i'),
-        ]);
+        return response()->json($this->previewPayload($booking));
     }
 
-    public function cancel(Booking $booking)
+    public function cancel(Request $request, Booking $booking)
     {
         $this->authorizeBooking($booking);
+
+        // ยกเลิกช้า (เสียเครดิต) ต้องให้ลูกค้ากดยืนยันจากป๊อปอัปก่อนเสมอ
+        // กันกรณีเปิดป๊อปอัปไว้ตอน 21:59 แล้วมากดยืนยันตอน 22:01 ระบบจะถามใหม่ ไม่ตัดเครดิตเงียบๆ
+        $preview = $this->bookings->cancellationPreview($booking);
+
+        if ($preview['will_lose_credit'] && ! $request->boolean('confirm_late')) {
+            return response()->json(
+                ['ok' => false, 'needs_late_confirm' => true] + $this->previewPayload($booking, $preview),
+                409
+            );
+        }
 
         try {
             $result = $this->bookings->cancel($booking, 'customer');
@@ -157,10 +161,42 @@ class HomeController extends Controller
             'ok' => true,
             'status' => $result->status,
             'refunded' => (bool) $result->credit_refunded,
-            'message' => $result->credit_refunded
-                ? 'ยกเลิกเรียบร้อยแล้ว คืนเครดิตให้แล้ว'
-                : 'ยกเลิกเรียบร้อยแล้ว (เลยกำหนดยกเลิกฟรี จึงไม่คืนเครดิต)',
+            'message' => match (true) {
+                (bool) $result->credit_refunded => __t('ยกเลิกเรียบร้อยแล้ว คืนเครดิตให้แล้ว', 'Booking cancelled — your credit has been refunded'),
+                $result->status === 'late_cancelled' => __t('ยกเลิกเรียบร้อยแล้ว (เลยกำหนดยกเลิกฟรี จึงไม่คืนเครดิต)', 'Booking cancelled (past the free-cancellation deadline, so the credit was not refunded)'),
+                default => __t('ยกเลิกเรียบร้อยแล้ว', 'Booking cancelled'),
+            },
         ]);
+    }
+
+    /** ข้อมูลที่ป๊อปอัปยืนยันการยกเลิกใช้ ข้อความประกอบเสร็จจากฝั่งเซิร์ฟเวอร์ ให้ตรงกับกติกาจริง */
+    private function previewPayload(Booking $booking, ?array $preview = null): array
+    {
+        $preview ??= $this->bookings->cancellationPreview($booking);
+        $deadline = $preview['deadline'];
+        $locale = app()->getLocale();
+
+        $deadlineText = $deadline->locale($locale)->isoFormat($locale === 'th' ? 'ddd D MMM เวลา HH:mm น.' : 'ddd D MMM, HH:mm');
+
+        $rule = $preview['cutoff_time']
+            ? __t(
+                "กรุ๊ปคลาสยกเลิกฟรีได้ถึง {$preview['cutoff_time']} น. ของวันก่อนคลาส",
+                "Group classes can be cancelled free of charge until {$preview['cutoff_time']} the day before class"
+            )
+            : __t(
+                "ยกเลิกฟรีได้ก่อนคลาสเริ่ม {$preview['deadline_hours']} ชั่วโมง",
+                "Free cancellation up to {$preview['deadline_hours']} hours before class"
+            );
+
+        return [
+            'is_late' => $preview['is_late'],
+            'will_lose_credit' => $preview['will_lose_credit'],
+            'credit_at_stake' => $preview['credit_at_stake'],
+            'deadline_hours' => $preview['deadline_hours'],
+            'deadline' => $deadline->format('d/m/Y H:i'),
+            'deadline_text' => $deadlineText,
+            'rule_text' => $rule,
+        ];
     }
 
     private function authorizeBooking(Booking $booking): void

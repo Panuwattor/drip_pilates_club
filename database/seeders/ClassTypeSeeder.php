@@ -139,7 +139,12 @@ class ClassTypeSeeder extends Seeder
         foreach ($types as $i => $type) {
             ClassType::updateOrCreate(
                 ['code' => $type['code']],
-                $type + ['is_active' => true, 'sort_order' => $i]
+                $type + [
+                    'is_active' => true,
+                    'sort_order' => $i,
+                    // กรุ๊ปคลาสยกเลิกฟรีได้ถึง 22:00 ของวันก่อนคลาส ไพรเวท/ดูโอใช้แบบชั่วโมง
+                    'cancel_cutoff_time' => $type['default_capacity'] >= 3 ? '22:00' : null,
+                ]
             );
         }
     }

@@ -70,6 +70,7 @@ class ClassTypeController extends Controller
             'duration_min' => ['required', 'integer', 'min:15', 'max:240'],
             'default_capacity' => ['required', 'integer', 'min:1', 'max:100'],
             'credit_cost' => ['required', 'numeric', 'min:0', 'max:99'],
+            'cancel_cutoff_time' => ['nullable', 'date_format:H:i'],
             'color' => ['nullable', 'string', 'max:20'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ]) + ['is_active' => $request->boolean('is_active')];

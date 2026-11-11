@@ -72,6 +72,15 @@
             <input class="form-control" type="number" step="0.5" name="credit_cost"
                    value="{{ old('credit_cost', $classType->credit_cost ?? 1) }}" min="0" required>
           </div>
+          <div class="col-12 mb-2">
+            <label class="form-label">{{ __t('ยกเลิกฟรีได้ถึงกี่โมงของวันก่อนคลาส', 'Free cancellation until (the day before class)') }}</label>
+            <input class="form-control" type="time" name="cancel_cutoff_time"
+                   value="{{ old('cancel_cutoff_time', $classType->cancel_cutoff_time) }}">
+            <div class="form-text">
+              {{ __t('กรุ๊ปคลาสใส่ 22:00 = ต้องยกเลิกก่อน 22:00 ของวันก่อนคลาส เลยจากนั้นตัดเครดิต · เว้นว่าง = ใช้จำนวนชั่วโมงจากหน้าตั้งค่า (เหมาะกับไพรเวท)',
+                     'Group classes: 22:00 = cancel before 22:00 the day before, otherwise the credit is charged · Leave blank to use the hours set in Settings (suits private classes)') }}
+            </div>
+          </div>
           <div class="col-6 mb-2">
             <label class="form-label">{{ __t('สีในปฏิทิน', 'Calendar colour') }}</label>
             <input class="form-control form-control-color w-100" type="color" name="color"

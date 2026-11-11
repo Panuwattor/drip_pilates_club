@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Models\ClassType;
 use App\Models\Setting;
 
 /**
@@ -16,6 +17,10 @@ class GuideController extends Controller
         return view('customer.guide', [
             // ดึงกฎที่ลูกค้าต้องรู้จากตั้งค่าระบบ คู่มือจะได้ไม่ขัดกับระบบจริงเวลาแอดมินแก้ค่า
             'cancelHours' => (int) Setting::get('cancel_deadline_hours', 6),
+            // เวลาตัดของกรุ๊ปคลาส (เช่น 22:00 ของวันก่อนคลาส) เอาค่าที่ใช้บ่อยสุดในคลาสที่เปิดอยู่
+            'groupCutoff' => ClassType::active()->whereNotNull('cancel_cutoff_time')
+                ->selectRaw('cancel_cutoff_time, count(*) n')->groupBy('cancel_cutoff_time')
+                ->orderByDesc('n')->value('cancel_cutoff_time'),
             'closeMinutes' => (int) Setting::get('booking_close_minutes_before', 30),
             'openDays' => (int) Setting::get('booking_open_days_ahead', 90),
             'waitlistEnabled' => (bool) Setting::get('waitlist_enabled', true),

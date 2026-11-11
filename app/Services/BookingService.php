@@ -11,6 +11,7 @@ use App\Models\Customer;
 use App\Models\CustomerPackage;
 use App\Models\Notification;
 use App\Models\Setting;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -701,26 +702,57 @@ class BookingService
             return false;
         }
 
-        $deadlineHours = (int) Setting::get('cancel_deadline_hours', 12);
-        $deadline = $session->start_at->copy()->subHours($deadlineHours);
+        return $this->studioNow()->gt($this->cancelDeadline($session))
+            && Setting::get('late_cancel_charge_credit', true);
+    }
 
-        return now()->gt($deadline) && Setting::get('late_cancel_charge_credit', true);
+    /**
+     * เส้นตายยกเลิกฟรีของคลาสนี้ (เป็นเวลาสตูดิโอ แบบเดียวกับ start_at)
+     *
+     * กรุ๊ปคลาส (class_types.cancel_cutoff_time เช่น 22:00): ต้องยกเลิกภายใน 22:00 ของวันก่อนคลาส
+     *   คลาส 08:00 วันพุธ -> ยกเลิกฟรีได้ถึง 22:00 วันอังคาร
+     * คลาสอื่น: ยกเลิกฟรีได้ถึงก่อนคลาสเริ่ม X ชั่วโมง (settings.cancel_deadline_hours)
+     */
+    public function cancelDeadline(ClassSession $session): Carbon
+    {
+        $cutoff = $session->classType?->cancel_cutoff_time;
+
+        if ($cutoff) {
+            [$h, $m] = array_map('intval', explode(':', $cutoff) + [1 => 0]);
+
+            return $session->start_at->copy()->subDay()->setTime($h, $m);
+        }
+
+        return $session->start_at->copy()->subHours((int) Setting::get('cancel_deadline_hours', 12));
+    }
+
+    /**
+     * เวลาตอนนี้ตามนาฬิกาสตูดิโอ ในรูปเดียวกับ start_at (ไม่มีโซน) เอาไว้เทียบกันตรงๆ
+     * แอปตั้ง timezone เป็น UTC แต่เวลาคลาสเก็บเป็นเวลาไทย ถ้าใช้ now() ตรงๆ จะคลาด 7 ชั่วโมง
+     */
+    private function studioNow(): Carbon
+    {
+        $local = now()->setTimezone(config('app.studio_timezone', 'Asia/Bangkok'));
+
+        return Carbon::parse($local->format('Y-m-d H:i:s'));
     }
 
     /** เช็คว่ายกเลิกตอนนี้จะเสียเครดิตไหม ใช้โชว์คำเตือนใน UI ก่อนกดยืนยัน */
     public function cancellationPreview(Booking $booking): array
     {
         $session = $booking->classSession;
-        $deadlineHours = (int) Setting::get('cancel_deadline_hours', 12);
-        $deadline = $session->start_at->copy()->subHours($deadlineHours);
-        $isLate = $booking->status !== 'waitlisted' && now()->gt($deadline);
+        $deadline = $this->cancelDeadline($session);
+        $isLate = $booking->status !== 'waitlisted' && $this->studioNow()->gt($deadline);
 
         return [
             'is_late' => $isLate,
-            'will_lose_credit' => $isLate && $booking->credit_used > 0,
+            // ต้องตรงกับที่ cancel() ทำจริง: ถ้าตั้งค่าไม่ตัดเครดิตตอนยกเลิกช้า ก็ไม่เสีย
+            'will_lose_credit' => $isLate && $booking->credit_used > 0
+                && (bool) Setting::get('late_cancel_charge_credit', true),
             'credit_at_stake' => (float) $booking->credit_used,
             'deadline' => $deadline,
-            'deadline_hours' => $deadlineHours,
+            'deadline_hours' => (int) Setting::get('cancel_deadline_hours', 12),
+            'cutoff_time' => $session->classType?->cancel_cutoff_time,
         ];
     }
 

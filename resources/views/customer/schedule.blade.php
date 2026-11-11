@@ -255,46 +255,10 @@ function doBook(btn){
 }
 
 function doCancel(btn){
-  var id = btn.dataset.booking;
-
-  fetch('/bookings/' + id + '/cancel-preview', {
-    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
-  })
-  .then(function(r){ return r.json(); })
-  .then(function(p){
-    var msg;
-    if (p.will_lose_credit) {
-      msg = currentLang === 'th'
-        ? 'เลยกำหนดยกเลิกฟรีแล้ว (ต้องยกเลิกก่อนคลาสเริ่ม ' + p.deadline_hours + ' ชั่วโมง)\n\nถ้ายกเลิกตอนนี้จะเสียเครดิต ' + p.credit_at_stake + ' เครดิต ยืนยันหรือไม่?'
-        : 'The free-cancellation window has passed (' + p.deadline_hours + ' hours before class).\n\nCancelling now will forfeit ' + p.credit_at_stake + ' credit(s). Continue?';
-    } else {
-      msg = currentLang === 'th'
-        ? 'ยืนยันยกเลิกการจอง? เครดิตจะคืนเข้าบัญชีของคุณ'
-        : 'Cancel this booking? Your credit will be refunded.';
-    }
-
-    if (!window.confirm(msg)) return;
-
-    btn.disabled = true;
-
-    fetch('/bookings/' + id + '/cancel', {
-      method: 'POST',
-      headers: {
-        'X-CSRF-TOKEN': CSRF,
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-      }
-    })
-    .then(function(r){ return r.json().then(function(d){ return { ok: r.ok, data: d }; }); })
-    .then(function(res){
-      btn.disabled = false;
-      showToast(res.data.message, !res.ok);
-      if (res.ok) { loadSessions(); }
-    })
-    .catch(function(){
-      btn.disabled = false;
-      showToast(currentLang === 'th' ? 'เกิดข้อผิดพลาด' : 'Something went wrong', true);
-    });
+  cancelBooking(btn.dataset.booking, {
+    onStart: function(){ btn.disabled = true; },
+    onDone: function(){ btn.disabled = false; loadSessions(); },
+    onFail: function(){ btn.disabled = false; }
   });
 }
 
