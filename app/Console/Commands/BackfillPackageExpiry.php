@@ -56,7 +56,7 @@ class BackfillPackageExpiry extends Command
                 $oldStart = $cp->starts_at->copy();
                 $oldExpiry = $cp->expires_at->copy();
 
-                $validDays = max(1, (int) $oldStart->diffInDays($oldExpiry) - (int) $cp->frozen_days_used);
+                $validDays = max(1, (int) $oldStart->diffInDays($oldExpiry) - (int) $cp->frozen_days_used - (int) $cp->extended_days);
 
                 $cp->valid_days = $validDays;
                 $cp->syncActivation();

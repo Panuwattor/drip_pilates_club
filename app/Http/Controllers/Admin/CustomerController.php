@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exceptions\BookingException;
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\CreditTransaction;
 use App\Models\Customer;
 use App\Models\CustomerPackage;
 use App\Models\Package;
+use App\Services\PackageExtender;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -191,6 +193,35 @@ class CustomerController extends Controller
         return back()->with('status', $data['amount'] > 0
             ? __t("เพิ่มเครดิต {$amount} เรียบร้อยแล้ว", "Added {$amount} credits")
             : __t("หักเครดิต {$amount} เรียบร้อยแล้ว", "Deducted {$amount} credits"));
+    }
+
+    /** ขยายอายุแพ็ก ใช้ได้ทั้งแพ็กที่ยังใช้อยู่และแพ็กที่หมดอายุแล้ว (ต่ออายุ) */
+    public function extendPackage(Request $request, CustomerPackage $customerPackage, PackageExtender $extender)
+    {
+        $data = $request->validate([
+            'days' => ['required', 'integer', 'min:1', 'max:' . PackageExtender::MAX_DAYS],
+            'reason' => ['required', 'string', 'max:200'],
+        ], [
+            'days.required' => __t('กรุณาใส่จำนวนวันที่ต้องการขยาย', 'Please enter the number of days to extend.'),
+            'days.min' => __t('ต้องขยายอย่างน้อย 1 วัน', 'Extend by at least 1 day.'),
+            'days.max' => __t('ขยายได้ครั้งละไม่เกิน 365 วัน', 'You can extend by at most 365 days at a time.'),
+            'reason.required' => __t('กรุณาระบุเหตุผล', 'Please give a reason.'),
+        ]);
+
+        try {
+            $package = $extender->extend($customerPackage, (int) $data['days'], $data['reason'], auth()->id());
+        } catch (BookingException $e) {
+            return back()->with('error', $e->localizedMessage());
+        }
+
+        $until = $package->expires_at
+            ? $package->expires_at->format('d/m/Y')
+            : __t('นับจากคลาสแรก', 'from first class');
+
+        return back()->with('status', __t(
+            "ขยายอายุแพ็กเพิ่ม {$data['days']} วันแล้ว ใช้ได้ถึง {$until}",
+            "Package extended by {$data['days']} days — valid until {$until}"
+        ));
     }
 
     /** ฟรีซ/ยกเลิกฟรีซแพ็ก */

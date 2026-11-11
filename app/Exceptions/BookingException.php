@@ -88,6 +88,18 @@ class BookingException extends Exception
             'th' => 'ลูกค้าไม่มีแพ็กที่ยังใช้ได้ ให้ขายแพ็กใหม่ก่อน',
             'en' => 'Customer has no usable package — sell a new package first.',
         ],
+        'invalid_extension_days' => [
+            'th' => 'จำนวนวันที่ขยายต้องอยู่ระหว่าง 1–365 วัน',
+            'en' => 'Extension must be between 1 and 365 days.',
+        ],
+        'package_cancelled' => [
+            'th' => 'แพ็กนี้ถูกยกเลิกไปแล้ว ขยายเวลาไม่ได้',
+            'en' => 'This package has been cancelled and cannot be extended.',
+        ],
+        'extension_too_short' => [
+            'th' => 'แพ็กนี้หมดอายุไปแล้ว ต้องขยายให้วันหมดอายุใหม่ไม่ย้อนหลัง (ใส่จำนวนวันให้มากขึ้น)',
+            'en' => 'This package has already expired — the new expiry date must not be in the past. Enter more days.',
+        ],
     ];
 
     public function localizedMessage(?string $locale = null): string

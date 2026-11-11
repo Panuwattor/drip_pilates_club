@@ -55,6 +55,7 @@
       'class_cancelled'   => ['bi-x-octagon-fill', 'warn'],
       'class_reminder'    => ['bi-alarm-fill', 'promo'],
       'credit_expiring'   => ['bi-hourglass-split', 'promo'],
+      'package_extended'  => ['bi-calendar-plus-fill', 'ok'],
       default             => ['bi-bell-fill', ''],
     };
   @endphp

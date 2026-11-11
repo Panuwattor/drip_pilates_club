@@ -20,6 +20,7 @@ class CustomerPackage extends Model
             'frozen_from' => 'date',
             'frozen_until' => 'date',
             'valid_days' => 'integer',
+            'extended_days' => 'integer',
         ];
     }
 
@@ -68,7 +69,7 @@ class CustomerPackage extends Model
      *
      * วันเริ่ม = วันที่ของคลาสแรกสุดที่จองด้วยแพ็กนี้ (หรือวันที่พนักงานหักเครดิตเองหน้าร้าน)
      * ถ้ายกเลิกคลาสแรกไป วันเริ่มจะเลื่อนไปคลาสถัดไป ถ้าไม่เหลือเลยก็กลับเป็น "ยังไม่เริ่มใช้"
-     * วันหมดอายุ = วันเริ่ม + valid_days + จำนวนวันที่เคยฟรีซ
+     * วันหมดอายุ = วันเริ่ม + valid_days + จำนวนวันที่เคยฟรีซ + วันที่แอดมินขยายให้
      */
     public function syncActivation(): void
     {
@@ -99,7 +100,7 @@ class CustomerPackage extends Model
         $this->update([
             'starts_at' => $start?->toDateString(),
             'expires_at' => $start?->copy()
-                ->addDays($this->valid_days + (int) $this->frozen_days_used)
+                ->addDays($this->totalValidDays())
                 ->toDateString(),
         ]);
     }
@@ -164,12 +165,18 @@ class CustomerPackage extends Model
                 . $this->expires_at->locale(app()->getLocale())->isoFormat($isoFormat);
         }
 
-        $days = $this->valid_days + (int) $this->frozen_days_used;
+        $days = $this->totalValidDays();
 
         return __t(
             "ยังไม่เริ่มใช้ · อายุ {$days} วันนับจากคลาสแรก",
             "Not started · valid {$days} days from first class"
         );
+    }
+
+    /** อายุแพ็กรวมทั้งหมด (วัน) = อายุตอนซื้อ + วันฟรีซ + วันที่แอดมินขยายให้ ใช้กับแพ็กแบบนับจากคลาสแรก */
+    public function totalValidDays(): int
+    {
+        return (int) $this->valid_days + (int) $this->frozen_days_used + (int) $this->extended_days;
     }
 
     /** null = ยังไม่เริ่มใช้ อายุยังไม่เริ่มนับ */

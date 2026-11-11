@@ -111,7 +111,7 @@
                       <div class="text-secondary">{{ __t('เริ่ม', 'Started') }} {{ $cp->starts_at->format('j M Y') }}</div>
                     @else
                       <span class="text-secondary">{{ __t('ยังไม่เริ่มใช้', 'Not started') }}</span>
-                      <div class="text-secondary">{{ __t('อายุ ' . ($cp->valid_days + $cp->frozen_days_used) . ' วันนับจากคลาสแรก', ($cp->valid_days + $cp->frozen_days_used) . ' days from first class') }}</div>
+                      <div class="text-secondary">{{ __t('อายุ ' . $cp->totalValidDays() . ' วันนับจากคลาสแรก', $cp->totalValidDays() . ' days from first class') }}</div>
                     @endif
                     @php $days = $cp->daysUntilExpiry(); @endphp
                     @if($cp->status === 'active' && $days !== null && $days >= 0 && $days <= 14)
@@ -124,7 +124,21 @@
                                 'cancelled'=>[__t('ยกเลิก','Cancelled'),'badge-soft']]; @endphp
                     <span class="badge-soft {{ $pm[$cp->status][1] ?? 'badge-soft' }}">{{ $pm[$cp->status][0] ?? $cp->status }}</span>
                   </td>
-                  <td class="text-end">
+                  <td class="text-end text-nowrap">
+                    @if($cp->status !== 'cancelled')
+                      @php $minDays = \App\Services\PackageExtender::minimumDaysToRevive($cp); @endphp
+                      <button type="button" class="btn btn-sm {{ $cp->status === 'expired' ? 'btn-primary' : 'btn-outline-secondary' }} js-extend-package"
+                              data-bs-toggle="modal" data-bs-target="#extendModal"
+                              data-action="{{ route('admin.customers.extend', $cp) }}"
+                              data-name="{{ $cp->package->name }} ({{ $cp->code }})"
+                              data-expiry="{{ $cp->expires_at?->format('Y-m-d') }}"
+                              data-expired="{{ $cp->status === 'expired' ? 1 : 0 }}"
+                              data-min="{{ $minDays }}"
+                              title="{{ $cp->status === 'expired' ? __t('ต่ออายุแพ็ก', 'Renew package') : __t('ขยายเวลา', 'Extend') }}">
+                        <i class="bi bi-calendar-plus"></i>
+                        @if($cp->status === 'expired') {{ __t('ต่ออายุ', 'Renew') }} @endif
+                      </button>
+                    @endif
                     @if(in_array($cp->status, ['active', 'frozen']))
                       <form method="POST" action="{{ route('admin.customers.freeze', $cp) }}" class="d-inline">
                         @csrf
@@ -243,6 +257,84 @@
     </div>
   </div>
 </div>
+
+{{-- ขยายอายุแพ็ก --}}
+<div class="modal fade" id="extendModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form class="modal-content" method="POST" action="" id="extendForm">
+      @csrf
+      <div class="modal-header">
+        <h5 class="modal-title" style="font-size:1rem;"><i class="bi bi-calendar-plus"></i> {{ __t('ขยายอายุแพ็ก', 'Extend package') }}</h5>
+        <button class="btn-close" data-bs-dismiss="modal" type="button"></button>
+      </div>
+      <div class="modal-body">
+        <div class="small text-secondary mb-2" id="extendName"></div>
+        <div class="alert alert-warning small py-2 d-none" id="extendExpiredNote">
+          {{ __t('แพ็กนี้หมดอายุแล้ว ขยายแล้วแพ็กจะกลับมาใช้ได้ และเครดิตที่เหลือจะคืนให้ลูกค้า', 'This package has expired. Extending it reactivates it and restores the remaining credits.') }}
+        </div>
+        <div class="mb-2">
+          <label class="form-label">{{ __t('ขยายเพิ่มกี่วัน', 'Extend by (days)') }} <span class="text-danger">*</span></label>
+          <input class="form-control" type="number" name="days" id="extendDays" min="1" max="{{ \App\Services\PackageExtender::MAX_DAYS }}" required>
+          <div class="d-flex gap-1 mt-1">
+            @foreach([7, 14, 30] as $d)
+              <button type="button" class="btn btn-sm btn-outline-secondary js-extend-preset" data-days="{{ $d }}">+{{ $d }} {{ __t('วัน', 'days') }}</button>
+            @endforeach
+          </div>
+          <div class="form-text" id="extendPreview"></div>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">{{ __t('เหตุผล', 'Reason') }} <span class="text-danger">*</span></label>
+          <input class="form-control" name="reason" maxlength="200" required placeholder="{{ __t('เช่น ลูกค้าเจ็บป่วย ขอต่ออายุ', 'e.g. customer was ill and asked for more time') }}">
+          <div class="form-text small">{{ __t('บันทึกไว้ในประวัติเครดิตพร้อมชื่อผู้ทำรายการ และแจ้งลูกค้าในแอปให้อัตโนมัติ', 'Saved to the credit history with your name, and the customer is notified in the app.') }}</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal" type="button">{{ __t('ยกเลิก', 'Cancel') }}</button>
+        <button class="btn btn-primary" type="submit">{{ __t('บันทึก', 'Save') }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+@push('scripts')
+<script>
+(function(){
+  var form = document.getElementById('extendForm');
+  var days = document.getElementById('extendDays');
+  var preview = document.getElementById('extendPreview');
+  var expiry = null, isTh = @json(app()->getLocale() === 'th');
+
+  function fmt(d){ return ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2) + '/' + d.getFullYear(); }
+
+  function update(){
+    var n = parseInt(days.value, 10);
+    if (!n || n < 1) { preview.textContent = ''; return; }
+    if (!expiry) {
+      preview.textContent = isTh ? ('แพ็กยังไม่เริ่มใช้ อายุจะเพิ่ม ' + n + ' วัน นับจากคลาสแรก') : ('Not started yet — adds ' + n + ' days, counted from the first class');
+      return;
+    }
+    var d = new Date(expiry.getTime()); d.setDate(d.getDate() + n);
+    preview.textContent = (isTh ? 'วันหมดอายุใหม่: ' : 'New expiry: ') + fmt(d);
+  }
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.js-extend-package');
+    if (btn) {
+      form.action = btn.dataset.action;
+      document.getElementById('extendName').textContent = btn.dataset.name;
+      document.getElementById('extendExpiredNote').classList.toggle('d-none', btn.dataset.expired !== '1');
+      expiry = btn.dataset.expiry ? new Date(btn.dataset.expiry + 'T00:00:00') : null;
+      days.min = btn.dataset.min;
+      days.value = btn.dataset.expired === '1' ? Math.max(parseInt(btn.dataset.min, 10), 7) : 7;
+      update();
+    }
+    var preset = e.target.closest('.js-extend-preset');
+    if (preset) { days.value = Math.max(parseInt(preset.dataset.days, 10), parseInt(days.min, 10) || 1); update(); }
+  });
+  days.addEventListener('input', update);
+})();
+</script>
+@endpush
 
 {{-- ปรับเครดิต --}}
 <div class="modal fade" id="creditModal" tabindex="-1">
