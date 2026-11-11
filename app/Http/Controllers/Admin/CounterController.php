@@ -34,7 +34,7 @@ class CounterController extends Controller
         if ($request->filled('customer')) {
             $customer = Customer::with([
                 'homeBranch',
-                'packages' => fn ($q) => $q->with('package')->orderBy('expires_at'),
+                'packages' => fn ($q) => $q->with('package')->orderByExpiry(),
             ])->find($request->input('customer'));
         }
 
@@ -56,7 +56,7 @@ class CounterController extends Controller
             if ($customers->count() === 1) {
                 $customer = $customers->first()->load([
                     'homeBranch',
-                    'packages' => fn ($q) => $q->with('package')->orderBy('expires_at'),
+                    'packages' => fn ($q) => $q->with('package')->orderByExpiry(),
                 ]);
                 $customers = collect();
             }
@@ -77,7 +77,7 @@ class CounterController extends Controller
             'usablePackages' => $customer
                 ? $customer->packages->where('status', 'active')
                     ->where('type', '!=', 'unlimited')
-                    ->filter(fn ($p) => $p->expires_at->gte(now()->startOfDay()))
+                    ->filter(fn ($p) => ! $p->isActivated() || $p->expires_at->gte(now()->startOfDay()))
                 : collect(),
             // คลาสวันนี้ที่ยังไม่จบ ให้เลือกตอนบันทึก walk-in
             // เอาที่ยังไม่จบเท่านั้น กันกดผิดไปลงคลาสเมื่อวาน

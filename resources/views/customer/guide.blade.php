@@ -526,8 +526,8 @@
 
     <div class="g-note warn">
       <i class="bi bi-calendar-x"></i>
-      <span>{{ __t('เครดิตมีวันหมดอายุ หมดแล้วใช้ไม่ได้และไม่คืนเงิน ควรดูวันหมดอายุไว้เสมอและวางแผนใช้ให้ทัน',
-                   'Credits expire. Once past the expiry date they cannot be used and are not refundable, so keep an eye on the date and plan ahead.') }}</span>
+      <span>{{ __t('เครดิตมีวันหมดอายุ เริ่มนับจากวันที่ของคลาสแรกที่ใช้แพ็กนั้น หมดแล้วใช้ไม่ได้และไม่คืนเงิน ควรดูวันหมดอายุไว้เสมอและวางแผนใช้ให้ทัน',
+                   'Credits expire, counted from the date of the first class you use the package for. Once past the expiry date they cannot be used and are not refundable, so keep an eye on the date and plan ahead.') }}</span>
     </div>
   </div>
 

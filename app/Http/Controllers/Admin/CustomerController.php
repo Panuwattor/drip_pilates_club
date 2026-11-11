@@ -86,7 +86,7 @@ class CustomerController extends Controller
 
         $packages = $customer->packages()->with('package')
             ->orderByRaw('CASE WHEN status = ? THEN 0 ELSE 1 END', ['active'])
-            ->orderBy('expires_at')
+            ->orderByExpiry()
             ->get();
 
         $upcoming = $customer->bookings()
@@ -181,6 +181,9 @@ class CustomerController extends Controller
                 'reason_en' => $data['reason'],
                 'user_id' => auth()->id(),
             ]);
+
+            // หักเครดิตเองนับเป็นการใช้แพ็ก อายุเริ่มนับถ้ายังไม่เริ่ม (เหมือนหักที่หน้าเคาน์เตอร์)
+            $package->refresh()->syncActivation();
         });
 
         $amount = abs($data['amount']);
@@ -194,14 +197,15 @@ class CustomerController extends Controller
     public function toggleFreeze(Request $request, CustomerPackage $customerPackage)
     {
         if ($customerPackage->status === 'frozen') {
-            $days = $customerPackage->frozen_from
+            // แพ็กที่ยังไม่เริ่มใช้ อายุยังไม่เดิน ฟรีซไปก็ไม่ต้องชดเชยวัน
+            $days = $customerPackage->frozen_from && $customerPackage->isActivated()
                 ? (int) $customerPackage->frozen_from->diffInDays(now())
                 : 0;
 
             $customerPackage->update([
                 'status' => 'active',
                 // ขยายวันหมดอายุออกไปเท่าจำนวนวันที่ฟรีซ
-                'expires_at' => $customerPackage->expires_at->addDays($days),
+                'expires_at' => $customerPackage->expires_at?->addDays($days),
                 'frozen_days_used' => $customerPackage->frozen_days_used + $days,
                 'frozen_from' => null,
                 'frozen_until' => null,

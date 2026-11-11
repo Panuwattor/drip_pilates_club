@@ -55,9 +55,9 @@ class CreditAdjuster
             $packages = CustomerPackage::where('customer_id', $customer->id)
                 ->where('status', 'active')
                 ->where('type', '!=', 'unlimited')
-                ->whereDate('expires_at', '>=', now())
+                ->notExpired()
                 ->where('credit_remaining', '>', 0)
-                ->orderBy('expires_at')
+                ->orderByExpiry()
                 ->lockForUpdate()
                 ->get();
 
@@ -96,6 +96,9 @@ class CreditAdjuster
                     'user_id' => $userId,
                 ]);
 
+                // หักเครดิตเองหน้าร้านก็นับเป็นการใช้แพ็ก อายุเริ่มนับถ้ายังไม่เริ่ม
+                $package->syncActivation();
+
                 $touched[] = ['code' => $package->code, 'amount' => $take];
                 $left -= $take;
             }
@@ -131,8 +134,8 @@ class CreditAdjuster
             } else {
                 // เติมใบที่ใกล้หมดอายุก่อน ลูกค้าจะได้ใช้ทันก่อนหมดอายุ
                 $package = $query->whereIn('status', ['active', 'used_up'])
-                    ->whereDate('expires_at', '>=', now())
-                    ->orderBy('expires_at')
+                    ->notExpired()
+                    ->orderByExpiry()
                     ->first();
             }
 

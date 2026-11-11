@@ -68,12 +68,16 @@
       <div>
         <div class="text-uppercase small opacity-75" style="font-size:.68rem;letter-spacing:.08em;">Class Credits</div>
         <div class="cc-count">{{ $hasUnlimited ? '∞' : $totalCredits }}</div>
-        @php $nearest = $packages->where('status', 'active')->sortBy('expires_at')->first(); @endphp
+        @php
+  // แพ็กที่เริ่มนับอายุแล้วและใกล้หมดก่อน แพ็กที่ยังไม่เริ่มใช้ไว้ท้าย
+  $nearest = $packages->where('status', 'active')
+      ->sortBy(fn ($p) => $p->expires_at?->timestamp ?? PHP_INT_MAX)->first();
+@endphp
         <div class="small opacity-75">
           @if($hasUnlimited)
-            {{ __t('เหมาจ่าย', 'Unlimited') }}@if($nearest) · {{ __t('ถึง', 'until') }} {{ $nearest->expires_at->locale(app()->getLocale())->isoFormat('D MMM YYYY') }}@endif
+            {{ __t('เหมาจ่าย', 'Unlimited') }}@if($nearest) · @if($nearest->isActivated()){{ __t('ถึง', 'until') }} {{ $nearest->expires_at->locale(app()->getLocale())->isoFormat('D MMM YYYY') }}@else{{ $nearest->expiryText() }}@endif @endif
           @elseif($nearest)
-            {{ __t('หมดอายุ', 'Expires') }} {{ $nearest->expires_at->locale(app()->getLocale())->isoFormat('D MMM YYYY') }}
+            {{ $nearest->expiryText() }}
           @else
             {{ __t('ยังไม่มีแพ็กเกจ', 'No active package') }}
           @endif

@@ -52,8 +52,10 @@ class PackageFulfillment
                         'order_id' => $order->id,
                         'type' => $package->type,
                         'purchased_at' => now(),
-                        'starts_at' => now()->toDateString(),
-                        'expires_at' => now()->addDays($package->valid_days)->toDateString(),
+                        // อายุแพ็กยังไม่เริ่มนับ จะเริ่มเมื่อจองคลาสแรก (ดู CustomerPackage::syncActivation)
+                        'starts_at' => null,
+                        'expires_at' => null,
+                        'valid_days' => $package->valid_days,
                         'credit_total' => $package->credit_amount,
                         'credit_used' => 0,
                         'credit_remaining' => $package->credit_amount,

@@ -97,13 +97,12 @@ class Customer extends Authenticatable
     {
         return $this->packages()
             ->where('status', 'active')
-            ->whereDate('starts_at', '<=', now())
-            ->whereDate('expires_at', '>=', now())
+            ->notExpired()
             ->where(function ($q) {
                 $q->where('type', 'unlimited')
                   ->orWhere('credit_remaining', '>', 0);
             })
-            ->orderBy('expires_at');
+            ->orderByExpiry();
     }
 
     /** ยอดเครดิตคงเหลือรวม (unlimited ไม่นับเป็นตัวเลข) */
@@ -112,7 +111,7 @@ class Customer extends Authenticatable
         return (int) $this->packages()
             ->where('status', 'active')
             ->where('type', '!=', 'unlimited')
-            ->whereDate('expires_at', '>=', now())
+            ->notExpired()
             ->sum('credit_remaining');
     }
 
@@ -121,8 +120,7 @@ class Customer extends Authenticatable
         return $this->packages()
             ->where('status', 'active')
             ->where('type', 'unlimited')
-            ->whereDate('starts_at', '<=', now())
-            ->whereDate('expires_at', '>=', now())
+            ->notExpired()
             ->exists();
     }
 }

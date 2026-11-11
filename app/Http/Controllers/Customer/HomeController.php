@@ -58,7 +58,7 @@ class HomeController extends Controller
             'customer' => $customer,
             'upcoming' => $upcoming,
             'packages' => $customer
-                ? $customer->packages()->with('package')->where('status', '!=', 'cancelled')->orderBy('expires_at')->get()
+                ? $customer->packages()->with('package')->where('status', '!=', 'cancelled')->orderByExpiry()->get()
                 : collect(),
             'totalCredits' => $customer?->totalCredits() ?? 0,
             'hasUnlimited' => $customer?->hasUnlimited() ?? false,

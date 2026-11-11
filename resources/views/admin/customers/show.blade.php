@@ -106,9 +106,15 @@
                     @endif
                   </td>
                   <td class="small">
-                    {{ $cp->expires_at->format('j M Y') }}
+                    @if($cp->isActivated())
+                      {{ $cp->expires_at->format('j M Y') }}
+                      <div class="text-secondary">{{ __t('เริ่ม', 'Started') }} {{ $cp->starts_at->format('j M Y') }}</div>
+                    @else
+                      <span class="text-secondary">{{ __t('ยังไม่เริ่มใช้', 'Not started') }}</span>
+                      <div class="text-secondary">{{ __t('อายุ ' . ($cp->valid_days + $cp->frozen_days_used) . ' วันนับจากคลาสแรก', ($cp->valid_days + $cp->frozen_days_used) . ' days from first class') }}</div>
+                    @endif
                     @php $days = $cp->daysUntilExpiry(); @endphp
-                    @if($cp->status === 'active' && $days >= 0 && $days <= 14)
+                    @if($cp->status === 'active' && $days !== null && $days >= 0 && $days <= 14)
                       <div><span class="badge-soft {{ $days <= 3 ? 'badge-danger' : 'badge-warn' }}">{{ __t('เหลือ ' . $days . ' วัน', $days . ' days left') }}</span></div>
                     @endif
                   </td>
@@ -253,7 +259,7 @@
           <select class="form-select" name="customer_package_id" required>
             @foreach($packages->where('status', '!=', 'cancelled')->where('type', '!=', 'unlimited') as $cp)
               <option value="{{ $cp->id }}">
-                {{ $cp->package->name }} — {{ __t('เหลือ', 'left') }} {{ $cp->credit_remaining }} ({{ __t('หมดอายุ', 'expires') }} {{ $cp->expires_at->format('d/m/Y') }})
+                {{ $cp->package->name }} — {{ __t('เหลือ', 'left') }} {{ $cp->credit_remaining }} ({{ $cp->expiryText('DD/MM/YYYY') }})
               </option>
             @endforeach
           </select>

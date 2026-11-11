@@ -517,12 +517,16 @@
           <div>
             <div class="text-uppercase small opacity-75" style="font-size:.68rem;letter-spacing:.08em;">Class Credits</div>
             <div class="cc-count">{{ $hasUnlimited ? '∞' : $totalCredits }}</div>
-            @php $nearest = $packages->where('status', 'active')->sortBy('expires_at')->first(); @endphp
+            @php
+  // แพ็กที่เริ่มนับอายุแล้วและใกล้หมดก่อน แพ็กที่ยังไม่เริ่มใช้ไว้ท้าย
+  $nearest = $packages->where('status', 'active')
+      ->sortBy(fn ($p) => $p->expires_at?->timestamp ?? PHP_INT_MAX)->first();
+@endphp
             <div class="small opacity-75">
               @if($hasUnlimited)
-                {{ __t('เหมาจ่าย', 'Unlimited') }}@if($nearest) · {{ __t('ถึง', 'until') }} {{ $nearest->expires_at->locale(app()->getLocale())->isoFormat('D MMM YYYY') }}@endif
+                {{ __t('เหมาจ่าย', 'Unlimited') }}@if($nearest) · @if($nearest->isActivated()){{ __t('ถึง', 'until') }} {{ $nearest->expires_at->locale(app()->getLocale())->isoFormat('D MMM YYYY') }}@else{{ $nearest->expiryText() }}@endif @endif
               @elseif($nearest)
-                {{ __t('หมดอายุ', 'Expires') }} {{ $nearest->expires_at->locale(app()->getLocale())->isoFormat('D MMM YYYY') }}
+                {{ $nearest->expiryText() }}
               @else
                 {{ __t('ยังไม่มีแพ็กเกจ', 'No active package') }}
               @endif
@@ -810,10 +814,9 @@
               <div class="class-info">
                 <h4>{{ $cp->package->name }}</h4>
                 <p class="meta">
-                  {{ __t('หมดอายุ', 'Expires') }}
-                  {{ $cp->expires_at->locale(app()->getLocale())->isoFormat('D MMM YYYY') }}
+                  {{ $cp->expiryText() }}
                   @php $days = $cp->daysUntilExpiry(); @endphp
-                  @if($days >= 0 && $days <= 14)
+                  @if($days !== null && $days >= 0 && $days <= 14)
                     <span class="badge rounded-pill" style="background:#F4E3C7;color:#8A6112;">
                       {{ __t("เหลือ {$days} วัน", "{$days} days") }}
                     </span>
@@ -847,7 +850,7 @@
               </div>
               <div class="small text-secondary mt-1">
                 {{ $p->credit_amount === null ? __t('ไม่จำกัดจำนวนครั้ง', 'Unlimited classes') : __t($p->credit_amount . ' ครั้ง', $p->credit_amount . ' classes') }}
-                · {{ __t('ใช้ได้ ' . $p->valid_days . ' วัน', 'valid ' . $p->valid_days . ' days') }}
+                · {{ __t('ใช้ได้ ' . $p->valid_days . ' วันนับจากคลาสแรก', 'valid ' . $p->valid_days . ' days from first class') }}
               </div>
               <div class="small text-secondary mt-2">
                 <i class="bi bi-info-circle"></i> {{ __t('ติดต่อเจ้าหน้าที่ที่สาขาเพื่อซื้อ', 'Contact staff at the studio to purchase') }}

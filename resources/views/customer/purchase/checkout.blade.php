@@ -26,7 +26,7 @@
         </div>
         <div class="menu-row">
           <div class="mi"><i class="bi bi-calendar-range"></i></div>
-          <span>{{ __t('ใช้ได้ ' . $package->valid_days . ' วันนับจากวันที่อนุมัติ', 'Valid ' . $package->valid_days . ' days from approval') }}</span>
+          <span>{{ __t('ใช้ได้ ' . $package->valid_days . ' วัน เริ่มนับจากคลาสแรกที่ใช้', 'Valid ' . $package->valid_days . ' days, counted from your first class') }}</span>
         </div>
         @if($package->classTypes->isNotEmpty())
           <div class="menu-row">

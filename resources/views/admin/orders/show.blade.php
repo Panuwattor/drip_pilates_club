@@ -76,7 +76,7 @@
                 <td>{{ $cp->code }}</td>
                 <td class="text-end small">
                   {{ $cp->isUnlimited() ? __t('ไม่จำกัด', 'Unlimited') : $cp->credit_remaining . '/' . $cp->credit_total . ' ' . __t('เครดิต', 'credits') }}
-                  <div class="text-secondary">{{ __t('หมดอายุ', 'Expires') }} {{ $cp->expires_at->format('j M Y') }}</div>
+                  <div class="text-secondary">{{ $cp->expiryText() }}</div>
                 </td>
               </tr>
             @endforeach

@@ -31,7 +31,7 @@ class ProfileController extends Controller
             'branches' => $branches,
             'currentBranchId' => $customer->home_branch_id ?: ($branches->first()->id ?? 0),
             'upcoming' => $upcoming,
-            'packages' => $customer->packages()->with('package')->where('status', '!=', 'cancelled')->orderBy('expires_at')->get(),
+            'packages' => $customer->packages()->with('package')->where('status', '!=', 'cancelled')->orderByExpiry()->get(),
             'totalCredits' => $customer->totalCredits(),
             'hasUnlimited' => $customer->hasUnlimited(),
         ]);

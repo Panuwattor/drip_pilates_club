@@ -64,6 +64,9 @@ class BookingService
                 $this->deductCredit($customer, $package, $booking, $creditCost, $session);
             }
 
+            // คลาสแรกของแพ็ก อายุแพ็กเริ่มนับจากวันนี้ของคลาส
+            $package->refresh()->syncActivation();
+
             $session->increment('booked_count');
 
             $this->log($booking, null, 'confirmed', $via, $userId);
@@ -157,6 +160,9 @@ class BookingService
                     'Late cancellation — credit not refunded');
             }
 
+            // ยกเลิกคลาสแรกไป วันเริ่มนับอายุต้องเลื่อนตาม (หรือกลับเป็นยังไม่เริ่มใช้)
+            $booking->customerPackage?->refresh()->syncActivation();
+
             if ($wasWaitlisted) {
                 $session->decrement('waitlist_count');
                 $this->resequenceWaitlist($session);
@@ -228,6 +234,8 @@ class BookingService
         if ($creditCost > 0) {
             $this->deductCredit($customer, $package, $next, $creditCost, $session);
         }
+
+        $package->refresh()->syncActivation();
 
         $session->increment('booked_count');
         $session->decrement('waitlist_count');
@@ -352,6 +360,8 @@ class BookingService
                 'cancel_reason' => null,
                 'credit_refunded' => false,
             ]);
+
+            $booking->customerPackage?->refresh()->syncActivation();
 
             $this->log($booking, $fromStatus, 'confirmed', 'admin', $userId, $reason ?: 'reopened_by_admin');
 
@@ -520,6 +530,8 @@ class BookingService
                     $this->refundCredit($booking, 'compensate');
                 }
 
+                $booking->customerPackage?->refresh()->syncActivation();
+
                 $this->log($booking, $fromStatus, 'cancelled', 'admin', $userId, 'session_cancelled');
                 $this->notifySessionCancelled($booking->customer, $session, $reasonTh, $reasonEn);
             }
@@ -582,9 +594,8 @@ class BookingService
         $packages = CustomerPackage::with('package.classTypes', 'package.branches')
             ->where('customer_id', $customer->id)
             ->where('status', 'active')
-            ->whereDate('starts_at', '<=', now())
-            ->whereDate('expires_at', '>=', now())
-            ->orderBy('expires_at')
+            ->notExpired()
+            ->orderByExpiry()
             ->lockForUpdate()
             ->get();
 

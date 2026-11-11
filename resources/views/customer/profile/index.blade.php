@@ -72,10 +72,9 @@
         <div class="class-info">
           <h4>{{ $cp->package->name }}</h4>
           <p class="meta">
-            {{ __t('หมดอายุ', 'Expires') }}
-            {{ $cp->expires_at->locale(app()->getLocale())->isoFormat('D MMM YYYY') }}
+            {{ $cp->expiryText() }}
             @php $days = $cp->daysUntilExpiry(); @endphp
-            @if($days >= 0 && $days <= 14)
+            @if($days !== null && $days >= 0 && $days <= 14)
               <span class="badge rounded-pill" style="background:#F4E3C7;color:#8A6112;">
                 {{ __t("เหลือ {$days} วัน", "{$days} days") }}
               </span>

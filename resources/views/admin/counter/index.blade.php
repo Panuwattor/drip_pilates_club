@@ -109,7 +109,7 @@
     @if($nearest)
       <div class="small text-secondary mt-2 pt-2" style="border-top:1px solid var(--line);">
         {{ __t('ใบที่จะถูกตัดก่อน', 'Deducted from first') }}: <strong>{{ $nearest->package->name }}</strong>
-        {{ __t('เหลือ', 'left') }} {{ $nearest->credit_remaining }} · {{ __t('หมดอายุ', 'expires') }} {{ $nearest->expires_at->format('d/m/Y') }}
+        {{ __t('เหลือ', 'left') }} {{ $nearest->credit_remaining }} · {{ $nearest->expiryText('DD/MM/YYYY') }}
         @if($usablePackages->count() > 1)
           <span class="text-secondary">(+{{ $usablePackages->count() - 1 }} {{ __t('ใบ', 'more') }})</span>
         @endif
@@ -285,7 +285,7 @@
                 <option value="">{{ __t('ใบที่ใกล้หมดอายุที่สุด (แนะนำ)', 'The one expiring soonest (recommended)') }}</option>
                 @foreach($customer->packages->where('type', '!=', 'unlimited')->whereIn('status', ['active', 'used_up', 'frozen']) as $cp)
                   <option value="{{ $cp->id }}">
-                    {{ $cp->package->name }} — {{ __t('เหลือ', 'left') }} {{ $cp->credit_remaining }} ({{ __t('หมดอายุ', 'expires') }} {{ $cp->expires_at->format('d/m/Y') }})
+                    {{ $cp->package->name }} — {{ __t('เหลือ', 'left') }} {{ $cp->credit_remaining }} ({{ $cp->expiryText('DD/MM/YYYY') }})
                   </option>
                 @endforeach
               </select>

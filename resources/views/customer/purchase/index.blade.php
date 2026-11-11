@@ -79,7 +79,7 @@
 
           <div class="small text-secondary mt-1 mb-2">
             {{ $p->credit_amount === null ? __t('ไม่จำกัดจำนวนครั้ง', 'Unlimited classes') : __t($p->credit_amount . ' ครั้ง', $p->credit_amount . ' classes') }}
-            · {{ __t('ใช้ได้ ' . $p->valid_days . ' วัน', 'valid ' . $p->valid_days . ' days') }}
+            · {{ __t('ใช้ได้ ' . $p->valid_days . ' วันนับจากคลาสแรก', 'valid ' . $p->valid_days . ' days from first class') }}
           </div>
 
           {{-- บอกสาขาที่ใช้ได้ตรงการ์ด ลูกค้าจะได้ไม่ต้องเลื่อนกลับไปดูปุ่มสลับสาขา --}}

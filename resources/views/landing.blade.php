@@ -573,7 +573,7 @@
             </div>
             <div class="pkg-meta">
               {{ $pkg->credit_amount === null ? __t('ไม่จำกัดจำนวนครั้ง', 'Unlimited classes') : __t($pkg->credit_amount . ' ครั้ง', $pkg->credit_amount . ' classes') }}
-              · {{ __t('ใช้ได้ ' . $pkg->valid_days . ' วัน', 'valid ' . $pkg->valid_days . ' days') }}
+              · {{ __t('ใช้ได้ ' . $pkg->valid_days . ' วันนับจากคลาสแรก', 'valid ' . $pkg->valid_days . ' days from first class') }}
             </div>
             <a href="{{ route('customer.register') }}" class="btn-accent">{{ __t('สมัครเพื่อซื้อแพ็กเกจ', 'Sign Up To Purchase') }}</a>
           </div>
