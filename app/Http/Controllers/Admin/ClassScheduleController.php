@@ -8,9 +8,11 @@ use App\Models\ClassSchedule;
 use App\Models\ClassType;
 use App\Models\Room;
 use App\Models\Trainer;
+use App\Services\ScheduleSessionSync;
 use App\Services\SessionGenerator;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ClassScheduleController extends Controller
 {
@@ -82,22 +84,62 @@ class ClassScheduleController extends Controller
         return view('admin.schedules.form', $this->formData($schedule));
     }
 
-    public function update(Request $request, ClassSchedule $schedule)
+    public function update(Request $request, ClassSchedule $schedule, ScheduleSessionSync $sync)
     {
-        $schedule->update($this->validated($request));
+        $data = $this->validated($request);
+        $old = $schedule->getAttributes();
 
-        return redirect()->route('admin.schedules.index', ['branch' => $schedule->branch_id])
-            ->with('status', __t('บันทึกตารางแล้ว (รอบเรียนที่สร้างไว้แล้วไม่เปลี่ยนตาม ต้องแก้รายรอบเอง)', 'Schedule saved (sessions already generated are unchanged — edit those individually)'));
+        $schedule->update($data);
+
+        $redirect = redirect()->route('admin.schedules.index', ['branch' => $schedule->branch_id]);
+
+        if (! $request->boolean('apply_to_sessions')) {
+            return $redirect->with('status', __t(
+                'บันทึกตารางแล้ว (รอบเรียนที่สร้างไว้แล้วไม่เปลี่ยนตาม)',
+                'Schedule saved (sessions already generated are unchanged)'
+            ));
+        }
+
+        $r = DB::transaction(fn () => $sync->sync($schedule, $old));
+
+        $message = __t(
+            "บันทึกตารางแล้ว อัปเดตรอบเรียนที่สร้างไว้ {$r['updated']} รอบ",
+            "Schedule saved — {$r['updated']} upcoming sessions updated"
+        );
+
+        if ($r['moved'] > 0) {
+            $message .= __t(
+                " · ย้ายไปเวลาใหม่ {$r['moved']} รอบ",
+                " · {$r['moved']} moved to the new time"
+            );
+        }
+
+        if ($r['removed'] > 0) {
+            $message .= __t(
+                " · ลบรอบที่อยู่นอกช่วงใช้งาน {$r['removed']} รอบ",
+                " · {$r['removed']} outside the active dates removed"
+            );
+        }
+
+        if ($r['kept'] > 0) {
+            return $redirect->with('status', $message)->with('error', __t(
+                "มี {$r['kept']} รอบที่ลูกค้าจองแล้ว ระบบคงไว้ที่วัน/เวลาเดิม ถ้าต้องการย้ายให้แก้รายรอบที่หน้ารอบเรียน",
+                "{$r['kept']} sessions already have bookings and were kept at the old day/time — edit them individually on the Class Sessions page if they should move"
+            ));
+        }
+
+        return $redirect->with('status', $message);
     }
 
     public function destroy(ClassSchedule $schedule)
     {
         $branchId = $schedule->branch_id;
 
-        // รอบเรียนที่ยังไม่ถึงและยังไม่มีใครจอง ลบทิ้งได้
+        // รอบเรียนที่ยังไม่ถึงและไม่มีการจองเลย (รวมที่ยกเลิกแล้ว) ลบทิ้งได้
+        // ต้องเช็คแถว bookings ไม่ใช่แค่ booked_count เพราะ bookings ลบตามรอบแบบ cascade ประวัติจะหาย
         $deleted = $schedule->sessions()
             ->where('start_at', '>', now())
-            ->where('booked_count', 0)
+            ->whereDoesntHave('bookings')
             ->delete();
 
         $schedule->update(['is_active' => false, 'effective_until' => now()->toDateString()]);

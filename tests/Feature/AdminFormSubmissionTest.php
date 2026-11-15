@@ -1487,6 +1487,131 @@ class AdminFormSubmissionTest extends TestCase
         $this->assertNotNull($schedule->effective_until);
     }
 
+    /** ตารางที่มีรอบในอนาคตอย่างน้อย 3 รอบ และจองไว้แล้ว 1 รอบ (รอบแรก) */
+    private function scheduleWithBookedSession(): array
+    {
+        $schedule = ClassSchedule::where('is_active', true)->get()
+            ->first(fn ($s) => $s->sessions()->where('start_at', '>', now()->addDay())->count() >= 3);
+        $this->assertNotNull($schedule);
+
+        $sessions = $schedule->sessions()->where('start_at', '>', now()->addDay())->orderBy('start_at')->get();
+        $booked = $sessions->first();
+
+        $customer = $this->makeCustomer();
+        $this->givePackage($customer);
+        $this->asAdmin()->post(route('admin.sessions.book', $booked), ['customer_id' => $customer->id])
+            ->assertSessionHas('status');
+        $this->assertSame(1, $booked->fresh()->booked_count);
+
+        return [$schedule, $booked, $sessions->slice(1)->values()];
+    }
+
+    private function schedulePayload(ClassSchedule $schedule, array $overrides = []): array
+    {
+        return array_merge([
+            'branch_id' => $schedule->branch_id,
+            'room_id' => $schedule->room_id,
+            'class_type_id' => $schedule->class_type_id,
+            'trainer_id' => $schedule->trainer_id,
+            'day_of_week' => $schedule->day_of_week,
+            'start_time' => substr($schedule->start_time, 0, 5),
+            'duration_min' => $schedule->duration_min,
+            'capacity' => $schedule->capacity,
+            'credit_cost' => $schedule->credit_cost,
+            'effective_from' => $schedule->effective_from->toDateString(),
+            'effective_until' => $schedule->effective_until?->toDateString(),
+            'is_active' => 1,
+            'apply_to_sessions' => 1,
+        ], $overrides);
+    }
+
+    public function test_editing_schedule_updates_trainer_seats_and_duration_on_generated_sessions(): void
+    {
+        [$schedule, $booked, $empty] = $this->scheduleWithBookedSession();
+        $newTrainer = Trainer::where('id', '!=', $schedule->trainer_id)->firstOrFail();
+
+        // รอบหนึ่งแอดมินแก้ที่นั่งรายรอบไว้แล้ว ต้องไม่โดนทับ
+        $overridden = $empty->last();
+        $overridden->update(['capacity' => 2]);
+
+        $this->asAdmin()->put(route('admin.schedules.update', $schedule), $this->schedulePayload($schedule, [
+            'trainer_id' => $newTrainer->id,
+            'capacity' => $schedule->capacity + 2,
+            'duration_min' => 75,
+        ]))->assertSessionHasNoErrors()->assertRedirect()->assertSessionHas('status');
+
+        foreach ([$booked, ...$empty->all()] as $s) {
+            $s->refresh();
+            $this->assertSame($newTrainer->id, $s->trainer_id, 'ครูต้องเปลี่ยนทุกรอบ รวมรอบที่มีคนจองแล้ว');
+            $this->assertSame(75, (int) $s->start_at->diffInMinutes($s->end_at));
+        }
+
+        $this->assertSame($schedule->capacity + 2, $booked->fresh()->capacity);
+        $this->assertSame(2, $overridden->fresh()->capacity, 'รอบที่แก้รายรอบไว้ต้องไม่โดนทับ');
+        $this->assertSame(1, $booked->fresh()->booked_count, 'การจองเดิมต้องอยู่ครบ');
+    }
+
+    public function test_editing_schedule_never_drops_seats_below_bookings(): void
+    {
+        [$schedule, $booked] = $this->scheduleWithBookedSession();
+        $booked->update(['booked_count' => 3]); // จำลองว่ามีคนจอง 3 คน
+
+        $this->asAdmin()->put(route('admin.schedules.update', $schedule), $this->schedulePayload($schedule, [
+            'capacity' => 1,
+        ]))->assertSessionHasNoErrors();
+
+        $this->assertSame(3, $booked->fresh()->capacity);
+    }
+
+    public function test_changing_schedule_time_moves_empty_sessions_and_keeps_booked_ones(): void
+    {
+        [$schedule, $booked, $empty] = $this->scheduleWithBookedSession();
+        $oldStart = $booked->start_at->format('H:i');
+        $newTime = $oldStart === '06:15' ? '06:45' : '06:15';
+
+        $this->asAdmin()->put(route('admin.schedules.update', $schedule), $this->schedulePayload($schedule, [
+            'start_time' => $newTime,
+        ]))->assertSessionHasNoErrors()->assertSessionHas('error'); // แจ้งว่ามีรอบที่จองแล้วคงเวลาเดิม
+
+        $this->assertSame($oldStart, $booked->fresh()->start_at->format('H:i'), 'รอบที่มีคนจองต้องคงเวลาเดิม');
+
+        foreach ($empty as $s) {
+            $this->assertNull(ClassSession::find($s->id), 'รอบว่างเวลาเดิมต้องถูกแทนที่');
+            $this->assertTrue(
+                ClassSession::where('class_schedule_id', $schedule->id)
+                    ->where('start_at', $s->start_at->copy()->setTimeFromTimeString($newTime))
+                    ->exists(),
+                'ต้องมีรอบใหม่ที่เวลาใหม่ในวันเดียวกัน'
+            );
+        }
+    }
+
+    public function test_schedule_edit_without_apply_leaves_sessions_alone(): void
+    {
+        [$schedule, , $empty] = $this->scheduleWithBookedSession();
+        $newTrainer = Trainer::where('id', '!=', $schedule->trainer_id)->firstOrFail();
+
+        $payload = $this->schedulePayload($schedule, ['trainer_id' => $newTrainer->id]);
+        unset($payload['apply_to_sessions']);
+
+        $this->asAdmin()->put(route('admin.schedules.update', $schedule), $payload)->assertSessionHasNoErrors();
+
+        $this->assertSame($schedule->trainer_id, $empty->first()->fresh()->trainer_id);
+    }
+
+    public function test_turning_off_schedule_keeps_sessions_with_cancelled_bookings(): void
+    {
+        [$schedule, $booked] = $this->scheduleWithBookedSession();
+        $booking = Booking::where('class_session_id', $booked->id)->firstOrFail();
+        $this->asAdmin()->post(route('admin.bookings.cancel', $booking));
+        $booked->refresh();
+
+        $this->asAdmin()->delete(route('admin.schedules.destroy', $schedule))->assertRedirect();
+
+        $this->assertNotNull(ClassSession::find($booked->id), 'รอบที่มีประวัติการจองต้องไม่ถูกลบ');
+        $this->assertNotNull(Booking::find($booking->id));
+    }
+
     public function test_schedule_rejects_bad_day_time_and_dates(): void
     {
         $this->asAdmin()->post(route('admin.schedules.store'), [

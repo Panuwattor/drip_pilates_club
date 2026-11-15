@@ -131,6 +131,22 @@
     </div>
   </div>
 
+  @if($schedule->exists)
+    <div class="card-panel mb-3">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="apply_to_sessions" name="apply_to_sessions" value="1"
+               {{ old('apply_to_sessions', true) ? 'checked' : '' }}>
+        <label class="form-check-label fw-semibold" for="apply_to_sessions">
+          {{ __t('ใช้การแก้ไขนี้กับรอบเรียนที่สร้างไว้แล้วด้วย', 'Also apply these changes to sessions already generated') }}
+        </label>
+      </div>
+      <div class="form-text small">
+        {{ __t('ครู ห้อง ประเภทคลาส ที่นั่ง เครดิต และความยาวคลาส จะเปลี่ยนทุกรอบที่ยังไม่ถึง (ลูกค้าที่จองไว้ยังอยู่ครบ) ถ้าเปลี่ยนวัน/เวลา รอบที่ยังไม่มีคนจองจะย้ายไปเวลาใหม่ ส่วนรอบที่มีคนจองแล้วจะคงเวลาเดิมไว้ รอบที่เคยแก้รายรอบไว้จะไม่ถูกทับ',
+               'Trainer, room, class type, seats, credits and duration change on every upcoming session (existing bookings are kept). If the day/time changes, sessions with no bookings move to the new time; sessions that already have bookings keep their original time. Sessions you edited individually are not overwritten.') }}
+      </div>
+    </div>
+  @endif
+
   <div class="d-flex gap-2">
     <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> {{ __t('บันทึก', 'Save') }}</button>
     <a href="{{ route('admin.schedules.index', ['branch' => $schedule->branch_id]) }}" class="btn btn-outline-secondary">{{ __t('ยกเลิก', 'Cancel') }}</a>

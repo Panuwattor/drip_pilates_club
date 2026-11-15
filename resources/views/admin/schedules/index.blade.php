@@ -10,7 +10,7 @@
 @section('content')
 <div class="alert-soft mb-3">
   <i class="bi bi-info-circle"></i>
-  {{ __t('ตั้งตารางประจำสัปดาห์ไว้ครั้งเดียว แล้วกด "สร้างรอบเรียน" ระบบจะสร้างรอบจริงล่วงหน้าให้อัตโนมัติ ถ้าแก้ตารางนี้ รอบที่สร้างไปแล้วจะไม่เปลี่ยนตาม ต้องไปแก้รายรอบที่หน้ารอบเรียน', 'Set the weekly schedule once, then press "Generate sessions" to create real sessions in advance. Editing this schedule does not change sessions already generated — adjust those individually on the Class Sessions page.') }}
+  {{ __t('ตั้งตารางประจำสัปดาห์ไว้ครั้งเดียว แล้วกด "สร้างรอบเรียน" ระบบจะสร้างรอบจริงล่วงหน้าให้อัตโนมัติ กดที่คลาสเพื่อแก้ไข ครู/เวลา/ห้อง/จำนวนที่นั่ง ได้เลย ไม่ต้องลบตั้งใหม่ ระบบจะอัปเดตรอบที่สร้างไว้แล้วให้ด้วย', 'Set the weekly schedule once, then press "Generate sessions" to create real sessions in advance. Click a class to change its trainer, time, room or seats — no need to delete and recreate; sessions already generated are updated too.') }}
 </div>
 
 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
