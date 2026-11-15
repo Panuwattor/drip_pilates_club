@@ -141,8 +141,8 @@
         </label>
       </div>
       <div class="form-text small">
-        {{ __t('ครู ห้อง ประเภทคลาส ที่นั่ง เครดิต และความยาวคลาส จะเปลี่ยนทุกรอบที่ยังไม่ถึง (ลูกค้าที่จองไว้ยังอยู่ครบ) ถ้าเปลี่ยนวัน/เวลา รอบที่ยังไม่มีคนจองจะย้ายไปเวลาใหม่ ส่วนรอบที่มีคนจองแล้วจะคงเวลาเดิมไว้ รอบที่เคยแก้รายรอบไว้จะไม่ถูกทับ',
-               'Trainer, room, class type, seats, credits and duration change on every upcoming session (existing bookings are kept). If the day/time changes, sessions with no bookings move to the new time; sessions that already have bookings keep their original time. Sessions you edited individually are not overwritten.') }}
+        {{ __t('ครู ห้อง ประเภทคลาส ที่นั่ง เครดิต และความยาวคลาส จะเปลี่ยนทุกรอบที่ยังไม่ถึง (ลูกค้าที่จองไว้ยังอยู่ครบ) ถ้าเปลี่ยนวัน/เวลา รอบที่ยังไม่มีคนจองจะย้ายไปเวลาใหม่ ส่วนรอบที่มีคนจองแล้วจะคงเวลาเดิมไว้ (ครูสอนแทนที่ตั้งไว้รายรอบจะไม่ถูกทับ)',
+               'Trainer, room, class type, seats, credits and duration change on every upcoming session (existing bookings are kept). If the day/time changes, sessions with no bookings move to the new time; sessions that already have bookings keep their original time. Per-session substitute trainers are kept.') }}
       </div>
     </div>
   @endif

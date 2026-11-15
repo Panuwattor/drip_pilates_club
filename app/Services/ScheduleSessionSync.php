@@ -9,8 +9,9 @@ use Carbon\CarbonImmutable;
 /**
  * ส่งการแก้ไขตารางประจำสัปดาห์ไปยังรอบเรียนในอนาคตที่สร้างไว้แล้ว
  *
- * - ครู / ห้อง / ประเภทคลาส / ที่นั่ง / เครดิต / ความยาว: แก้ทับรอบเดิมได้เลย รวมถึงรอบที่มีคนจองแล้ว
- *   แต่แก้เฉพาะรอบที่ค่ายังตรงกับตารางเดิม รอบที่แอดมินไปแก้รายรอบไว้แล้วจะไม่โดนทับ
+ * - ครู / ห้อง / ประเภทคลาส / ที่นั่ง / เครดิต / ความยาว: ทุกรอบที่ยังไม่ถึงจะถูกตั้งให้ตรงกับตาราง
+ *   รวมถึงรอบที่มีคนจองแล้ว (ครูสอนแทนรายรอบอยู่ในช่อง substitute_trainer_id จึงไม่โดนทับ)
+ *   ไม่ได้เช็คว่า "รอบนี้เคยแก้รายรอบไหม" เพราะแยกไม่ออกจากรอบที่ค้างค่าเก่าจากการแก้ตารางครั้งก่อน
  * - ที่นั่งไม่ลดต่ำกว่าจำนวนคนที่จองแล้ว
  * - เปลี่ยนวัน / เวลา / สาขา: รอบที่ยังไม่มีการจองเลยจะถูกลบแล้วสร้างใหม่ตามเวลาใหม่
  *   รอบที่มีการจองแล้วคงไว้เวลาเดิม (ไม่ย้ายเวลาลูกค้าเอง) แล้วรายงานจำนวนให้แอดมินไปจัดการ
@@ -52,25 +53,21 @@ class ScheduleSessionSync
         // 2) แก้ค่าในรอบที่เหลือ
         $updated = 0;
         $kept = 0;
-        $oldDuration = (int) $old['duration_min'];
-
         foreach ($this->future($schedule)->get() as $session) {
             $changes = [];
 
             foreach (self::SIMPLE_FIELDS as $field) {
-                if ($this->differs($old[$field], $schedule->$field)
-                    && ! $this->differs($session->$field, $old[$field])) {
+                if ($this->differs($session->$field, $schedule->$field)) {
                     $changes[$field] = $schedule->$field;
                 }
             }
 
-            if ((int) $old['capacity'] !== (int) $schedule->capacity
-                && (int) $session->capacity === (int) $old['capacity']) {
-                $changes['capacity'] = max((int) $schedule->capacity, (int) $session->booked_count);
+            $capacity = max((int) $schedule->capacity, (int) $session->booked_count);
+            if ((int) $session->capacity !== $capacity) {
+                $changes['capacity'] = $capacity;
             }
 
-            if ($oldDuration !== (int) $schedule->duration_min
-                && (int) $session->start_at->diffInMinutes($session->end_at) === $oldDuration) {
+            if ((int) $session->start_at->diffInMinutes($session->end_at) !== (int) $schedule->duration_min) {
                 $changes['end_at'] = $session->start_at->copy()->addMinutes($schedule->duration_min);
             }
 

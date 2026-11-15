@@ -1530,9 +1530,13 @@ class AdminFormSubmissionTest extends TestCase
         [$schedule, $booked, $empty] = $this->scheduleWithBookedSession();
         $newTrainer = Trainer::where('id', '!=', $schedule->trainer_id)->firstOrFail();
 
-        // รอบหนึ่งแอดมินแก้ที่นั่งรายรอบไว้แล้ว ต้องไม่โดนทับ
-        $overridden = $empty->last();
-        $overridden->update(['capacity' => 2]);
+        // รอบหนึ่งค้างค่าเก่า (เช่นแก้ตารางครั้งก่อนโดยไม่ได้ติ๊กให้ใช้กับรอบ) ต้องโดนแก้ด้วย
+        $stale = $empty->last();
+        $stale->update(['capacity' => 2, 'trainer_id' => null]);
+
+        // ครูสอนแทนรายรอบต้องไม่โดนทับ
+        $substitute = Trainer::whereNotIn('id', [$newTrainer->id])->firstOrFail();
+        $empty->first()->update(['substitute_trainer_id' => $substitute->id]);
 
         $this->asAdmin()->put(route('admin.schedules.update', $schedule), $this->schedulePayload($schedule, [
             'trainer_id' => $newTrainer->id,
@@ -1547,7 +1551,8 @@ class AdminFormSubmissionTest extends TestCase
         }
 
         $this->assertSame($schedule->capacity + 2, $booked->fresh()->capacity);
-        $this->assertSame(2, $overridden->fresh()->capacity, 'รอบที่แก้รายรอบไว้ต้องไม่โดนทับ');
+        $this->assertSame($schedule->capacity + 2, $stale->fresh()->capacity, 'รอบที่ค้างค่าเก่าต้องถูกแก้ด้วย');
+        $this->assertSame($substitute->id, $empty->first()->fresh()->substitute_trainer_id, 'ครูสอนแทนต้องไม่โดนทับ');
         $this->assertSame(1, $booked->fresh()->booked_count, 'การจองเดิมต้องอยู่ครบ');
     }
 
