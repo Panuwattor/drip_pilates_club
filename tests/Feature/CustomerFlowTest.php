@@ -33,6 +33,7 @@ class CustomerFlowTest extends TestCase
             'code' => 'DP-' . str_pad((string) $n, 5, '0', STR_PAD_LEFT),
             'first_name' => 'ทดสอบ',
             'last_name' => (string) $n,
+            'nickname' => 'เทส' . $n,
             'phone' => '08' . str_pad((string) $n, 8, '0', STR_PAD_LEFT),
             'password' => 'secret123',
             'status' => 'active',
@@ -97,6 +98,7 @@ class CustomerFlowTest extends TestCase
         $response = $this->post(route('customer.register'), [
             'first_name' => 'สมหญิง',
             'last_name' => 'ใจดี',
+            'nickname' => 'หญิง',
             'phone' => '0899999999',
             'password' => 'secret123',
             'password_confirmation' => 'secret123',
@@ -112,6 +114,7 @@ class CustomerFlowTest extends TestCase
     {
         $this->post(route('customer.register'), [
             'first_name' => 'สมหญิง',
+            'nickname' => 'หญิง',
             'phone' => '089-999-0001',
             'password' => 'secret123',
             'password_confirmation' => 'secret123',
@@ -134,6 +137,7 @@ class CustomerFlowTest extends TestCase
         foreach (['123', '000', 'abcdefg', '!!!???', '08123456789012345'] as $bad) {
             $this->post(route('customer.register'), [
                 'first_name' => 'ทดสอบ',
+                'nickname' => 'ทด',
                 'phone' => $bad,
                 'password' => 'secret123',
                 'password_confirmation' => 'secret123',
@@ -150,6 +154,7 @@ class CustomerFlowTest extends TestCase
 
         $this->post(route('customer.register'), [
             'first_name' => 'ซ้ำ',
+            'nickname' => 'ซ้ำ',
             'phone' => $existing->phone,
             'password' => 'secret123',
             'password_confirmation' => 'secret123',

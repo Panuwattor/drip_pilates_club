@@ -18,6 +18,9 @@ class ClassSchedule extends Model
             'effective_until' => 'date',
             'is_active' => 'boolean',
             'credit_cost' => 'decimal:2',
+            'day_of_week' => 'integer',
+            'duration_min' => 'integer',
+            'capacity' => 'integer',
         ];
     }
 

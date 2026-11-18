@@ -75,6 +75,7 @@ class AuthController extends Controller
         $data = $request->validate([
             'first_name' => ['required', 'string', 'max:120'],
             'last_name' => ['nullable', 'string', 'max:120'],
+            'nickname' => ['required', 'string', 'max:60'],
             // เบอร์ไทยมี 9-10 หลัก ตรวจหลังล้างแล้วเพื่อกันเบอร์ปลอมอย่าง "123"
             'phone' => ['required', 'string', 'digits_between:9,10', 'unique:customers,phone'],
             'email' => ['nullable', 'email', 'max:255', 'unique:customers,email'],
@@ -84,6 +85,8 @@ class AuthController extends Controller
             'first_name.required' => __t('กรุณากรอกชื่อ', 'Please enter your first name.'),
             'first_name.max' => __t('ชื่อยาวเกินไป (ไม่เกิน 120 ตัวอักษร)', 'First name is too long (max 120 characters).'),
             'last_name.max' => __t('นามสกุลยาวเกินไป (ไม่เกิน 120 ตัวอักษร)', 'Last name is too long (max 120 characters).'),
+            'nickname.required' => __t('กรุณากรอกชื่อเล่น', 'Please enter your nickname.'),
+            'nickname.max' => __t('ชื่อเล่นยาวเกินไป (ไม่เกิน 60 ตัวอักษร)', 'Nickname is too long (max 60 characters).'),
 
             'phone.required' => __t('กรุณากรอกเบอร์โทรศัพท์', 'Please enter your phone number.'),
             'phone.digits_between' => __t(

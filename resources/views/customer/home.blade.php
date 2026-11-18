@@ -150,6 +150,22 @@
 
 @if($branches->count() > 1)
 @section('extra-script')
+@if($customer && $customer->needsProfileCompletion())
+/* ---------- เตือนลูกค้าเก่าให้กรอกข้อมูลที่ยังขาด (เช่น ชื่อเล่น) ---------- */
+window.addEventListener('load', function(){
+  Swal.fire({
+    icon: 'info',
+    title: @json(__t('กรอกข้อมูลให้ครบก่อนนะคะ', 'Please complete your profile')),
+    text: @json(__t('กรุณากรอกชื่อจริงและชื่อเล่นให้ครบ เพื่อให้เจ้าหน้าที่และครูเรียกชื่อได้ถูกต้องก่อนจองคลาส', 'Please add your full name and nickname so our staff and trainers can greet you correctly before booking a class.')),
+    confirmButtonText: @json(__t('กรอกเลย', 'Complete now')),
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+  }).then(function(){
+    window.location.href = @json(route('customer.profile.complete'));
+  });
+});
+@endif
+
 /* ---------- สลับสาขา (ใช้ key เดียวกับหน้าตารางคลาส) ---------- */
 var BRANCHES = @json($branchesForJs);
 var BRANCH_STORAGE_KEY = 'dripBranch';

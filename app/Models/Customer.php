@@ -37,18 +37,34 @@ class Customer extends Authenticatable
         return trim($this->first_name . ' ' . $this->last_name);
     }
 
+    /**
+     * ชื่อที่ใช้แสดงในตารางคลาส / Attendance ให้เป็นรูปแบบเดียวกันทุกที่
+     * รูปแบบ "ชื่อเล่น (ชื่อจริง)" — ถ้าไม่มีชื่อเล่น (ลูกค้าเก่าที่ยังไม่ได้กรอก) ใช้ชื่อจริงอย่างเดียว
+     */
+    public function getDisplayNameAttribute(): string
+    {
+        $real = $this->full_name;
+
+        if (blank($this->nickname)) {
+            return $real;
+        }
+
+        return blank($real) ? $this->nickname : "{$this->nickname} ({$real})";
+    }
+
     public function hasLineLinked(): bool
     {
         return filled($this->line_user_id);
     }
 
     /**
-     * ข้อมูลขั้นต่ำที่ต้องมีก่อนใช้งานระบบได้ = ชื่อ + เบอร์โทร
+     * ข้อมูลขั้นต่ำที่ต้องมีก่อนใช้งานระบบได้ = ชื่อจริง + ชื่อเล่น + เบอร์โทร
      * คนที่สมัครผ่าน LINE จะยังไม่มีเบอร์ ต้องเด้งไปกรอกก่อน
+     * ลูกค้าเก่าที่ยังไม่มีชื่อเล่นจะโดนเด้งมากรอกครั้งถัดไปที่เข้าใช้งาน
      */
     public function needsProfileCompletion(): bool
     {
-        return blank($this->phone) || blank($this->first_name);
+        return blank($this->phone) || blank($this->first_name) || blank($this->nickname);
     }
 
     /** ล็อกอินได้ด้วยรหัสผ่านไหม คนที่สมัครผ่าน LINE ล้วนๆ จะยังไม่มีรหัส */

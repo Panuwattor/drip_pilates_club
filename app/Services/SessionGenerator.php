@@ -99,7 +99,7 @@ class SessionGenerator
                 continue;
             }
 
-            $endAt = $startAt->addMinutes($schedule->duration_min);
+            $endAt = $startAt->addMinutes((int) $schedule->duration_min);
 
             $existing = ClassSession::where('class_schedule_id', $schedule->id)
                 ->where('start_at', $startAt->toDateTimeString())

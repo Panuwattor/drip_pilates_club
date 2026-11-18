@@ -64,7 +64,7 @@
                   <td>
                     <a href="{{ route('admin.customers.show', $b->customer) }}"
                        class="fw-semibold text-decoration-none" style="color:var(--ink);">
-                      {{ $b->customer->full_name }}
+                      {{ $b->customer->display_name }}
                     </a>
                     <div class="small text-secondary">
                       {{ $b->customer->phone }} · {{ $b->customer->code }}

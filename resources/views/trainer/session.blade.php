@@ -97,9 +97,11 @@
           </div>
           <div class="flex-grow-1 min-width-0">
             <div class="fw-semibold">
-              {{ $b->customer->first_name }}
               @if($b->customer->nickname)
-                <span class="fw-normal" style="color:var(--ink-soft);">({{ $b->customer->nickname }})</span>
+                {{ $b->customer->nickname }}
+                <span class="fw-normal" style="color:var(--ink-soft);">({{ $b->customer->full_name }})</span>
+              @else
+                {{ $b->customer->full_name }}
               @endif
             </div>
 

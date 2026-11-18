@@ -53,7 +53,7 @@ class ProfileController extends Controller
         $data = $request->validate([
             'first_name' => ['required', 'string', 'max:120'],
             'last_name' => ['nullable', 'string', 'max:120'],
-            'nickname' => ['nullable', 'string', 'max:60'],
+            'nickname' => ['required', 'string', 'max:60'],
             'email' => ['nullable', 'email', 'max:255', Rule::unique('customers', 'email')->ignore($customer->id)],
             'birth_date' => ['nullable', 'date', 'before:today'],
             'gender' => ['nullable', 'in:female,male,other'],

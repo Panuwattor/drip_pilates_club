@@ -258,9 +258,12 @@ class LineAuthController extends Controller
         $data = $request->validate([
             'first_name' => ['required', 'string', 'max:120'],
             'last_name' => ['nullable', 'string', 'max:120'],
+            'nickname' => ['required', 'string', 'max:60'],
             'phone' => ['required', 'string', 'max:30'],
             'home_branch_id' => ['nullable', 'exists:branches,id'],
-        ], [], ['phone' => 'เบอร์โทร', 'first_name' => 'ชื่อ']);
+        ], [
+            'nickname.required' => __t('กรุณากรอกชื่อเล่น', 'Please enter your nickname.'),
+        ], ['phone' => 'เบอร์โทร', 'first_name' => 'ชื่อ', 'nickname' => 'ชื่อเล่น']);
 
         $phone = $this->otp->normalize($data['phone']);
 
@@ -292,6 +295,7 @@ class LineAuthController extends Controller
                 'target_id' => $existing->id,
                 'first_name' => $data['first_name'],
                 'last_name' => $data['last_name'] ?? null,
+                'nickname' => $data['nickname'],
                 'home_branch_id' => $data['home_branch_id'] ?? null,
             ]);
 
@@ -303,6 +307,7 @@ class LineAuthController extends Controller
         $customer->fill([
             'first_name' => $data['first_name'],
             'last_name' => $data['last_name'] ?? null,
+            'nickname' => $data['nickname'],
             'phone' => $phone,
             'home_branch_id' => $data['home_branch_id'] ?? null,
             'profile_completed_at' => now(),
@@ -434,6 +439,8 @@ class LineAuthController extends Controller
                 'phone_verified_at' => now(),
                 'profile_completed_at' => now(),
                 'home_branch_id' => $target->home_branch_id ?: ($pending['home_branch_id'] ?? null),
+                // บัญชีเดิมที่แอดมินสร้างอาจยังไม่มีชื่อเล่น เติมจากที่ลูกค้าเพิ่งกรอก (ไม่ทับของเดิม)
+                'nickname' => $target->nickname ?: ($pending['nickname'] ?? null),
             ])->save();
 
             // บัญชีที่เพิ่งสร้างจาก LINE ยังไม่มีข้อมูลอะไร ลบทิ้งได้ปลอดภัย

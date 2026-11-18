@@ -61,7 +61,7 @@
 @else
   {{-- ขั้นกรอกข้อมูล: เพิ่งสมัครผ่าน LINE เสร็จ --}}
   <h1>{{ __t('อีกนิดเดียว', 'Almost there') }}</h1>
-  <p class="sub">{{ __t('กรอกชื่อและเบอร์โทรเพื่อเริ่มจองคลาสได้เลย', 'Add your name and phone number to start booking classes') }}</p>
+  <p class="sub">{{ __t('กรอกชื่อ ชื่อเล่น และเบอร์โทรเพื่อเริ่มจองคลาสได้เลย', 'Add your name, nickname and phone number to start booking classes') }}</p>
 
   @if($customer->line_picture_url)
     <div class="text-center mb-3">
@@ -83,7 +83,7 @@
 
     <div class="row g-2">
       <div class="col-6 mb-3">
-        <label class="form-label" for="first_name">{{ __t('ชื่อ', 'First name') }} <span class="text-danger">*</span></label>
+        <label class="form-label" for="first_name">{{ __t('ชื่อจริง', 'First name') }} <span class="text-danger">*</span></label>
         <input class="form-control" type="text" id="first_name" name="first_name"
                value="{{ old('first_name', $customer->first_name) }}" required>
       </div>
@@ -95,9 +95,16 @@
     </div>
 
     <div class="mb-3">
+      <label class="form-label" for="nickname">{{ __t('ชื่อเล่น', 'Nickname') }} <span class="text-danger">*</span></label>
+      <input class="form-control" type="text" id="nickname" name="nickname"
+             value="{{ old('nickname', $customer->nickname) }}" maxlength="60" required>
+      <div class="form-text small">{{ __t('ใช้แสดงในตารางคลาสและรายชื่อเข้าเรียน', 'Shown in the class schedule and attendance list') }}</div>
+    </div>
+
+    <div class="mb-3">
       <label class="form-label" for="phone">{{ __t('เบอร์โทรศัพท์', 'Phone number') }} <span class="text-danger">*</span></label>
-      <input class="form-control" type="tel" id="phone" name="phone" value="{{ old('phone') }}"
-             inputmode="numeric" placeholder="08xxxxxxxx" required autofocus>
+      <input class="form-control" type="tel" id="phone" name="phone" value="{{ old('phone', $customer->phone) }}"
+             inputmode="numeric" placeholder="08xxxxxxxx" required>
       <div class="form-text small">{{ __t('ใช้ยืนยันตัวตนตอนเข้าคลาส และให้เจ้าหน้าที่ติดต่อกลับได้', 'Used to identify you at check-in and to let our staff reach you') }}</div>
     </div>
 

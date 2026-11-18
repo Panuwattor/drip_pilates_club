@@ -29,7 +29,7 @@
 
   <div class="row g-2">
     <div class="col-6 mb-3">
-      <label class="form-label" for="first_name">{{ __t('ชื่อ', 'First name') }}</label>
+      <label class="form-label" for="first_name">{{ __t('ชื่อจริง', 'First name') }}</label>
       <input class="form-control @error('first_name') is-invalid @enderror" id="first_name" name="first_name" value="{{ old('first_name') }}" required autofocus>
       @error('first_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
     </div>
@@ -38,6 +38,13 @@
       <input class="form-control @error('last_name') is-invalid @enderror" id="last_name" name="last_name" value="{{ old('last_name') }}">
       @error('last_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
     </div>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label" for="nickname">{{ __t('ชื่อเล่น', 'Nickname') }}</label>
+    <input class="form-control @error('nickname') is-invalid @enderror" id="nickname" name="nickname" value="{{ old('nickname') }}" maxlength="60" required>
+    @error('nickname')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    <div class="form-text small">{{ __t('ใช้แสดงในตารางคลาสและรายชื่อเข้าเรียน', 'Shown in the class schedule and attendance list') }}</div>
   </div>
 
   <div class="mb-3">

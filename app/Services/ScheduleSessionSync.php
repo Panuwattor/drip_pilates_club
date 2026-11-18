@@ -68,7 +68,7 @@ class ScheduleSessionSync
             }
 
             if ((int) $session->start_at->diffInMinutes($session->end_at) !== (int) $schedule->duration_min) {
-                $changes['end_at'] = $session->start_at->copy()->addMinutes($schedule->duration_min);
+                $changes['end_at'] = $session->start_at->copy()->addMinutes((int) $schedule->duration_min);
             }
 
             if ($changes) {

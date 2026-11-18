@@ -66,7 +66,7 @@
 
   <div class="row g-2">
     <div class="col-6 mb-3">
-      <label class="form-label" for="first_name">ชื่อ <span class="text-danger">*</span></label>
+      <label class="form-label" for="first_name">ชื่อจริง <span class="text-danger">*</span></label>
       <input class="form-control" type="text" id="first_name" name="first_name"
              value="{{ old('first_name', $customer->first_name) }}" required>
     </div>
@@ -75,6 +75,13 @@
       <input class="form-control" type="text" id="last_name" name="last_name"
              value="{{ old('last_name', $customer->last_name) }}">
     </div>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label" for="nickname">ชื่อเล่น <span class="text-danger">*</span></label>
+    <input class="form-control" type="text" id="nickname" name="nickname"
+           value="{{ old('nickname', $customer->nickname) }}" maxlength="60" required>
+    <div class="form-text small">ใช้แสดงในตารางคลาสและรายชื่อเข้าเรียน</div>
   </div>
 
   <div class="mb-3">

@@ -72,6 +72,7 @@ class LineAuthTest extends TestCase
         $customer = Customer::create([
             'code' => 'DP-00900',
             'first_name' => 'กลับมา',
+            'nickname' => 'มา',
             'phone' => '0899999001',
             'line_user_id' => 'U-known-001',
             'status' => 'active',
@@ -124,6 +125,7 @@ class LineAuthTest extends TestCase
         $this->post(route('customer.profile.complete.submit'), [
             'first_name' => 'สมชาย',
             'last_name' => 'ใจดี',
+            'nickname' => 'ชาย',
             'phone' => '081-234-5678',
         ])->assertRedirect(route('home'));
 
@@ -132,6 +134,7 @@ class LineAuthTest extends TestCase
         // เบอร์ต้องถูกล้างขีดออกให้เหลือตัวเลขล้วน
         $this->assertSame('0812345678', $customer->phone);
         $this->assertSame('สมชาย', $customer->first_name);
+        $this->assertSame('ชาย', $customer->nickname);
         $this->assertFalse($customer->needsProfileCompletion());
     }
 
@@ -169,6 +172,7 @@ class LineAuthTest extends TestCase
         // กรอกเบอร์ที่ตรงกับบัญชีเดิม -> ต้องยังไม่ผูก ต้องขอ OTP ก่อน
         $this->post(route('customer.profile.complete.submit'), [
             'first_name' => 'ลูกค้าเก่า',
+            'nickname' => 'เก่า',
             'phone' => '0812345678',
         ])->assertRedirect(route('customer.profile.complete'));
 
@@ -184,6 +188,7 @@ class LineAuthTest extends TestCase
         $original->refresh();
 
         $this->assertSame('U-merge', $original->line_user_id, 'LINE ต้องย้ายมาอยู่บัญชีเดิม');
+        $this->assertSame('เก่า', $original->nickname, 'ชื่อเล่นที่กรอกตอนรวมบัญชีต้องถูกเติมให้บัญชีเดิม');
         $this->assertNotNull($original->phone_verified_at);
         $this->assertAuthenticatedAs($original, 'customer');
 
@@ -208,6 +213,7 @@ class LineAuthTest extends TestCase
 
         $this->post(route('customer.profile.complete.submit'), [
             'first_name' => 'x',
+            'nickname' => 'x',
             'phone' => '0823456789',
         ]);
 
@@ -233,6 +239,7 @@ class LineAuthTest extends TestCase
 
         $this->post(route('customer.profile.complete.submit'), [
             'first_name' => 'คนใหม่',
+            'nickname' => 'ใหม่',
             'phone' => '0834567890',
         ])->assertSessionHasErrors('phone');
 
@@ -433,6 +440,7 @@ class LineAuthTest extends TestCase
         $customer = Customer::create([
             'code' => 'DP-00950',
             'first_name' => 'LIFF',
+            'nickname' => 'ลิฟ',
             'phone' => '0899999050',
             'line_user_id' => 'U-liff-001',
             'status' => 'active',
@@ -464,6 +472,7 @@ class LineAuthTest extends TestCase
         $customer = Customer::create([
             'code' => 'DP-00951',
             'first_name' => 'ยังไม่ผูก',
+            'nickname' => 'ผูก',
             'phone' => '0899999051',
             'status' => 'active',
             'profile_completed_at' => now(),

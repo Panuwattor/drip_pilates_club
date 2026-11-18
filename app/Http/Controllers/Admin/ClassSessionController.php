@@ -109,7 +109,7 @@ class ClassSessionController extends Controller
         }
 
         $start = \Carbon\Carbon::parse($data['start_at']);
-        $data['end_at'] = $start->copy()->addMinutes($data['duration_min']);
+        $data['end_at'] = $start->copy()->addMinutes((int) $data['duration_min']);
         unset($data['duration_min']);
 
         $session->update($data);
