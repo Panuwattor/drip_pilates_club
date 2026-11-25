@@ -48,11 +48,23 @@ class PurchaseController extends Controller
             $package->setAttribute('promo_price', $promotions->priceAfterDiscount($package, $promo));
         });
 
-        // แพ็กทดลองที่เคยซื้อไปแล้ว ซื้อซ้ำไม่ได้ ต้องบอกลูกค้าตั้งแต่หน้ารายการ
-        $purchasedOnceIds = CustomerPackage::where('customer_id', $customer->id)
-            ->whereIn('package_id', $packages->where('once_per_customer', true)->pluck('id'))
-            ->pluck('package_id')
-            ->unique();
+        // แพ็กทดลองที่ซื้อซ้ำไม่ได้แล้ว = เคยได้รับไปแล้ว หรือมีคำสั่งซื้อค้างรออนุมัติอยู่
+        // ต้องบอกลูกค้าตั้งแต่หน้ารายการ ไม่งั้นกดสั่งซ้ำได้หลายใบก่อนแอดมินอนุมัติ
+        $onceIds = $packages->where('once_per_customer', true)->pluck('id');
+
+        $issuedIds = CustomerPackage::where('customer_id', $customer->id)
+            ->whereIn('package_id', $onceIds)
+            ->pluck('package_id');
+
+        $pendingIds = Order::where('customer_id', $customer->id)
+            ->where('status', 'pending')
+            ->whereHas('items', fn ($q) => $q->whereIn('package_id', $onceIds))
+            ->with('items')
+            ->get()
+            ->flatMap(fn ($order) => $order->items->pluck('package_id'))
+            ->filter(fn ($id) => $onceIds->contains($id));
+
+        $purchasedOnceIds = $issuedIds->merge($pendingIds)->unique()->values();
 
         // แพ็กทดลองแยกหัวข้อไว้บนสุดแบบเดียวกับหน้า /packages สาธารณะ
         $trialGroup = __t('แพ็กทดลองครั้งแรก', 'First Trials');
@@ -236,11 +248,18 @@ class PurchaseController extends Controller
         }
 
         if ($package->once_per_customer) {
-            $already = CustomerPackage::where('customer_id', $customer->id)
+            // เคยได้รับแพ็กนี้ไปแล้ว (แอดมินอนุมัติแล้ว) = ซื้อซ้ำไม่ได้
+            $alreadyIssued = CustomerPackage::where('customer_id', $customer->id)
                 ->where('package_id', $package->id)
                 ->exists();
 
-            if ($already) {
+            // หรือมีคำสั่งซื้อแพ็กนี้ค้างรออนุมัติอยู่ ไม่งั้นกดสั่งซ้ำได้หลายใบก่อนแอดมินอนุมัติ
+            $pendingOrder = Order::where('customer_id', $customer->id)
+                ->where('status', 'pending')
+                ->whereHas('items', fn ($q) => $q->where('package_id', $package->id))
+                ->exists();
+
+            if ($alreadyIssued || $pendingOrder) {
                 return __t('แพ็กทดลองซื้อได้คนละครั้งเดียว', 'Trial package can only be purchased once');
             }
         }
