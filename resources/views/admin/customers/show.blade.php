@@ -81,7 +81,16 @@
       <div class="ttl">{{ __t('แพ็กเกจ', 'Packages') }}</div>
 
       @if($packages->isEmpty())
-        <div class="empty-note"><i class="bi bi-ticket-perforated"></i>{{ __t('ยังไม่มีแพ็กเกจ', 'No packages yet') }}</div>
+        <div class="empty-note">
+          <i class="bi bi-ticket-perforated"></i>{{ __t('ยังไม่มีแพ็กเกจ', 'No packages yet') }}
+          <div class="small mt-2 mb-3">
+            {{ __t('เครดิตต้องอยู่ในแพ็กเกจ ลูกค้าที่จ่ายเงินนอกเว็บ (เงินสด/โอน) ให้กด "ขายแพ็กเกจ" แล้วติ๊ก "ชำระเงินแล้ว" ระบบจะออกแพ็กและเครดิตให้ทันที',
+                   'Credits live inside a package. If the customer paid outside the website (cash/transfer), use "Sell a package" and tick "Already paid" — the package and its credits are issued at once.') }}
+          </div>
+          <a href="{{ route('admin.orders.create', ['customer' => $customer->id]) }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-cart-plus"></i> {{ __t('ขายแพ็กเกจ', 'Sell a package') }}
+          </a>
+        </div>
       @else
         <div class="table-wrap">
           <table class="table align-middle">
@@ -346,6 +355,12 @@
         <button class="btn-close" data-bs-dismiss="modal" type="button"></button>
       </div>
       <div class="modal-body">
+        <div class="alert alert-light border small py-2 mb-3">
+          <i class="bi bi-info-circle"></i>
+          {{ __t('ลูกค้าจ่ายเงินซื้อแพ็กใหม่? ใช้', 'Customer paid for a new package? Use') }}
+          <a href="{{ route('admin.orders.create', ['customer' => $customer->id]) }}">{{ __t('ขายแพ็กเกจ', 'Sell a package') }}</a>
+          {{ __t('แทน ยอดเงินจะเข้ารายงานด้วย ช่องนี้ใช้สำหรับชดเชยหรือแก้ไขเครดิต', 'instead so the payment shows in reports. This form is for compensation or corrections.') }}
+        </div>
         <div class="mb-2">
           <label class="form-label">{{ __t('แพ็กเกจ', 'Package') }} <span class="text-danger">*</span></label>
           <select class="form-select" name="customer_package_id" required>
