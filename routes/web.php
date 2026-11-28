@@ -157,7 +157,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // ลูกค้า
         Route::post('/customers/{customer}/credit', [Admin\CustomerController::class, 'adjustCredit'])->name('customers.credit');
         Route::post('/customer-packages/{customerPackage}/freeze', [Admin\CustomerController::class, 'toggleFreeze'])->name('customers.freeze');
-        Route::post('/customer-packages/{customerPackage}/extend', [Admin\CustomerController::class, 'extendPackage'])->name('customers.extend');
+        Route::post('/customer-packages/{customerPackage}/age', [Admin\CustomerController::class, 'manageAge'])->name('customers.age');
         Route::resource('customers', Admin\CustomerController::class)->except(['destroy']);
 
         // คำสั่งซื้อและการชำระเงิน

@@ -100,6 +100,14 @@ class BookingException extends Exception
             'th' => 'แพ็กนี้หมดอายุไปแล้ว ต้องขยายให้วันหมดอายุใหม่ไม่ย้อนหลัง (ใส่จำนวนวันให้มากขึ้น)',
             'en' => 'This package has already expired — the new expiry date must not be in the past. Enter more days.',
         ],
+        'invalid_validity_days' => [
+            'th' => 'จำนวนวันต้องอยู่ระหว่าง 1–3650 วัน',
+            'en' => 'Validity must be between 1 and 3650 days.',
+        ],
+        'validity_not_supported' => [
+            'th' => 'แพ็กนี้เป็นแบบนับจากวันซื้อ ตั้งอายุแบบนับจากคลาสแรกไม่ได้ ให้ใช้ปุ่มขยายอายุแทน',
+            'en' => 'This package counts from the purchase date and does not support first-use validity. Use Extend instead.',
+        ],
     ];
 
     public function localizedMessage(?string $locale = null): string

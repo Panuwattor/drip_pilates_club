@@ -9,7 +9,7 @@ use App\Models\CreditTransaction;
 use App\Models\Customer;
 use App\Models\CustomerPackage;
 use App\Models\Package;
-use App\Services\PackageExtender;
+use App\Services\PackageAgeManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -195,21 +195,29 @@ class CustomerController extends Controller
             : __t("หักเครดิต {$amount} เรียบร้อยแล้ว", "Deducted {$amount} credits"));
     }
 
-    /** ขยายอายุแพ็ก ใช้ได้ทั้งแพ็กที่ยังใช้อยู่และแพ็กที่หมดอายุแล้ว (ต่ออายุ) */
-    public function extendPackage(Request $request, CustomerPackage $customerPackage, PackageExtender $extender)
+    /**
+     * จัดการอายุแพ็ก ปุ่มเดียว 2 โหมด (หน้าลูกค้า)
+     *   - mode=set: ตั้งอายุรวมใหม่ (นับจากคลาสแรก) ลดลงก็ได้ เช่น 14 วัน
+     *   - mode=add: บวกวันเพิ่มจากเดิม ใช้ต่ออายุแพ็กที่หมดแล้วได้ (คืนเครดิตที่ถูกริบให้ด้วย)
+     */
+    public function manageAge(Request $request, CustomerPackage $customerPackage, PackageAgeManager $manager)
     {
         $data = $request->validate([
-            'days' => ['required', 'integer', 'min:1', 'max:' . PackageExtender::MAX_DAYS],
+            'mode' => ['required', 'in:set,add'],
+            'days' => ['required', 'integer', 'min:1', 'max:' . PackageAgeManager::MAX_DAYS],
             'reason' => ['required', 'string', 'max:200'],
         ], [
-            'days.required' => __t('กรุณาใส่จำนวนวันที่ต้องการขยาย', 'Please enter the number of days to extend.'),
-            'days.min' => __t('ต้องขยายอย่างน้อย 1 วัน', 'Extend by at least 1 day.'),
-            'days.max' => __t('ขยายได้ครั้งละไม่เกิน 365 วัน', 'You can extend by at most 365 days at a time.'),
+            'days.required' => __t('กรุณาใส่จำนวนวัน', 'Please enter the number of days.'),
+            'days.min' => __t('ต้องอย่างน้อย 1 วัน', 'Must be at least 1 day.'),
             'reason.required' => __t('กรุณาระบุเหตุผล', 'Please give a reason.'),
         ]);
 
+        $days = (int) $data['days'];
+
         try {
-            $package = $extender->extend($customerPackage, (int) $data['days'], $data['reason'], auth()->id());
+            $package = $data['mode'] === 'set'
+                ? $manager->setValidDays($customerPackage, $days, $data['reason'], auth()->id())
+                : $manager->addDays($customerPackage, $days, $data['reason'], auth()->id());
         } catch (BookingException $e) {
             return back()->with('error', $e->localizedMessage());
         }
@@ -218,10 +226,9 @@ class CustomerController extends Controller
             ? $package->expires_at->format('d/m/Y')
             : __t('นับจากคลาสแรก', 'from first class');
 
-        return back()->with('status', __t(
-            "ขยายอายุแพ็กเพิ่ม {$data['days']} วันแล้ว ใช้ได้ถึง {$until}",
-            "Package extended by {$data['days']} days — valid until {$until}"
-        ));
+        return back()->with('status', $data['mode'] === 'set'
+            ? __t("ตั้งอายุแพ็กเป็น {$days} วันแล้ว ใช้ได้ถึง {$until}", "Package validity set to {$days} days — valid until {$until}")
+            : __t("ขยายอายุแพ็กเพิ่ม {$days} วันแล้ว ใช้ได้ถึง {$until}", "Package extended by {$days} days — valid until {$until}"));
     }
 
     /** ฟรีซ/ยกเลิกฟรีซแพ็ก */

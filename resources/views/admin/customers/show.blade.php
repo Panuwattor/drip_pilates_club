@@ -135,16 +135,19 @@
                   </td>
                   <td class="text-end text-nowrap">
                     @if($cp->status !== 'cancelled')
-                      @php $minDays = \App\Services\PackageExtender::minimumDaysToRevive($cp); @endphp
-                      <button type="button" class="btn btn-sm {{ $cp->status === 'expired' ? 'btn-primary' : 'btn-outline-secondary' }} js-extend-package"
-                              data-bs-toggle="modal" data-bs-target="#extendModal"
-                              data-action="{{ route('admin.customers.extend', $cp) }}"
+                      @php $minDays = \App\Services\PackageAgeManager::minimumDaysToRevive($cp); @endphp
+                      <button type="button" class="btn btn-sm {{ $cp->status === 'expired' ? 'btn-primary' : 'btn-outline-secondary' }} js-manage-age"
+                              data-bs-toggle="modal" data-bs-target="#ageModal"
+                              data-action="{{ route('admin.customers.age', $cp) }}"
                               data-name="{{ $cp->package->name }} ({{ $cp->code }})"
                               data-expiry="{{ $cp->expires_at?->format('Y-m-d') }}"
+                              data-starts="{{ $cp->starts_at?->format('Y-m-d') }}"
+                              data-days="{{ $cp->totalValidDays() }}"
                               data-expired="{{ $cp->status === 'expired' ? 1 : 0 }}"
+                              data-firstuse="{{ $cp->startsOnFirstUse() ? 1 : 0 }}"
                               data-min="{{ $minDays }}"
-                              title="{{ $cp->status === 'expired' ? __t('ต่ออายุแพ็ก', 'Renew package') : __t('ขยายเวลา', 'Extend') }}">
-                        <i class="bi bi-calendar-plus"></i>
+                              title="{{ $cp->status === 'expired' ? __t('ต่ออายุแพ็ก', 'Renew package') : __t('จัดการอายุ', 'Manage validity') }}">
+                        <i class="bi bi-calendar-range"></i>
                         @if($cp->status === 'expired') {{ __t('ต่ออายุ', 'Renew') }} @endif
                       </button>
                     @endif
@@ -267,33 +270,49 @@
   </div>
 </div>
 
-{{-- ขยายอายุแพ็ก --}}
-<div class="modal fade" id="extendModal" tabindex="-1">
+{{-- จัดการอายุแพ็ก (ปุ่มเดียว 2 โหมด: ตั้งอายุใหม่ / บวกวัน) --}}
+<div class="modal fade" id="ageModal" tabindex="-1">
   <div class="modal-dialog">
-    <form class="modal-content" method="POST" action="" id="extendForm">
+    <form class="modal-content" method="POST" action="" id="ageForm">
       @csrf
+      <input type="hidden" name="mode" id="ageMode" value="set">
       <div class="modal-header">
-        <h5 class="modal-title" style="font-size:1rem;"><i class="bi bi-calendar-plus"></i> {{ __t('ขยายอายุแพ็ก', 'Extend package') }}</h5>
+        <h5 class="modal-title" style="font-size:1rem;"><i class="bi bi-calendar-range"></i> {{ __t('จัดการอายุแพ็ก', 'Manage validity') }}</h5>
         <button class="btn-close" data-bs-dismiss="modal" type="button"></button>
       </div>
       <div class="modal-body">
-        <div class="small text-secondary mb-2" id="extendName"></div>
-        <div class="alert alert-warning small py-2 d-none" id="extendExpiredNote">
-          {{ __t('แพ็กนี้หมดอายุแล้ว ขยายแล้วแพ็กจะกลับมาใช้ได้ และเครดิตที่เหลือจะคืนให้ลูกค้า', 'This package has expired. Extending it reactivates it and restores the remaining credits.') }}
+        <div class="small text-secondary mb-2" id="ageName"></div>
+
+        {{-- เลือกโหมด --}}
+        <div class="btn-group w-100 mb-3" role="group" id="ageModeGroup">
+          <input type="radio" class="btn-check" name="ageModePick" id="ageModeSet" value="set" autocomplete="off" checked>
+          <label class="btn btn-sm btn-outline-primary" for="ageModeSet">{{ __t('ตั้งอายุใหม่', 'Set validity') }}</label>
+          <input type="radio" class="btn-check" name="ageModePick" id="ageModeAdd" value="add" autocomplete="off">
+          <label class="btn btn-sm btn-outline-primary" for="ageModeAdd">{{ __t('บวกวันเพิ่ม', 'Add days') }}</label>
         </div>
+
+        {{-- คำอธิบายต่อโหมด --}}
+        <div class="alert alert-light border small py-2 mb-3" id="ageHelpSet">
+          {{ __t('ตั้งอายุรวมของแพ็กใหม่ (นับจากคลาสแรกที่ใช้) ใส่น้อยกว่าเดิมเพื่อลดอายุได้ จำนวนวันที่เคยขยาย/ฟรีซจะถูกล้างให้เท่ากับที่ตั้งใหม่พอดี',
+              'Sets the package total validity (counted from the first class). Enter a smaller number to shorten it. Any previously extended/frozen days are reset so the total equals exactly what you set.') }}
+        </div>
+        <div class="alert alert-light border small py-2 mb-3 d-none" id="ageHelpAdd">
+          {{ __t('บวกวันเพิ่มจากอายุเดิม เหมาะกับการต่ออายุ ใช้ต่ออายุแพ็กที่หมดไปแล้วได้ (แพ็กจะกลับมาใช้ได้และเครดิตที่เหลือจะคืนให้ลูกค้า)',
+              'Adds days on top of the current validity. Good for extensions; can revive an expired package (it reactivates and the remaining credits are restored).') }}
+        </div>
+        <div class="alert alert-warning small py-2 mb-3 d-none" id="ageSetUnsupported">
+          {{ __t('แพ็กนี้เป็นแบบนับจากวันซื้อ ตั้งอายุใหม่ไม่ได้ ให้ใช้โหมด "บวกวันเพิ่ม" แทน', 'This package counts from the purchase date — use "Add days" instead of "Set validity".') }}
+        </div>
+
         <div class="mb-2">
-          <label class="form-label">{{ __t('ขยายเพิ่มกี่วัน', 'Extend by (days)') }} <span class="text-danger">*</span></label>
-          <input class="form-control" type="number" name="days" id="extendDays" min="1" max="{{ \App\Services\PackageExtender::MAX_DAYS }}" required>
-          <div class="d-flex gap-1 mt-1">
-            @foreach([7, 14, 30] as $d)
-              <button type="button" class="btn btn-sm btn-outline-secondary js-extend-preset" data-days="{{ $d }}">+{{ $d }} {{ __t('วัน', 'days') }}</button>
-            @endforeach
-          </div>
-          <div class="form-text" id="extendPreview"></div>
+          <label class="form-label" id="ageDaysLabel">{{ __t('อายุทั้งหมด (วัน)', 'Validity (days)') }} <span class="text-danger">*</span></label>
+          <input class="form-control" type="number" name="days" id="ageDays" min="1" max="{{ \App\Services\PackageAgeManager::MAX_DAYS }}" required>
+          <div class="d-flex gap-1 mt-1" id="agePresets"></div>
+          <div class="form-text" id="agePreview"></div>
         </div>
         <div class="mb-2">
           <label class="form-label">{{ __t('เหตุผล', 'Reason') }} <span class="text-danger">*</span></label>
-          <input class="form-control" name="reason" maxlength="200" required placeholder="{{ __t('เช่น ลูกค้าเจ็บป่วย ขอต่ออายุ', 'e.g. customer was ill and asked for more time') }}">
+          <input class="form-control" name="reason" maxlength="200" required placeholder="{{ __t('เช่น ตั้งอายุโปรทดลอง 14 วัน / ลูกค้าเจ็บป่วยขอต่ออายุ', 'e.g. set trial validity to 14 days / customer was ill') }}">
           <div class="form-text small">{{ __t('บันทึกไว้ในประวัติเครดิตพร้อมชื่อผู้ทำรายการ และแจ้งลูกค้าในแอปให้อัตโนมัติ', 'Saved to the credit history with your name, and the customer is notified in the app.') }}</div>
         </div>
       </div>
@@ -308,37 +327,111 @@
 @push('scripts')
 <script>
 (function(){
-  var form = document.getElementById('extendForm');
-  var days = document.getElementById('extendDays');
-  var preview = document.getElementById('extendPreview');
-  var expiry = null, isTh = @json(app()->getLocale() === 'th');
+  var form = document.getElementById('ageForm');
+  var modeInput = document.getElementById('ageMode');
+  var days = document.getElementById('ageDays');
+  var preview = document.getElementById('agePreview');
+  var presets = document.getElementById('agePresets');
+  var daysLabel = document.getElementById('ageDaysLabel');
+  var helpSet = document.getElementById('ageHelpSet');
+  var helpAdd = document.getElementById('ageHelpAdd');
+  var unsupported = document.getElementById('ageSetUnsupported');
+  var modeSet = document.getElementById('ageModeSet');
+  var modeAdd = document.getElementById('ageModeAdd');
+  var isTh = @json(app()->getLocale() === 'th');
+
+  // ค่าของแพ็กที่เปิด modal อยู่
+  var ctx = { starts: null, expiry: null, total: 14, min: 1, expired: false, firstUse: true };
+
+  var MAX_ADD = {{ \App\Services\PackageAgeManager::MAX_ADD_DAYS }};
+  var MAX_SET = {{ \App\Services\PackageAgeManager::MAX_DAYS }};
 
   function fmt(d){ return ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2) + '/' + d.getFullYear(); }
+
+  function renderPresets(vals){
+    presets.innerHTML = '';
+    vals.forEach(function(v){
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'btn btn-sm btn-outline-secondary js-age-preset';
+      b.dataset.days = v;
+      b.textContent = (modeInput.value === 'add' ? '+' : '') + v + ' ' + (isTh ? 'วัน' : 'days');
+      presets.appendChild(b);
+    });
+  }
 
   function update(){
     var n = parseInt(days.value, 10);
     if (!n || n < 1) { preview.textContent = ''; return; }
-    if (!expiry) {
-      preview.textContent = isTh ? ('แพ็กยังไม่เริ่มใช้ อายุจะเพิ่ม ' + n + ' วัน นับจากคลาสแรก') : ('Not started yet — adds ' + n + ' days, counted from the first class');
-      return;
+
+    if (modeInput.value === 'set') {
+      if (!ctx.starts) {
+        preview.textContent = isTh ? ('ยังไม่เริ่มใช้ อายุ ' + n + ' วัน นับจากคลาสแรก') : ('Not started yet — valid ' + n + ' days from the first class');
+        return;
+      }
+      var d = new Date(ctx.starts.getTime()); d.setDate(d.getDate() + n);
+      var past = d < new Date(new Date().toDateString());
+      preview.textContent = (isTh ? 'วันหมดอายุใหม่: ' : 'New expiry: ') + fmt(d)
+        + (past ? (isTh ? ' — เลยวันนี้แล้ว แพ็กจะหมดอายุทันทีและริบเครดิตที่เหลือ' : ' — in the past; package expires now and remaining credits are forfeited') : '');
+    } else {
+      if (!ctx.expiry) {
+        preview.textContent = isTh ? ('แพ็กยังไม่เริ่มใช้ อายุจะเพิ่ม ' + n + ' วัน นับจากคลาสแรก') : ('Not started yet — adds ' + n + ' days, counted from the first class');
+        return;
+      }
+      var e = new Date(ctx.expiry.getTime()); e.setDate(e.getDate() + n);
+      preview.textContent = (isTh ? 'วันหมดอายุใหม่: ' : 'New expiry: ') + fmt(e);
     }
-    var d = new Date(expiry.getTime()); d.setDate(d.getDate() + n);
-    preview.textContent = (isTh ? 'วันหมดอายุใหม่: ' : 'New expiry: ') + fmt(d);
+  }
+
+  function applyMode(mode){
+    modeInput.value = mode;
+    if (mode === 'set') {
+      daysLabel.childNodes[0].nodeValue = (isTh ? 'อายุทั้งหมด (วัน) ' : 'Validity (days) ');
+      days.max = MAX_SET; days.min = 1;
+      days.value = ctx.total || 14;
+      helpSet.classList.remove('d-none'); helpAdd.classList.add('d-none');
+      unsupported.classList.toggle('d-none', ctx.firstUse);
+      renderPresets([14, 30, 90]);
+    } else {
+      daysLabel.childNodes[0].nodeValue = (isTh ? 'บวกเพิ่มกี่วัน ' : 'Add how many days ');
+      days.max = MAX_ADD; days.min = ctx.min;
+      days.value = ctx.expired ? Math.max(ctx.min, 7) : 7;
+      helpAdd.classList.remove('d-none'); helpSet.classList.add('d-none');
+      unsupported.classList.add('d-none');
+      renderPresets([7, 14, 30]);
+    }
+    update();
   }
 
   document.addEventListener('click', function(e){
-    var btn = e.target.closest('.js-extend-package');
+    var btn = e.target.closest('.js-manage-age');
     if (btn) {
       form.action = btn.dataset.action;
-      document.getElementById('extendName').textContent = btn.dataset.name;
-      document.getElementById('extendExpiredNote').classList.toggle('d-none', btn.dataset.expired !== '1');
-      expiry = btn.dataset.expiry ? new Date(btn.dataset.expiry + 'T00:00:00') : null;
-      days.min = btn.dataset.min;
-      days.value = btn.dataset.expired === '1' ? Math.max(parseInt(btn.dataset.min, 10), 7) : 7;
+      document.getElementById('ageName').textContent = btn.dataset.name;
+      ctx.starts = btn.dataset.starts ? new Date(btn.dataset.starts + 'T00:00:00') : null;
+      ctx.expiry = btn.dataset.expiry ? new Date(btn.dataset.expiry + 'T00:00:00') : null;
+      ctx.total = parseInt(btn.dataset.days, 10) || 14;
+      ctx.min = parseInt(btn.dataset.min, 10) || 1;
+      ctx.expired = btn.dataset.expired === '1';
+      ctx.firstUse = btn.dataset.firstuse === '1';
+
+      // แพ็กที่หมดอายุแล้ว เปิดมาที่โหมดบวกวัน (ต่ออายุ) ก่อน ที่เหลือเปิดโหมดตั้งอายุ
+      // แพ็กแบบนับจากวันซื้อ ตั้งอายุใหม่ไม่ได้ บังคับโหมดบวกวัน
+      var startMode = (ctx.expired || !ctx.firstUse) ? 'add' : 'set';
+      modeSet.checked = startMode === 'set';
+      modeAdd.checked = startMode === 'add';
+      applyMode(startMode);
+    }
+    var preset = e.target.closest('.js-age-preset');
+    if (preset) {
+      var v = parseInt(preset.dataset.days, 10);
+      days.value = modeInput.value === 'add' ? Math.max(v, parseInt(days.min, 10) || 1) : v;
       update();
     }
-    var preset = e.target.closest('.js-extend-preset');
-    if (preset) { days.value = Math.max(parseInt(preset.dataset.days, 10), parseInt(days.min, 10) || 1); update(); }
+  });
+
+  document.addEventListener('change', function(e){
+    if (e.target.name === 'ageModePick') { applyMode(e.target.value); }
   });
   days.addEventListener('input', update);
 })();
